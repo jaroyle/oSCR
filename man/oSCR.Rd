@@ -2,7 +2,7 @@
 \alias{oSCR}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Open SCR (oSCR) %%  ~~function to do ... ~~
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
@@ -76,6 +76,9 @@ oSCR(scrFrame, model = list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1), ssDF = NULL, costD
 %%     ~~Describe \code{nlmstepmax} here~~
 }
   \item{multicatch}{
+FALSE = fit an independent Bernoulli encounter model ("proximity
+detector" in SECR); TRUE = fit an independent multinomial encounter
+model ("multi-catch" device in SECR).
 %%     ~~Describe \code{multicatch} here~~
 }
 }

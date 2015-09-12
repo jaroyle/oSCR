@@ -2,10 +2,13 @@
 \alias{make.trapCovs}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Format trap x occasion covariates for oSCR. 
+  %%  ~~function to do ... ~~
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+This takes a simple  list-of-lists (lol) and restructures it into the
+correct format for oSCR (as a list-of-list-of-data-frames).  
+  %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
 make.trapCovs(lol)
@@ -13,7 +16,9 @@ make.trapCovs(lol)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{lol}{
-%%     ~~Describe \code{lol} here~~
+     A list of lists. e.g., lol$cov1 is a list of length nSessions where
+     lol$cov[[s]] contains the nTraps x nOcc values of "cov1" for
+     session s.
 }
 }
 \details{
@@ -47,39 +52,7 @@ make.trapCovs(lol)
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (lol) 
-{
-    ncovs <- length(lol)
-    nsessions <- length(lol[[1]])
-    cnames <- names(lol)
-    outlist <- list(rep(NULL, nsessions))
-    for (s in 1:nsessions) {
-        ntrps <- nrow(lol[[1]][[s]])
-        tmp <- matrix(NA, nrow = ntrps, ncol = ncovs)
-        for (c in 1:ncovs) {
-            tmp[, c] <- lol[[c]][[s]][, 1]
-        }
-        tmp <- data.frame(tmp)
-        colnames(tmp) <- cnames
-        outlist[[s]] <- tmp
-    }
-    if (ncovs > 1) {
-        for (s in 1:nsessions) {
-            ntrps <- nrow(lol[[1]][[s]])
-            nocc <- ncol(lol[[1]][[s]])
-            for (k in 1:nocc) {
-                tmp <- matrix(NA, nrow = ntrps, ncol = ncovs)
-                for (c in 1:ncovs) {
-                  tmp[, c] <- lol[[c]][[s]][, k]
-                }
-                tmp <- data.frame(tmp)
-                colnames(tmp) <- cnames
-                outlist[[s]][[k]] <- tmp
-            }
-        }
-    }
-    outlist
-  }
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -1146,6 +1146,8 @@ my.model.matrix <- function(form,data){
 #### andy
 ####
 idx<- outStats[,"parameters"] == "a1."
+if(sum(idx) == 0)
+idx<- ( outStats[,"parameters"] == "a1.sex1"  ) |  (outStats[,"parameters"] == "a1.sex2" ) 
 sigma<- sqrt(1/(2*exp(outStats[idx,"mle"])))
 ###
 ###

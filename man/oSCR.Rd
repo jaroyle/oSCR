@@ -2,7 +2,7 @@
 \alias{oSCR}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+oSCR%%  ~~function to do ... ~~
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
@@ -111,6 +111,28 @@ oSCR(scrFrame, model = list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1), ssDF = NULL, costD
 \examples{
 
 # Here is a test script
+make.statespace <- 
+function (ll = NULL, minx = NA, maxx = NA, miny = NA, maxy = NA, 
+    nx = 40, ny = NULL, buffer = 0,delta) 
+{
+    if (is.null(ny)) 
+        ny <- nx
+    if (!is.null(ll)) {
+        minx <- min(ll[, 1])
+        maxx <- max(ll[, 1])
+        miny <- min(ll[, 2])
+        maxy <- max(ll[, 2])
+        minx <- minx - buffer
+        maxx <- maxx + buffer
+        miny <- miny - buffer
+        maxy <- maxy + buffer
+    }
+    xgr <- seq(minx + delta/2, maxx - delta/2, delta)
+    ygr<-  seq(miny + delta/2, maxy - delta/2, delta)
+    gr<- as.matrix(expand.grid(xgr,ygr))
+    dimnames(gr)<-list(NULL,c("X","Y"))
+gr
+}
 
 set.seed(2014)
 library(scrbook)
@@ -179,7 +201,7 @@ ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buf
 if(truth=="multicatch"){
 out1 <- oSCR(scrFrame,model=list(D~1,p0~1,a1~1),ssDF=ssDF,start.vals=c(-1, log(.5), 2) ,
 plotit=FALSE, multicatch=TRUE )
-exp(out1$outStats[3,3])*nrow(ssDF2[[1]])
+exp(out1$outStats[3,3])*nrow(ssDF[[1]])
  ests1<- out1$outStats[,3]
 }else{
  ests1<- rep(NA, ifelse(with.sex,4,3))
@@ -187,7 +209,7 @@ exp(out1$outStats[3,3])*nrow(ssDF2[[1]])
 
 out1b <- oSCR(scrFrame,model=list(D~1,p0~1,a1~1),ssDF=ssDF,start.vals=c(-1,log(.5), 2) ,
 plotit=FALSE, multicatch=FALSE )
-exp(out1b$outStats[3,3])*nrow(ssDF2[[1]])
+exp(out1b$outStats[3,3])*nrow(ssDF[[1]])
 ests2<- out1b$outStats[,3]
 
 

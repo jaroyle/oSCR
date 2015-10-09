@@ -1,5 +1,5 @@
-\name{make.S}
-\alias{make.S}
+\name{make.statespace}
+\alias{make.statespace}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 %%  ~~function to do ... ~~
@@ -8,21 +8,36 @@
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-make.S(scrFrame, buffer, res, xy = NULL)
+make.statespace(ll = NULL, minx = NA, maxx = NA, miny = NA, maxy = NA, nx = 40, ny = NULL, buffer = 0, delta)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{scrFrame}{
-%%     ~~Describe \code{scrFrame} here~~
+  \item{ll}{
+%%     ~~Describe \code{ll} here~~
+}
+  \item{minx}{
+%%     ~~Describe \code{minx} here~~
+}
+  \item{maxx}{
+%%     ~~Describe \code{maxx} here~~
+}
+  \item{miny}{
+%%     ~~Describe \code{miny} here~~
+}
+  \item{maxy}{
+%%     ~~Describe \code{maxy} here~~
+}
+  \item{nx}{
+%%     ~~Describe \code{nx} here~~
+}
+  \item{ny}{
+%%     ~~Describe \code{ny} here~~
 }
   \item{buffer}{
 %%     ~~Describe \code{buffer} here~~
 }
-  \item{res}{
-%%     ~~Describe \code{res} here~~
-}
-  \item{xy}{
-%%     ~~Describe \code{xy} here~~
+  \item{delta}{
+%%     ~~Describe \code{delta} here~~
 }
 }
 \details{
@@ -56,27 +71,26 @@ make.S(scrFrame, buffer, res, xy = NULL)
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (scrFrame, buffer, res, xy = NULL) 
+function (ll = NULL, minx = NA, maxx = NA, miny = NA, maxy = NA, 
+    nx = 40, ny = NULL, buffer = 0, delta) 
 {
-    if (class(scrFrame) != "scrFrame") 
-        stop("Need an object of class scrFrame to create the state space")
-    if (is.null(xy)) 
-        xy <- c(1, 2)
-    if (res == NULL) 
-        stop("You didnt provide a resolution value!")
-    if (res == NULL) 
-        stop("You didnt provide a buffer value!")
-    S <- list()
-    trpls <- scrFrame$traps
-    for (i in 1:length(trpls)) {
-        bl <- apply(trpls[[i]][, xy], 2, min)
-        tr <- apply(trpls[[i]][, xy], 2, max)
-        sxy <- expand.grid(seq(bl[1] - buffer, tr[1] + buffer, 
-            res), seq(bl[2] - buffer, tr[2] + buffer, res))
-        dd <- apply(e2dist(sxy, trpls[[i]][, xy]), 1, min)
-        S[[i]] <- sxy[dd <= buffer, ]
+    if (is.null(ny)) 
+        ny <- nx
+    if (!is.null(ll)) {
+        minx <- min(ll[, 1])
+        maxx <- max(ll[, 1])
+        miny <- min(ll[, 2])
+        maxy <- max(ll[, 2])
+        minx <- minx - buffer
+        maxx <- maxx + buffer
+        miny <- miny - buffer
+        maxy <- maxy + buffer
     }
-    return(S)
+    xgr <- seq(minx + delta/2, maxx - delta/2, delta)
+    ygr <- seq(miny + delta/2, maxy - delta/2, delta)
+    gr <- as.matrix(expand.grid(xgr, ygr))
+    dimnames(gr) <- list(NULL, c("X", "Y"))
+    gr
   }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

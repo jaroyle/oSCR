@@ -1,0 +1,25 @@
+To build the R package, install RTools:
+http://www.murdoch-sutherland.com/Rtools/
+
+Make sure it changes your PATH. To verify, open a command prompt
+and type: PATH. It should look something like this:
+PATH=c:\Rtools\bin;c:\Rtools\perl\bin;c:\Rtools\MinGW\bin;c:\Rtools\MinGW64\bin;C:\ProgramFiles (x86)\MiKTeX 2.8\miktex\bin;C:\Program Files\R\R-2.12.1\bin\x64;ETC...
+
+Move to the scrbook directory using something like:
+cd F:\Rpackage-gSCR
+
+Now build and install the package by typing:
+R CMD build gSCR
+R CMD INSTALL gSCR_0.10.tar.gz
+
+or  to make a .zip file
+
+R CMD INSTALL gSCR_0.10.tar.gz --build
+
+
+If your path isn't set correctly you might need to do this:
+
+"c:/Program Fiels/R/R-3.0.1/bin/x64/R" CMD build gSCR
+
+and so forth
+

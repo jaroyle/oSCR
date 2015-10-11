@@ -1,4 +1,4 @@
-oSCR <-
+oSCR.fit <-
 function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = NULL,
          distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1],
          DorN = c('D','N')[1], directions = 8, Dmat = NULL, trimS = NULL, start.vals = NULL,

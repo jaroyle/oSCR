@@ -787,7 +787,7 @@ if(!is.matrix(Pm)) browser()
 
 # need to add sex specific trap level covariate coefficients.
 msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
-        alpha0 <- array(NA, c(ns, hiK, 2, 2))
+    alpha0 <- array(NA, c(ns, hiK, 2, 2))
     tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
     if(pDot & !pTime){
       tmpP <- pv[pn%in%names.p0[grep("p0.",names.p0)]]
@@ -1238,11 +1238,13 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message(" ")
 #     myfit <- suppressWarnings(nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
-     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,
+     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,hiK=hiK,
               nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T,
               stepmax=10)
   }
+  
 
+  
 ################################################################################
 #                   Post processing of the outputs etc...                      #
 ################################################################################

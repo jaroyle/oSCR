@@ -1,10 +1,10 @@
 oSCR.fit <-
 function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = NULL,
-         distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1],
-         DorN = c('D','N')[1], directions = 8, Dmat = NULL, trimS = NULL, start.vals = NULL,
-         PROJ = NULL, pxArea = 1, plotit = F, mycex = 0.5, tester = F, pl = 0,
-         nlmgradtol = 1e-6, nlmstepmax = 10, predict=FALSE, smallslow = FALSE,
-         multicatch=FALSE,hessian=T){
+         distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1], 
+         encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL, 
+         trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, 
+         mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-6, nlmstepmax = 10, 
+         predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T){
 ##NOTES: 'session' = n0 different
 ##       'Session' = betas differ too!
 ##       Reommend trimming the State space to trim value!
@@ -28,7 +28,7 @@ my.model.matrix <- function(form,data){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
 #       max.dist <- max(max.dist,max(0,dist(scrFrame$traps[[i]][where,])))
-       max.dist <- c(maxdist,max(0,dist(scrFrame$traps[[i]][where,]),na.rm=T))
+       max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,]),na.rm=T))
      }
     }
     #trimS <- 6*max.dist
@@ -73,7 +73,14 @@ my.model.matrix <- function(form,data){
       stop("error: multicatch system cannot have > 1 capture.")
    }
   }
+## ADD A CHECK FOR POISSO vs. BINOMIAL DATA RELATIVE TO SELECTED ENCOUNTER MODEL!
+  maxY <- unlist(lapply(scrFrame$caphist,max))
+  if(maxY > 1 & encmod == "B")
+      stop("caphist must be binary when using the Binomial encounter model")
 
+  if(maxY == 1 & encmod == "P")
+      stop("caphist looks binary but Poisson encounter model is selected")
+  
   pars.p0 <- NULL ; names.p0 <- NULL
   pars.a1 <- NULL ; names.a1 <- NULL
   pars.beta.trap <- NULL ; names.beta.trap <- NULL
@@ -164,6 +171,7 @@ my.model.matrix <- function(form,data){
   allvars.a1 <- allvars.a1a[!allvars.a1a=="a1"]
   var.p0.1 <- "sex" %in% allvars.p0
   var.p0.2 <- "session" %in% allvars.p0
+  var.p0.3 <- "t" %in% allvars.p0
   var.a1.1 <- "sex" %in% allvars.a1
   var.a1.2 <- "session" %in% allvars.a1
   pBehave <- "b" %in% all.vars(model[[2]])
@@ -355,6 +363,8 @@ my.model.matrix <- function(form,data){
 
 ################################################################################
 # p0: define sex and/or session specific parameters
+#  var.p0.1 <- "sex" %in% allvars.p0
+#  var.p0.2 <- "session" %in% allvars.p0
 #
 
   if("indCovs" %in% names(scrFrame)){
@@ -362,52 +372,89 @@ my.model.matrix <- function(form,data){
      anySex <- TRUE
    }
   }
+
+  tmp.a0.name1 <- "p0.int"
+  tmp.a0.name2 <- ifelse(var.p0.1,"p0.male",NA)
+  if(var.p0.2){
+   if(ns>1){
+     tmp.a0.name3 <- paste0("p0.sess",2:ns)
+   }
+  }else{
+    tmp.a0.name3 <- NA
+  }
+  if(var.p0.3){
+    tmp.a0.name4 <- paste0("p0.t",2:hiK)
+    pTime <- TRUE
+  }else{
+    tmp.a0.name4 <- NA
+  }
+  names.p0 <- c(tmp.a0.name1,tmp.a0.name2,tmp.a0.name3,tmp.a0.name4)
+  names.p0 <- names.p0[!is.na(names.p0)]
+  pars.p0 <- rep(0,length(names.p0))
+  pars.p0[1] <- qlogis(0.05)
+
   if(var.p0.1 && var.p0.2){
-    pars.p0 <- rnorm(ns*2,qlogis(0.1),0.2)#"p.ss"
-    tmpPsex <- rep(c(1,2),ns)
-    tmpPsess <- rep(1:ns,each=2)
-    names.p0 <- paste("p0.sex",tmpPsex,"session",tmpPsess,sep="")
     pBothsexnsesh <- TRUE
   }else{
    if(var.p0.1){
-     pars.p0 <- rnorm(2,qlogis(0.1),0.2)#"p.sex"
-     names.p0 <- c("p0.sex1","p0.sex2")
      pJustsex <- TRUE
    }else{
     if(var.p0.2){
-      pars.p0 <- rnorm(ns,qlogis(0.1),0.2)#"p.ses"
-      tmpPsess <- 1:ns
-      names.p0 <-  paste("p0.session",tmpPsess,sep="")
       pJustsesh <- TRUE
     }else{
-      pars.p0 <- rnorm(1,qlogis(0.1),0.2)#"p."
-      names.p0 <- c("p0.")
       pDot <- TRUE
     }
    }
   }
 
+
+#  if(var.p0.1 && var.p0.2){
+#    pars.p0 <- rnorm(ns*2,qlogis(0.1),0.2)#"p.ss"
+#    tmpPsex <- rep(c(1,2),ns)
+#    tmpPsess <- rep(1:ns,each=2)
+#    names.p0 <- paste("p0.sex",tmpPsex,"session",tmpPsess,sep="")
+#    pBothsexnsesh <- TRUE
+#  }else{
+#   if(var.p0.1){
+#     pars.p0 <- rnorm(2,qlogis(0.1),0.2)#"p.sex"
+#     names.p0 <- c("p0.sex1","p0.sex2")
+#     pJustsex <- TRUE
+#   }else{
+#    if(var.p0.2){
+#      pars.p0 <- rnorm(ns,qlogis(0.1),0.2)#"p.ses"
+#      tmpPsess <- 1:ns
+#      names.p0 <-  paste("p0.session",tmpPsess,sep="")
+#      pJustsesh <- TRUE
+#    }else{
+#      pars.p0 <- rnorm(1,qlogis(0.1),0.2)#"p."
+#      names.p0 <- c("p0.")
+#      pDot <- TRUE
+#    }
+#   }
+#  }
+#
   if(any(var.p0.1, var.a1.1) && !anySex)
    stop("Sex defined in a model but no sex data provided.")
+
 
 ################################################################################
 # p0 can vary by occasion!
 #
 
-## To do:
-##  - relax k_g = K
-##  - make the 'T' = trend work
-  var.p0.t <- "t" %in% allvars.p0
-  var.p0.T <- "T" %in% allvars.p0
-  if(var.p0.t){
-    pars.p0 <- rep(pars.p0,hiK)
-    names.p0 <- paste(rep(names.p0,each=hiK),"..t",1:hiK,sep="")
-    pTime <- TRUE
-  }
-  if(var.p0.T){
-    pars.p0 <- c(pars.p0,0)
-    names.p0 <- c(names.p0,"T.trend") ## This need working up
-  }
+### To do:
+###  - relax k_g = K
+###  - make the 'T' = trend work
+#  var.p0.t <- "t" %in% allvars.p0
+#  var.p0.T <- "T" %in% allvars.p0
+#  if(var.p0.t){
+#    pars.p0 <- rep(pars.p0,hiK)
+#    names.p0 <- paste(rep(names.p0,each=hiK),"..t",1:hiK,sep="")
+#    pTime <- TRUE
+#  }
+#  if(var.p0.T){
+#    pars.p0 <- c(pars.p0,0)
+#    names.p0 <- c(names.p0,"T.trend") ## This need working up
+#  }
   if(pBehave){
     pars.p0 <- c(pars.p0,0)
     names.p0 <- c(names.p0,"p.behav")
@@ -421,7 +468,7 @@ my.model.matrix <- function(form,data){
 
 ######### CS: attempt to fix sex:session thing
   #var.a1 = sex var.a2 = session
-  tmp.a1.name1 <- "a1"
+  tmp.a1.name1 <- "a1.int"
   tmp.a1.name2 <- ifelse(var.a1.1,"a1.male",NA)
   if(var.a1.2){
    if(ns>1){
@@ -433,7 +480,7 @@ my.model.matrix <- function(form,data){
   names.a1 <- c(tmp.a1.name1,tmp.a1.name2,tmp.a1.name3)
   names.a1 <- names.a1[!is.na(names.a1)]
   pars.a1 <- rep(0,length(names.a1))
-  pars.a1[1] <- 1/(mmdm)
+  pars.a1[1] <- log(1/(mmdm^2))
   
   if(var.a1.1 && var.a1.2){
     aBothsexnsesh <- TRUE
@@ -511,7 +558,6 @@ my.model.matrix <- function(form,data){
    }
   }
 
-
 ################################################################################
 #     Likelihood functions - these can probably be dumped somewhere else?      #
 ################################################################################
@@ -526,42 +572,54 @@ my.model.matrix <- function(form,data){
   #p0
     alpha0 <- array(NA,dim=c(ns,hiK,2))
     if(pDot & !pTime){
-      tmpP <- pv[pn%in%names.p0[grep("p0.",names.p0)]]
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
       tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
       alpha0[,,1] <- tmpP
       alpha0[,,2] <- alpha0[,,1] + tmpPB
     }
     if(pDot & pTime){
-      tmpP <- pv[pn%in%names.p0[grep("p0.",names.p0)]]
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
       tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
      for(s in 1:ns){
-      alpha0[s,,1] <- tmpP
+      alpha0[s,,1] <- tmpP + tmpT
       alpha0[s,,2] <- alpha0[s,,1] + tmpPB
      }
     }
     if(pJustsesh & !pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
+      tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep(paste("session",s,sep=""),names.p0)]]
-       tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
-       alpha0[s,,1] <- tmpP
+       alpha0[s,,1] <- tmpP + tmpSS[s]
        alpha0[s,,2] <- alpha0[s,,1] + tmpPB
      }
     }
     if(pJustsesh & pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
+      tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep(paste("session",s,sep=""),names.p0)]]
-       tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
-       alpha0[s,,1] <- tmpP
+       alpha0[s,,1] <- tmpP + tmpSS[s] + tmpT
        alpha0[s,,2] <- alpha0[s,,1] + tmpPB
      }
     }
 
   #a1
+    alpha1 <- numeric(ns)
     if(aDot){
-      alpha1 <- exp(rep(pv[pn%in%names.a1], ns))
+      tmpA <- pv[pn%in%names.a1[grep("a1.int",names.a1)]]
+      for(s in 1:ns){
+        alpha1[s] <- exp(tmpA)
+      }
     }
     if(aJustsesh){
-      alpha1 <- exp(pv[pn%in%names.a1])
+      tmpA <- pv[pn%in%names.a1[grep("a1.int",names.a1)]]
+      tmpSS <- c(0,pv[pn%in%names.a1[grep("a1.sess",names.a1)]])
+      for(s in 1:ns){
+        alpha1[s] <- exp(tmpA + tmpSS[s])
+      }
     }
 
   #trap betas
@@ -743,11 +801,20 @@ my.model.matrix <- function(form,data){
        if(trap.covs){
          a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
        }
-        probcap <- c(plogis(a0[trimR])) * exp(-alpha1[s] * D[[s]][trimR,trimC]^2)
+       if(encmod=="B")
+         probcap <- c(plogis(a0[trimR])) * exp(-alpha1[s] * D[[s]][trimR,trimC]^2)
+       if(encmod=="P")
+         probcap <- c(exp(a0[trimR])) * exp(-alpha1[s] * D[[s]][trimR,trimC]^2)
+
 # multicatch block 4
         if(!multicatch){
-         probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
-                                         probcap[1:length(Pm)],log = TRUE))
+         if(encmod=="B"){
+           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
+                                           probcap[1:length(Pm)],log = TRUE))}
+         if(encmod=="P"){
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+                                           probcap[1:length(Pm)],log = TRUE))}
+                                           
        }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -819,10 +886,11 @@ if(!is.matrix(Pm)) browser()
 
 # need to add sex specific trap level covariate coefficients.
 msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
+
     alpha0 <- array(NA, c(ns, hiK, 2, 2))
     tmpPB <- ifelse(pBehave,pv[pn%in%names.p0[grep("p.behav",names.p0)]],0)
     if(pDot & !pTime){
-      tmpP <- pv[pn%in%names.p0[grep("p0.",names.p0)]]
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
      for(s in 1:ns){
        alpha0[s,,1,1] <- tmpP
        alpha0[s,,2,1] <- tmpP
@@ -831,106 +899,115 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      }
     }
     if(pDot & pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
      for(s in 1:ns){
-      tmpP <- pv[pn%in%names.p0[grep("p0.",names.p0)]]
-      alpha0[s,,1,1] <- tmpP
-      alpha0[s,,2,1] <- tmpP
-      alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
-      alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
-     }
-    }
-    if(pJustsex & !pTime){
-     for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep("sex1",names.p0)]]
-       alpha0[s,,1,1] <- tmpP
+       alpha0[s,,1,1] <- tmpP + tmpT
+       alpha0[s,,2,1] <- tmpP + tmpT
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
-       tmpP <- pv[pn%in%names.p0[grep("sex2",names.p0)]]
-       alpha0[s,,2,1] <- tmpP
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
-    if(pJustsex & pTime){
+    if(pJustsex & !pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpS <- c(0,pv[pn%in%names.p0[grep("p0.male",names.p0)]])
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep("sex1",names.p0)]]
        alpha0[s,,1,1] <- tmpP
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
-       tmpP <- pv[pn%in%names.p0[grep("sex2",names.p0)]]
-       alpha0[s,,2,1] <- tmpP
+       alpha0[s,,2,1] <- tmpP + tmpS
+       alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB + tmpS
+     }
+    }
+    if(pJustsex & pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
+      tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
+     for(s in 1:ns){
+       alpha0[s,,1,1] <- tmpP + tmpT
+       alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
+       alpha0[s,,2,1] <- tmpP + tmpT + tmpS
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
     if(pJustsesh & !pTime){ # no sex here but still sex likelihood!
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep(paste("session",s,sep=""),names.p0)]]
-       alpha0[s,,1,1] <- tmpP
-       alpha0[s,,2,1] <- tmpP
+       alpha0[s,,1,1] <- tmpP + tmpSS[s]
+       alpha0[s,,2,1] <- alpha0[s,,1,1]
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
     if(pJustsesh & pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep(paste("session",s,sep=""),names.p0)]]
-       alpha0[s,,1,1] <- tmpP
-       alpha0[s,,2,1] <- tmpP
+       alpha0[s,,1,1] <- tmpP + tmpT + tmpSS[s]
+       alpha0[s,,2,1] <- alpha0[s,,1,1]
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
     if(pBothsexnsesh & !pTime){ # no sex here but still sex likelihood!
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
+      tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep(paste("sex1session",s,sep=""),names.p0)]]
-       alpha0[s,,1,1] <- tmpP
+       alpha0[s,,1,1] <- tmpP + tmpSS[s] 
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
-       tmpP <- pv[pn%in%names.p0[grep(paste("sex2session",s,sep=""),names.p0)]]
-       alpha0[s,,2,1] <- tmpP
+       alpha0[s,,2,1] <- tmpP + tmpSS[s] + tmpS
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
     if(pBothsexnsesh & pTime){
+      tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
+      tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
      for(s in 1:ns){
-       tmpP <- pv[pn%in%names.p0[grep(paste("sex1session",s,sep=""),names.p0)]]
-       alpha0[s,,1,1] <- tmpP
+       alpha0[s,,1,1] <- tmpP + tmpT + tmpSS[s]
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
-       tmpP <- pv[pn%in%names.p0[grep(paste("sex2session",s,sep=""),names.p0)]]
-       alpha0[s,,2,1] <- tmpP
+       alpha0[s,,2,1] <- tmpP + tmpT + tmpSS[s] + tmpS
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
 
   #a1
-    alpha1 <- matrix(NA,length(YY),2)
+    alpha1 <- matrix(NA,ns,2)
     if(aDot){
-      alpha1[] <- exp(pv[pn%in%names.a1])
+      tmpA <- pv[pn%in%names.a1[grep("a1.int",names.a1)]]
+      alpha1[] <- tmpA
     }
     if(aJustsex){
 #      alpha1[,1] <- exp(pv[pn%in%names.a1[grep("sex1",names.a1)]])
 #      alpha1[,2] <- exp(pv[pn%in%names.a1[grep("sex2",names.a1)]])
-      tmp.a1.pars <- pv[pn%in%names.a1[grep("a1",names.a1)]]
-      alpha1[,1] <- tmp.a1.pars[1]
-      alpha1[,2] <- alpha1[,1] + tmp.a1.pars[2]
-      alpha1 <- exp(alpha1)
+      tmpA <- pv[pn%in%names.a1[grep("a1.int",names.a1)]]
+      tmpS <- pv[pn%in%names.a1[grep("a1.male",names.a1)]]
+      alpha1[,1] <- tmpA
+      alpha1[,2] <- alpha1[,1] + tmpS
     }
     if(aJustsesh){ # no sex here but still sex likelihood!
-      tmp.a1.pars <- pv[pn%in%names.a1[grep("a1",names.a1)]]
+      tmpA <- pv[pn%in%names.a1[grep("a1.int",names.a1)]]
+      tmpSS <- c(0,pv[pn%in%names.a1[grep("a1.sess",names.a1)]])
      for(s in 1:ns){
-       alpha1[s,] <- sum(tmp.a1.pars[1:s])
-       alpha1 <- exp(alpha1)
+       alpha1[s,1] <- tmpA + tmpSS[s]
+       alpha1[s,2] <- alpha1[s,1]
      }
     }
     if(aBothsexnsesh){
-      tmp.a1.pars <- pv[pn%in%names.a1[grep("a1",names.a1)]]
-      a1.int <- tmp.a1.pars[1]
-      a1.sex <- tmp.a1.pars[2]
-      a1.sess <- c(0,tmp.a1.pars[-c(1:2)])
+      tmpA <- pv[pn%in%names.a1[grep("a1.int",names.a1)]]
+      tmpS <- pv[pn%in%names.a1[grep("a1.male",names.a1)]]
+      tmpSS <- c(0,pv[pn%in%names.a1[grep("a1.sess",names.a1)]])
      for(s in 1:ns){
 #      alpha1[s,1] <- exp(pv[pn%in%names.a1[grep(paste("sex1session",s,sep=""),names.a1)]])
 #      alpha1[s,2] <- exp(pv[pn%in%names.a1[grep(paste("sex2session",s,sep=""),names.a1)]])
-      alpha1[s,1] <- a1.int + a1.sess[s]
-      alpha1[s,2] <- a1.int + a1.sess[s] + a1.sex
-      alpha1 <- exp(alpha1)
+      alpha1[s,1] <- tmpA + tmpSS[s]
+      alpha1[s,2] <- alpha1[s,1] + tmpS
      }
     }
+    alpha1 <- exp(alpha1)
 
   #trap betas  (no sex effect on covariates 0 could add 'Sex' for the interaction?)
     if(trap.covs){
@@ -1117,11 +1194,19 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         if(trap.covs){
           a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
         }
-         probcap <- c(plogis(a0[trimR])) * exp(-alpha1[s,sx[i]] * D[[s]][trimR,trimC]^2)
+        if(encmod="B")
+          probcap <- c(plogis(a0[trimR])) * exp(-alpha1[s,sx[i]] * D[[s]][trimR,trimC]^2)
+        if(encmod="P")
+          probcap <- c(exp(a0[trimR])) * exp(-alpha1[s,sx[i]] * D[[s]][trimR,trimC]^2)
+
 ## Multicatch block 4
         if(!multicatch){
+         if(encmod=="B"){
           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
-                                          probcap[1:length(Pm)],log = TRUE))
+                                          probcap[1:length(Pm)],log = TRUE))}
+         if(encmod=="P"){
+          probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+                                          probcap[1:length(Pm)],log = TRUE))}
         }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -1160,10 +1245,18 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
 # multicatch block 4 repeated
         #mixture #1
-         probcap <- c(plogis(a0.1[trimR])) * exp(-alpha1[s,1] * D[[s]][trimR,trimC]^2)
+        if(encmod=="B")
+          probcap <- c(plogis(a0.1[trimR])) * exp(-alpha1[s,1] * D[[s]][trimR,trimC]^2)
+        if(encmod=="P")
+          probcap <- c(exp(a0.1[trimR])) * exp(-alpha1[s,1] * D[[s]][trimR,trimC]^2)
          if(!multicatch){
+          if(encmod=="B"){
            probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
-                                           probcap[1:length(probcap)],log = TRUE))
+                                           probcap[1:length(probcap)],log = TRUE))}
+          if(encmod=="P"){
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+                                           probcap[1:length(probcap)],log = TRUE))}
+                                           
          }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -1182,10 +1275,19 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
          Pm1[1:length(Pm1)] <- Pm1[1:length(Pm1)] + probcap[1:length(probcap)]
 
          #mixture #1
-         probcap <- c(plogis(a0.2[trimR])) * exp(-alpha1[s,2] * D[[s]][trimR,trimC]^2)
+         if(encmod=="B")
+           probcap <- c(plogis(a0.2[trimR])) * exp(-alpha1[s,2] * D[[s]][trimR,trimC]^2)
+         if(encmod=="P")
+           probcap <- c(exp(a0.2[trimR])) * exp(-alpha1[s,2] * D[[s]][trimR,trimC]^2)
+
          if(!multicatch){
+          if(encmod=="B"){
            probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
-                                           probcap[1:length(probcap)],log = TRUE))
+                                           probcap[1:length(probcap)],log = TRUE))}
+          if(encmod=="P"){
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+                                           probcap[1:length(probcap)],log = TRUE))}
+                                           
          }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -1275,8 +1377,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 #     myfit <- suppressWarnings(nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
      myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,
-              nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T,
-              stepmax=10)
+              nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T)
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
@@ -1284,8 +1385,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 #     myfit <- suppressWarnings(nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
      myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,hiK=hiK,
-              nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T,
-              stepmax=10)
+              nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T)
   }
   
 
@@ -1297,15 +1397,15 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
   links <- rep(NA,length(pn))
   pars <- myfit$estimate
-  links[grep("p0.",pn)] <- "(logit)"
-  links[grep("a1.",pn)] <- "(log)"
+  links[grep("p0.int",pn)] <- "(logit)"
+  links[grep("a1.int",pn)] <- "(log)"
   links[grep("n0.",pn)] <- "(log)"
   links[grep("d0.",pn)] <- "(exp)"
   links[grep("psi",pn)] <- "(logit)"
   links[grep("beta",pn)] <- "(Identity)"
   trans.mle <- rep(0,length(pv))
-  trans.mle[grep("p0.",pn)] <- plogis(pars[grep("p0.",pn)])
-  trans.mle[grep("a1.",pn)] <- exp(pars[grep("a1.",pn)])
+  trans.mle[grep("p0.int",pn)] <- plogis(pars[grep("p0.int",pn)])
+  trans.mle[grep("a1.int",pn)] <- exp(pars[grep("a1.int",pn)])
   trans.mle[grep("n0.",pn)] <- exp(pars[grep("n0.",pn)])
   trans.mle[grep("d0.",pn)] <- exp(pars[grep("d0.",pn)])
   trans.mle[grep("psi",pn)] <- plogis(pars[grep("psi",pn)])
@@ -1326,14 +1426,14 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     sese <- rep(rep(NA,length(pv)))
     trans.se <- rep(NA,length(pv))
   }
-  outStats <- data.frame(parameters=pn,
-              link = links,
-              mle=round(myfit$estimate,3),
-#              se = sese,
-              mle.tr = round(trans.mle,3),
-              se.tr = trans.se)
+  outStats <- data.frame( parameters=pn,
+                          link = links,
+                          mle=round(myfit$estimate,3),
+                          #se = sese,
+                          mle.tr = round(trans.mle,3),
+                          se.tr = trans.se)
   VcV <- NULL
-  idx <- outStats[,"parameters"] == "a1."
+  idx <- outStats[,"parameters"] == "a1.int"
   sigma <- sqrt(1/(2*exp(outStats[idx,"mle"])))
   if(DorN=="N"){
     ED <- (exp(pars[grep("n0.",pn)]) + unlist(lapply(scrFrame$caphist,nrow)))/areaS

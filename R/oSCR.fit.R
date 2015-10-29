@@ -21,17 +21,19 @@ my.model.matrix <- function(form,data){
   return(mdm)
 }
 # here I want to find a max obserevd movement for trimming:
-  if(is.null(trimS)){
-    max.dist <- 0
+#  if(is.null(trimS)){
+#    max.dist <- 0
+    max.dist <- NULL
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-       max.dist <- max(max.dist,max(0,dist(scrFrame$traps[[i]][where,])))
+#       max.dist <- max(max.dist,max(0,dist(scrFrame$traps[[i]][where,])))
+       max.dist <- c(maxdist,max(0,dist(scrFrame$traps[[i]][where,]),na.rm=T))
      }
     }
     #trimS <- 6*max.dist
-  }
-
+#  }
+   mmdm <- mean(max.dist,na.rm=T)
 ################################################################################
 # Some setting and checks
 #
@@ -417,31 +419,61 @@ my.model.matrix <- function(form,data){
 # NB: a1 = 1/(2 * sigma^2) | sigma = sqrt(1/2*a1)
 #
 
+######### CS: attempt to fix sex:session thing
+  #var.a1 = sex var.a2 = session
+  tmp.a1.name1 <- "a1"
+  tmp.a1.name2 <- ifelse(var.a1.1,"a1.male",NA)
+  if(var.a1.2){
+   if(ns>1){
+     tmp.a1.name3 <- paste0("a1.sess",2:ns)
+   }
+  }else{
+    tmp.a1.name3 <- NA
+  }
+  names.a1 <- c(tmp.a1.name1,tmp.a1.name2,tmp.a1.name3)
+  names.a1 <- names.a1[!is.na(names.a1)]
+  pars.a1 <- rep(0,length(names.a1))
+  pars.a1[1] <- 1/(mmdm)
+  
   if(var.a1.1 && var.a1.2){
-    pars.a1 <- rnorm(ns*2,0,0.2)#"a1.ss"
-    tmpAsex <- rep(c(1,2),ns)
-    tmpAsess <- rep(1:ns,each=2)
-    names.a1 <- paste("a1.sex",tmpAsex,"session",tmpAsess,sep="")
     aBothsexnsesh <- TRUE
   }else{
    if(var.a1.1){
-     pars.a1 <- rnorm(2,0,0.2)#"a1.sex"
-     names.a1 <- c("a1.sex1","a1.sex2")
      aJustsex <- TRUE
    }else{
     if(var.a1.2){
-      pars.a1 <- rnorm(ns,0.1,0.2)#"a1.sess"
-      tmpAsess <- 1:ns
-      names.a1 <- paste("a1.session",tmpAsess,sep="")
       aJustsesh <- TRUE
     }else{
-      pars.a1 <- rnorm(1,0,0.2)#"a1."
-      names.a1 <- c("a1.")
       aDot <- TRUE
     }
    }
   }
-
+  
+############################################### 
+#  if(var.a1.1 && var.a1.2){
+#    pars.a1 <- rnorm(ns*2,0,0.2)#"a1.ss"
+#    tmpAsex <- rep(c(1,2),ns)
+#    tmpAsess <- rep(1:ns,each=2)
+#    names.a1 <- paste("a1.sex",tmpAsex,"session",tmpAsess,sep="")
+#    aBothsexnsesh <- TRUE
+#  }else{
+#   if(var.a1.1){
+#     pars.a1 <- rnorm(2,0,0.2)#"a1.sex"
+#     names.a1 <- c("a1.sex1","a1.sex2")
+#     aJustsex <- TRUE
+#   }else{
+#    if(var.a1.2){
+#      pars.a1 <- rnorm(ns,0.1,0.2)#"a1.sess"
+#      tmpAsess <- 1:ns
+#      names.a1 <- paste("a1.session",tmpAsess,sep="")
+#      aJustsesh <- TRUE
+#    }else{
+#      cnames.a1 <- c("a1.")
+#      aDot <- TRUE
+#    }
+#   }
+#  }
+#
 
 
 ################################################################################
@@ -486,7 +518,7 @@ my.model.matrix <- function(form,data){
 
 
 ################################################################################
-# NO sex  [this can replace both 'no sex' function below!]
+# NO sex  
 #
 
   msLL.nosex <- function(pv=pv, pn=pn, YY=YY, D=D, nG=nG, nK=nK, dm.den=dm.den, dm.trap=dm.trap){
@@ -782,7 +814,7 @@ if(!is.matrix(Pm)) browser()
 
 
 ################################################################################
-# WITH sex  [this can replace both 'sex' function below!]
+# WITH sex
 #
 
 # need to add sex specific trap level covariate coefficients.
@@ -872,18 +904,31 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       alpha1[] <- exp(pv[pn%in%names.a1])
     }
     if(aJustsex){
-      alpha1[,1] <- exp(pv[pn%in%names.a1[grep("sex1",names.a1)]])
-      alpha1[,2] <- exp(pv[pn%in%names.a1[grep("sex2",names.a1)]])
+#      alpha1[,1] <- exp(pv[pn%in%names.a1[grep("sex1",names.a1)]])
+#      alpha1[,2] <- exp(pv[pn%in%names.a1[grep("sex2",names.a1)]])
+      tmp.a1.pars <- pv[pn%in%names.a1[grep("a1",names.a1)]]
+      alpha1[,1] <- tmp.a1.pars[1]
+      alpha1[,2] <- alpha1[,1] + tmp.a1.pars[2]
+      alpha1 <- exp(alpha1)
     }
     if(aJustsesh){ # no sex here but still sex likelihood!
+      tmp.a1.pars <- pv[pn%in%names.a1[grep("a1",names.a1)]]
      for(s in 1:ns){
-       alpha1[s,] <- exp(pv[pn%in%names.a1[grep(paste("session",s,sep=""),names.a1)]])
+       alpha1[s,] <- sum(tmp.a1.pars[1:s])
+       alpha1 <- exp(alpha1)
      }
     }
     if(aBothsexnsesh){
+      tmp.a1.pars <- pv[pn%in%names.a1[grep("a1",names.a1)]]
+      a1.int <- tmp.a1.pars[1]
+      a1.sex <- tmp.a1.pars[2]
+      a1.sess <- c(0,tmp.a1.pars[-c(1:2)])
      for(s in 1:ns){
-      alpha1[s,1] <- exp(pv[pn%in%names.a1[grep(paste("sex1session",s,sep=""),names.a1)]])
-      alpha1[s,2] <- exp(pv[pn%in%names.a1[grep(paste("sex2session",s,sep=""),names.a1)]])
+#      alpha1[s,1] <- exp(pv[pn%in%names.a1[grep(paste("sex1session",s,sep=""),names.a1)]])
+#      alpha1[s,2] <- exp(pv[pn%in%names.a1[grep(paste("sex2session",s,sep=""),names.a1)]])
+      alpha1[s,1] <- a1.int + a1.sess[s]
+      alpha1[s,2] <- a1.int + a1.sess[s] + a1.sex
+      alpha1 <- exp(alpha1)
      }
     }
 

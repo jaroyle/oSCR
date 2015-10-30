@@ -51,7 +51,7 @@ my.model.matrix <- function(form,data){
   if(!inherits(scrFrame,"scrFrame")){
     stop("Data must be of class 'scrFrame'")
   }
-  if(max(unlist(lapply(scrFrame$caphist,max)))>1){
+  if(encmod=="B" & max(unlist(lapply(scrFrame$caphist,max)))>1){
     stop("Data in caphist must be Binary")
   }
 
@@ -812,7 +812,7 @@ my.model.matrix <- function(form,data){
            probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                            probcap[1:length(Pm)],log = TRUE))}
          if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(Pm)],log = TRUE))}
                                            
        }else{
@@ -1194,9 +1194,9 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         if(trap.covs){
           a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
         }
-        if(encmod="B")
+        if(encmod=="B")
           probcap <- c(plogis(a0[trimR])) * exp(-alpha1[s,sx[i]] * D[[s]][trimR,trimC]^2)
-        if(encmod="P")
+        if(encmod=="P")
           probcap <- c(exp(a0[trimR])) * exp(-alpha1[s,sx[i]] * D[[s]][trimR,trimC]^2)
 
 ## Multicatch block 4
@@ -1205,7 +1205,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                           probcap[1:length(Pm)],log = TRUE))}
          if(encmod=="P"){
-          probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+          probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                           probcap[1:length(Pm)],log = TRUE))}
         }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
@@ -1254,7 +1254,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
            probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                            probcap[1:length(probcap)],log = TRUE))}
           if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(probcap)],log = TRUE))}
                                            
          }else{
@@ -1285,7 +1285,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
            probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                            probcap[1:length(probcap)],log = TRUE))}
           if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),1,
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(probcap)],log = TRUE))}
                                            
          }else{

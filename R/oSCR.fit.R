@@ -1101,7 +1101,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
        tr <- transition(costR, transitionFunction=function(x) (1/(mean(x))),
                         direction = directions)
        trLayer <- geoCorrection(tr, scl = F)
-       D[[s]] <- costDistance(trLayer,as.matrix(sess.traps[[s]]),as.matrix(sess.ss[[s]]))
+       D[[s]] <- costDistance(trLayer,as.matrix(scrFrame$traps[[s]][,c("X","Y")]),as.matrix(ssDF[[s]][,c("X","Y")]))
      }
      if(smallslow){
       if(distmet == "euc"){# add a 'else' for providing your own!

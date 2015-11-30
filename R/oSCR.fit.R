@@ -63,8 +63,9 @@ my.model.matrix <- function(form,data){
 
   if(!is.null(ssDF) & length(ssDF)!=length(scrFrame$caphist))
     stop("A 'state space' object must be provided for EACH session.")
-  if(length(scrFrame$traps)!=length(scrFrame$caphist))
-    stop("A 'traps' object must be provided for EACH session.")
+#need to provide a warning NOT an error!
+#  if(length(scrFrame$traps)!=length(scrFrame$caphist))
+#    warning("A 'traps' object must be provided for EACH session.")
 
   if(multicatch){
    for(s in 1:length(scrFrame$caphist)){

@@ -21,7 +21,7 @@
     for(i in miss.nms){
       scrFrame.sub[[i]] <- NULL
     }
-    new.nocc <- max(unlist(lapply(scrFrame.sum$caphist,function(x) dim(x)[3])))
+    new.nocc <- max(unlist(lapply(scrFrame.sub$caphist,function(x) dim(x)[3])))
     scrFrame.sub$nocc <- scrFrame$nocc
     scrFrame.sub$type <- scrFrame$type
     class(scrFrame.sub) <- "scrFrame"

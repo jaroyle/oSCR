@@ -4,7 +4,7 @@
 A function for creating a discretized state-space data object of class 'ssDF'.  
 }
 \description{
-A function for creating a discretized state-space data object of class "ssDF". The object is a list of data frames, one dataframe for each session and each has columns "X", and "Y" which are pixel coordinates. The function generates session specific state-space objects which are created based on the session specific trap locations contained in the supplied 'scrFrame'. The buffer region and the resolution of the discrete surface are user specified. The function also allows random spatially referenced covariates to be added to the ssDF; either a continous, a categorical,  "cont" and  "fact", respectively, or both).  
+A function for creating a discretized state-space data object of class "ssDF". The object is a list of data frames, one dataframe for each session and each has columns "X", and "Y" which are pixel coordinates. The function generates session specific state-space objects which are created based on the session specific trap locations contained in the supplied 'scrFrame'. The buffer region and the resolution of the discrete surface are user specified. The function also allows random spatially referenced covariates to be added to the ssDF; either a continous, a categorical,  "cont" and  "fact", respectively, or both.  
 }
 \usage{
 make.ssDF(scrFrame, buffer, res, cont.cov = F, fact.cov = F)
@@ -50,7 +50,7 @@ NA
 # simulate an scrFrame and create an associated ssDF object with no covariates:
 
 ssDF <- make.ssDF(scrFrame=sf, buffer=2, res=0.25, cont.cov = F, fact.cov = F)
-
+}
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

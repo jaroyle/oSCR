@@ -1,11 +1,11 @@
 print.oSCR.fit <-
 function(x, burn=NULL, ...) {
-
-cat(" Model: ", x$call,fill=TRUE)
-cat(" Run time: ", x$proctime,fill=TRUE)
+mod <- x$call[["model"]]
+cat(" Model: ", paste(mod)[-1],fill=TRUE)
+cat(" Run time: ", x$proctime," minutes",fill=TRUE)
 cat(" ",fill=TRUE)
 cat("-------------------------------------------------",fill=TRUE)
-cat("Summaries table of model parameters:","\n")
+cat(" Summary table of model parameters:","\n")
 
 print(x$outStats,...)
 

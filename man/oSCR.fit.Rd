@@ -13,13 +13,65 @@ oSCR.fit(scrFrame, model = list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1), ssDF = NULL, c
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{scrFrame}{
-%%     ~~Describe \code{scrFrame} here~~
+  scrFrame <- list(caphist,
+indCovs,
+traps,
+trapCovs,
+trapOperation,
+type,
+nocc)
+
+The object scrFrame is a list containing all of the named objects, which themseleves are lists containing a
+data object for each of the R session in the analysis. For example, in the analysis in the main paper, we
+considered four plots, i.e. R = 4 sessions.
+
+ caphist: A list of 3-dimaensional n × J × K arrays, one for each or the R sessions, where n is the
+number of individuals, J is the number of traps, and K is the number of sampling occasions. The array
+is filled with 1’s or 0’s that denote whether individuals were captured (1) or not (0) in each trap in
+each occasion.
+
+ indCovs: A list of data frames, one for each of the R sessions, containing individual level data. Currently,
+this data oject is only used for sex which can be male (1), female (0), or uknown (NA).
+
+ traps: A list of data frames, one for each of the R sessions, containing the coordinates of the
+traps/detectors. The data frame must have the headings X and Y. A data frame for each of R sessions
+is
+
+ trapCovs: A two level list object which is a list of lists of data frames. This list object is of length R,
+and each of the R slots in the list is itself a list of data frames containing trap level covariates. The
+objects requires a data frame for each sampling occasion which can be identical of differ by occasion,
+which allows time varying trap level effects.
+
+ trapOperation: A list of binary matrices, one for each of the R sessions, with dimension J × K. The
+matrix denotes whether a trap was operational (1) or not (0), and if not, the assocaited cells in the the
+encounter histories (i.e., in caphist) do not contiibute to the likelihood.
+
+ type: This should be set to SCR always. This option will, in the future, allow the user to provide
+data in the secr format.
+
+ nocc: An integer denoting the largest number of occasions/visits for any of the R sessions.
+
+
+IMPORTANT: While caphist, traps, type and nocc must be provided, indCovs, trapCovs and trapOperation can be
+set to ‘NULL’.
+
 }
   \item{model}{
 %%     ~~Describe \code{model} here~~
 }
   \item{ssDF}{
-%%     ~~Describe \code{ssDF} here~~
+
+A list of data frames, one for each of the R sessions, containing the
+coordinates of the state-space pixels used to approximate the landscape of
+interest. The data frame must have the headings X and Y. These data frames may
+also have named columns that represent cell-specific (i.e., spacially varying)
+covariate values.
+
+ Although the fitting function in oSCR can generate a state-space
+  object ‘on-the-fly’, we recommend that users specify the size and resolution
+  of the stat-space in order avoid any errors, but which will also unsure a
+  better understanding of the model structure. 
+
 }
   \item{costDF}{
 %%     ~~Describe \code{costDF} here~~

@@ -568,7 +568,7 @@ my.model.matrix <- function(form,data){
 # NO sex  
 #
 
-  msLL.nosex <- function(pv=pv, pn=pn, YY=YY, D=D, nG=nG, nK=nK, dm.den=dm.den, dm.trap=dm.trap){
+  msLL.nosex <- function(pv=pv, pn=pn, YY=YY, D=D, hiK=hiK, nG=nG, nK=nK, dm.den=dm.den, dm.trap=dm.trap){
 
   #p0
     alpha0 <- array(NA,dim=c(ns,hiK,2))
@@ -1377,7 +1377,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message(" ")
 #     myfit <- suppressWarnings(nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
-     myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK,dm.den=dm.den,
+     myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK, dm.den=dm.den,
                   dm.trap=dm.trap,hessian=T, print.level = print.level)
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
@@ -1385,7 +1385,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message(" ")
 #     myfit <- suppressWarnings(nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
-     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,hiK=hiK, nG=nG,nK=nK,
+     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK,
                   dm.den=dm.den,dm.trap=dm.trap,hessian=T,
                   print.level = print.level)
   }
@@ -1473,13 +1473,13 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message(paste(pn," ",sep=" | "))
      message(" ")
      myfit <- msLL.nosex(p=start.vals,pn=pn,YY=YY,D=D,
-              nG=nG,K=K,dm.den=dm.den,dm.trap=dm.trap)
+              nG=nG,K=K,hiK=hiK, dm.den=dm.den,dm.trap=dm.trap)
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
      myfit <- msLL.sex(p=start.vals,pn=pn,YY=YY,D=D,
-              nG=nG,K=K,dm.den=dm.den,dm.trap=dm.trap)
+              nG=nG,K=K, hiK=hiK, dm.den=dm.den,dm.trap=dm.trap)
   }
   return(myfit)
   }

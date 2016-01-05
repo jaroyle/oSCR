@@ -4,7 +4,7 @@ function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = 
          encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL, 
          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, 
          mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-6, nlmstepmax = 10, 
-         predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T){
+         predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T, print.level = 0){
 ##NOTES: 'session' = n0 different
 ##       'Session' = betas differ too!
 ##       Reommend trimming the State space to trim value!
@@ -1377,16 +1377,17 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message(" ")
 #     myfit <- suppressWarnings(nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
-     myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,
-              nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T)
+     myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK,dm.den=dm.den,
+                  dm.trap=dm.trap,hessian=T, print.level = print.level)
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
 #     myfit <- suppressWarnings(nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,
 #               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
-     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,hiK=hiK,
-              nG=nG,nK=nK,dm.den=dm.den,dm.trap=dm.trap,hessian=T)
+     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,hiK=hiK, nG=nG,nK=nK,
+                  dm.den=dm.den,dm.trap=dm.trap,hessian=T,
+                  print.level = print.level)
   }
   
 

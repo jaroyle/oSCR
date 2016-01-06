@@ -5,7 +5,9 @@
 oSCR.fit%%  ~~function to do ... ~~
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  This does likelihood analysis of sex-structured multi-session SCR
+  models using either Euclidean or non-Euclidean (least-cost path)
+  models.
 }
 \usage{
 oSCR.fit(scrFrame, model = list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1), ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1], sexmod = c("constant", "session")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, hessian = T)
@@ -135,6 +137,10 @@ covariate values.
 }
 }
 \details{
+  This does likelihood analysis of sex-structured multi-session SCR
+  models using either Euclidean or non-Euclidean (least-cost path)
+  models.
+  
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
@@ -145,10 +151,16 @@ covariate values.
 %% ...
 }
 \references{
-%% ~put references to the literature/web site here ~
+  Borchers and Efford 2008;
+  Royle et al. 2013;
+  Royle et al. 2014; 
+  Sutherland et al 2015;
+  Fuller et al. 2015;
+  
 }
 \author{
-%%  ~~who you are~~
+  Chris Sutherland
+  Andy Royle 
 }
 \note{
 %%  ~~further notes~~

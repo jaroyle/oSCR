@@ -2,7 +2,7 @@
 \alias{rbs}
 \docType{data}
 \title{
-%%   ~~ data name/kind ... ~~
+The red-backed salamander \emph{Plethodon cinereus} data from Sutherland \emph{et al.} (2016) \emph{Herpetologia}. 
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of the dataset. ~~

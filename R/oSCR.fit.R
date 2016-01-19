@@ -4,7 +4,8 @@ function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = 
          encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL, 
          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, 
          mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-6, nlmstepmax = 10, 
-         predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T, print.level = 0){
+         predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T, print.level = 0,
+         getStarts = FALSE){
 ##NOTES: 'session' = n0 different
 ##       'Session' = betas differ too!
 ##       Reommend trimming the State space to trim value!
@@ -27,8 +28,7 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-#       max.dist <- max(max.dist,max(0,dist(scrFrame$traps[[i]][where,])))
-       max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,]),na.rm=T))
+       max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,c("X","Y")]),na.rm=T))
      }
     }
     #trimS <- 6*max.dist
@@ -74,12 +74,12 @@ my.model.matrix <- function(form,data){
       stop("error: multicatch system cannot have > 1 capture.")
    }
   }
-## ADD A CHECK FOR POISSO vs. BINOMIAL DATA RELATIVE TO SELECTED ENCOUNTER MODEL!
+## ADD A CHECK FOR POISSON vs. BINOMIAL DATA RELATIVE TO SELECTED ENCOUNTER MODEL!
   maxY <- unlist(lapply(scrFrame$caphist,max))
-  if(maxY > 1 & encmod == "B")
+  if(any(maxY > 1) & encmod == "B")
       stop("caphist must be binary when using the Binomial encounter model")
 
-  if(maxY == 1 & encmod == "P")
+  if(all(maxY == 1) & encmod == "P")
       stop("caphist looks binary but Poisson encounter model is selected")
   
   pars.p0 <- NULL ; names.p0 <- NULL
@@ -1364,9 +1364,17 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 #                 Choosing and fitting the appropriate model                   #
 ################################################################################
 
+
+
+
 ## Fitting functions:
 ##  - msLL.nosex
 ##  - msLL.sex
+  if(getStarts==TRUE){
+    oSCR.start <- list("parameters" = pn, "values" = pv)
+    return(oSCR.start)
+  }else{
+
   if(!predict){
   message("Fitting model: D",paste(model)[1],", p0",paste(model)[2],", sigma",
            paste(model)[3],", cost",paste(model)[4], sep=" ")
@@ -1375,27 +1383,22 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message("Using ll function 'msLL.nosex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-#     myfit <- suppressWarnings(nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,
-#               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
      myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK, dm.den=dm.den,
                   dm.trap=dm.trap,hessian=T, print.level = print.level)
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-#     myfit <- suppressWarnings(nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,
-#               nG=sess.ss.nG,K=K,dm.den=dm.den,hessian=T))
      myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK,
                   dm.den=dm.den,dm.trap=dm.trap,hessian=T,
                   print.level = print.level)
   }
-  
+
 
   
 ################################################################################
 #                   Post processing of the outputs etc...                      #
 ################################################################################
-
 
   links <- rep(NA,length(pn))
   pars <- myfit$estimate
@@ -1483,6 +1486,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
   }
   return(myfit)
   }
+ }
 }
 
 

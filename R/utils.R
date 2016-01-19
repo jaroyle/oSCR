@@ -61,3 +61,87 @@ function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
         ifelse(size[1]>0, 0, 1), xpd = TRUE) 
 }
 
+
+
+
+
+#fitList - a function for creating a list of oSCR model output objects
+#          formattted as an 'oSCR.fitList' for convenient post processeing
+
+
+# x: a simple list of oSCR.fit objects
+# rename: remame objects based on the fitted model
+
+fitList <- function(x,rename=F){
+
+  if(rename==FALSE & is.null(names(x)))
+   fl.names <- 1:length(x)
+
+  if(rename==FALSE & !is.null(names(x)))
+   fl.names <- names(x)
+
+  if(rename==TRUE){
+    n1 <- paste(lapply(x,function(z) x$call$model[2]))
+    n1 <- ifelse(n1 %in% "NULL",".",n1)
+    n2 <- paste(lapply(x,function(z) x$call$model[3]))
+    n2 <- ifelse(n2 %in% "NULL",".",n2)
+    n3 <- paste(lapply(x,function(z) x$call$model[4]))
+    n3 <- ifelse(n3 %in% "NULL",".",n3)
+    n4 <- paste(lapply(x,function(z) x$call$model[5]))
+    n4 <- ifelse(n4 %in% "NULL",".",n4)
+
+    fl.names <- paste("D(",n1,") ","p(",n2,") ",
+                      "sig(",n3,") ","asu(",n4,")", sep="")
+  }
+  names(x) <- fl.names
+  class(x) <- "oSCR.fitList"
+  return(x)
+}
+
+
+
+
+
+#print.oSCR.fit - prints a summary table of an oSCR.fitList object
+# x: an oSCR.fitList
+
+print.oSCR.fitList <- function(x){
+  if(class(x) == "oSCR.fitList"){
+
+    df.out <- data.frame(model = names(x),
+                         logL = unlist(lapply(x, function(y) y$rawOutput$minimum)),
+                         K = unlist(lapply(x, function(y) length(y$rawOutput$estimate))),
+                         AIC = unlist(lapply(x, function(y) y$AIC)))
+
+    df.out$dAIC <- df.out$AIC - min(df.out$AIC)
+  }else{print(x)}
+
+  print(df.out,digits=2)
+}
+
+
+
+
+
+#modSel - a function for generating an ordered (by deltaAIC) model selection
+#         table from an 'oSCR.fitList'
+
+# x: an 'oSCR.fitList object
+
+modSel <- function(x){
+
+  if(class(x)!="oSCR.fitList")
+    stop("Object must be an oSCR.fitList")
+
+  df.out <- data.frame(model = names(x),
+                       logL = unlist(lapply(x, function(y) y$rawOutput$minimum)),
+                       K = unlist(lapply(x, function(y) length(y$rawOutput$estimate))),
+                       AIC = unlist(lapply(x, function(y) y$AIC)))
+
+  df.out$dAIC <- df.out$AIC - min(df.out$AIC)
+  (df.out <- df.out[order(df.out$dAIC),])
+  return(df.out)
+}
+
+
+

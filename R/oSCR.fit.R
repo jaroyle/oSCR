@@ -1383,15 +1383,17 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message("Using ll function 'msLL.nosex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-     myfit <- nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK, dm.den=dm.den,
-                  dm.trap=dm.trap,hessian=T, print.level = print.level)
+     myfit <- suppressWarnings(
+               nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK, dm.den=dm.den,
+                   dm.trap=dm.trap,hessian=T, print.level = print.level))
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-     myfit <- nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK,
-                  dm.den=dm.den,dm.trap=dm.trap,hessian=T,
-                  print.level = print.level)
+     myfit <- suppressWarnings(
+               nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK,
+                   dm.den=dm.den,dm.trap=dm.trap,hessian=T,
+                   print.level = print.level) )
   }
 
 
@@ -1454,6 +1456,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
                  #link = c("n0 (log)", "p0 (logit)", "a1 (log)"),
                  rawOutput = myfit,
                  outStats = outStats,
+                 coef.mle = data.frame(param = pn, mle = myfit$estimate),
                  Area = areaS,
                  ED = ED,
                  nObs = unlist(lapply(scrFrame$caphist,nrow)),

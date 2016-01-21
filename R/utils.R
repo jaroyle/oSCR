@@ -11,11 +11,6 @@ e2dist <- function (x, y)
     matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
 }
 
-
-
-
-
-
 image.scale <-
 function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks", 
     "ranges"))
@@ -62,54 +57,6 @@ function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
 }
 
 
-
-
-
-#fitList - a function for creating a list of oSCR model output objects
-#          formattted as an 'oSCR.fitList' for convenient post processeing
-
-
-# x: a simple list of oSCR.fit objects
-# rename: remame objects based on the fitted model
-
-fitList.oSCR <- function(x,rename=F, drop=NULL){
-
-  if(rename==FALSE & is.null(names(x)))
-   fl.names <- 1:length(x)
-
-  if(rename==FALSE & !is.null(names(x)))
-   fl.names <- names(x)
-
-  if(rename==TRUE){
-    n1 <- paste(lapply(x,function(z) z$call$model[2]))
-    n1 <- gsub("\\(D ~ ","",n1)
-    n1 <- gsub(")\\()","",n1)
-    n1 <- ifelse(n1 %in% c("1","NULL"),".",n1)
-    n2 <- paste(lapply(x,function(z) z$call$model[3]))
-    n2 <- gsub("\\(p0 ~ ","",n2)
-    n2 <- gsub(")\\()","",n2)
-    n2 <- ifelse(n2 %in% c("1","NULL"),".",n2)
-    n3 <- paste(lapply(x,function(z) z$call$model[4]))
-    n3 <- gsub("\\(a1 ~ ","",n3)
-    n3 <- gsub(")\\()","",n3)
-    n3 <- ifelse(n3 %in% c("1","NULL"),".",n3)
-    n4 <- paste(lapply(x,function(z) z$call$model[5]))
-    n4 <- gsub("\\(cost ~ ","",n4)
-    n4 <- gsub(")\\()","",n4)
-    n4 <- ifelse(n4 %in% c("1","NULL()"),".",n4)
-
-    fl.names <- paste("D(",n1,") ","p(",n2,") ",
-                      "sig(",n3,") ","asu(",n4,")", sep="")
-    fl.names <- gsub("session","ses",fl.names)
-  }
-  names(x) <- fl.names
-  class(x) <- "oSCR.fitList"
-  return(x)
-}
-
-
-
-
 ################################################################################
 ## PRINTING
 
@@ -138,65 +85,15 @@ print.oSCR.modSel <- function(x){
   if(class(x) == "oSCR.modSel"){
 cat(" AIC model table:",fill=TRUE)
 cat("",fill=TRUE)
-print(data.frame(model = x[[1]][,1],round(x[[1]][,-1],2)))
+print(cbind(model <- x[[1]][,1],round(x[[1]][,-1],2)))
 cat("",fill=TRUE)
 cat("",fill=TRUE)
 cat(" Table of coefficients:",fill=TRUE)
 cat("",fill=TRUE)
-print(data.frame(model = x[[2]][,1],round(x[[2]][,-1],2)))
+print(cbind(model <-x[[2]][,1],round(x[[2]][,-1],2)))
 }else{
 print(x)
 }
 }
 
-
-
-
-
-
-################################################################################
-## Summarizing
-
-
-#modSel - a function for generating an ordered (by deltaAIC) model selection
-#         table from an 'oSCR.fitList'
-
-# x: an 'oSCR.fitList object
-
-modSel.oSCR <- function(x){
-
-  if(class(x)=="oSCR.fitList"){
-  ms <- list()
-  #AIC table
-  df.out <- data.frame(model = names(x),
-                       logL = unlist(lapply(x, function(y) y$rawOutput$minimum)),
-                       K = unlist(lapply(x, function(y) length(y$rawOutput$estimate))),
-                       AIC = unlist(lapply(x, function(y) y$AIC)))
-
-  df.out$dAIC <- df.out$AIC - min(df.out$AIC)
-  df.out2 <- df.out[order(df.out$dAIC),]
-  rownames(df.out2) <- NULL
-  ms[["aic.tab"]] <- df.out2
-
-  #coefficient table
-  coef.df <- NULL
-  aic.df <- NULL
-  for(i in 1:length(x)){
-    tmp.df <- x[[i]]$coef.mle
-    tmp.df$model <- names(x)[i]
-    coef.df <- rbind(coef.df,tmp.df)
-  }
-  coef.tab <- data.frame(tapply(coef.df$mle,list(coef.df$model,coef.df$param),unique))
-  coef.tab$model <- rownames(coef.tab)
-  coef.tab <- coef.tab[,c("model",setdiff(colnames(coef.tab),"model"))]
-  rownames(coef.tab) <- NULL
-  coef.out <- merge(coef.tab,df.out[,c("model","AIC")],by="model")
-  coef.out2 <- coef.out[order(coef.out$dAIC),]
-  ms[["coef.tab"]] <- coef.out2
-  class(ms) <- "oSCR.modSel"
-  return(ms)
-  }else{
-    print("Object is not of class oSCR.fit or oSCR.fitList")
-  }
-}
 

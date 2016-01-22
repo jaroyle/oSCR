@@ -214,7 +214,46 @@ List of 2
 %%  ~~ possibly secondary sources and usages ~~
 }
 \examples{
-data(rbs)
-## maybe str(rbs) ; plot(rbs) ...
+
+################################################################################
+### Analysis of the Ithaca (NY) salamander data
+################################################################################
+ 
+  library(oSCR)
+  library(scrbook)
+  library(gdata)
+  library(raster)
+  library(rgdal)
+ 
+#######################
+#Get the data
+ 
+  data(rbs)
+  rbs.sf <- rbs$scrFrame
+  rbs.ss <- rbs$ssDF
+ 
+ 
+#######################
+#Fit some models
+ 
+  #NULL model
+  rbs.0 <- oSCR.fit(rbs.sf, list(D~1, p0~1, a1~1), rbs.ss, trimS=2)
+ 
+  #Variation in density
+  rbs.Dsite <- oSCR.fit(rbs.sf, list(D~session, p0~1, a1~1), rbs.ss, trimS=2)
+ 
+  #Variation in detectability by date and date^2
+  rbs.Pday <- oSCR.fit(rbs.sf, list(D~session, p0~day, a1~1), rbs.ss, trimS=2)
+  rbs.Pday <- oSCR.fit(rbs.sf, list(D~session, p0~day+day2, a1~1), rbs.ss, trimS=2)
+ 
+ 
+##############################
+#Summarize and compare models
+ 
+  (fl <- fitList(list(rbs.0,rbs.Dsite,rbs.Pday,rbs.Pday),rename=T))
+  (ms <- modSel.oSCR(fl))
+  ms$aic
+  ms$coef
+
 }
 \keyword{datasets}

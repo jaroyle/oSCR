@@ -25,7 +25,7 @@ sim.SCR.ms <- function(sessions=1, sex=F, sex.ratio=0.5, N = 100, K = 5,
     if(length(sigma)!=sessions) stop("check length of sigma vector")
 
     for(s in 1:sessions){
-     dat <- sim.scr(N=N[s],K=K[s],alpha0=alpha0[s], sigma=sigma[s], discard0=TRUE, array3d=TRUE)
+     dat <- sim.SCR(N=N[s],K=K[s],alpha0=alpha0[s], sigma=sigma[s], discard0=TRUE, array3d=TRUE)
      Y2d <- apply(dat$Y,c(1,2),sum)
      n0<- N-nrow(Y2d)
      caphist[[s]] <- dat$Y

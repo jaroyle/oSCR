@@ -5,7 +5,7 @@
 Simulate Multi-Session SCR data
 }
 \description{
-This function will simulate multi-session SCR encounter history data and also allows for simulation of individual sex data.}
+This function will simulate multi-session SCR encounter history data and also allows for simulation of individual sex data.
 }
 \usage{
 sim.SCR.ms(sessions = 1, sex = F, sex.ratio = 0.5, N = 100, K = 5, alpha0 = -2.5, sigma = 0.5, discard0 = TRUE, array3d = FALSE, ssRes = 0.5)

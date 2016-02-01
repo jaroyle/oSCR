@@ -11,7 +11,7 @@ nind<- sum(nx)
 
 
 expit<- function(x){
- 1/(1+exp(x))
+ 1/(1+exp(-x))
 }
 
 Mblik<- function(parms){
@@ -34,9 +34,9 @@ n0<-exp(parms[3])
 
 il<-rep(NA,K+1)
 for(k in 0:K){
-il[k+1]<-integrate( 
+il[k+1]<-integrate(
 function(x){
- dbinom(k,K,expit(mu+x) )*dnorm(x,0,sigma) 
+ dbinom(k,K,expit(mu+x) )*dnorm(x,0,sigma)
 },
 lower=-Inf,upper=Inf)$value
 }
@@ -61,7 +61,7 @@ for(k in 0:K){
 
 -1*(    lgamma(n0+nind+1) - lgamma(n0+1) + sum(c(n0,nx)*log(il)))
 }
-# want a table of M0 Mb Mt Mh1 Mh2 
+# want a table of M0 Mb Mt Mh1 Mh2
 # N SE D SE AIC  (D computed if trap grid is provied)
 # need to compute MMDM and so forth....
 
@@ -73,7 +73,7 @@ SE<- sqrt(diag(solve(tmp$hessian) ))[3]
 #SE.Dhat<- sqrt( ( (1/buffers)^2 )*SE*SE  )
 
 AIC.Mh<- 2*tmp$minimum + 2*3
- 
+
 Mh.out<- c(Nhat, SE, AIC.Mh)
 
 tmp<- nlm(Mh2lik,c(-2,0,0,0 ),hessian=TRUE)
@@ -83,7 +83,7 @@ SE<- sqrt(diag(solve(tmp$hessian) ))[4]
 #SE.Dhat<- sqrt( ( (1/buffers)^2 )*SE*SE  )
 
 AIC.Mh2<- 2*tmp$minimum + 2*3
- 
+
 Mh2.out<- c(Nhat, SE, AIC.Mh2)
 
 

@@ -856,6 +856,10 @@ if(!is.matrix(Pm)) browser()
       ll <- -1 * (part1 + part2)
       outLik <- outLik + ll
      }
+     
+     #
+     # PREDICT
+     #
      if(predict){ #needs to be ammended - currently WRONG!
        tmp.post <- matrix(NA,nG[s],nrow(Ys))
       for(i in 1:nrow(Ys)){
@@ -1334,7 +1338,11 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       }
       ll <- -1 * (part1 + part2)
       outLik <- outLik + ll
-     }
+  }
+  #
+  #
+  # PREDICT
+  #
      if(predict){ #needs to be ammended - currently WRONG!
        tmp.post <- matrix(NA,nG[s],nrow(Ys))
       for(i in 1:nrow(Ys)){

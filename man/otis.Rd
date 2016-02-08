@@ -8,12 +8,17 @@ Fit basic capture-recapture models from Otis et al. (1978) %%  ~~function to do 
 This functions fits model M0, model Mh, .... [more later]%%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-otis(y2d)
+otis(y2d,mhst=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y2d}{ nind x K (occasions) matrix of encounter histories. 
 %%     ~~Describe \code{y2d} here~~
+}
+\item{mhst}{
+(logit(p0), log(mu), log(n0)) where n0 = N - n.
+If no starting values are provided, the function does a grid search to find
+a decent starting value (this can take some time). 
 }
 }
 \details{
@@ -63,6 +68,27 @@ y<- flatten(bearArray)
 
 # Fit some basic CR models 
 otis(y)
+
+
+# A simulation study:
+
+
+N<- 100
+K<- 8
+nsims<- 20
+for(sim in 1:nsims){
+y<- matrix(y,nrow=N,ncol=K)
+for(i in 1:N){
+  p<- plogis(rnorm(1,0,-1.5))
+  y[i,]<- rbinom(K, 1, p)
+  }
+
+otis(y)
+}
+
+
+
+
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

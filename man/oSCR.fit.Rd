@@ -59,7 +59,21 @@ set to ‘NULL’.
 
 }
   \item{model}{
-%%     ~~Describe \code{model} here~~
+ This is a list with 4 components describing the SCR model. The order of
+  the components is: density model, detection model, "sigma" model and
+  least-cost path model. For example, the null model is:   list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1)
+
+  The density model can include "session" as an effect and then a
+  session-specific density is fitted.  Otherwise variables are "within
+  session" variables (i.e., covariates).
+
+  p0 can include "sex" "b" for local (trap level) behavioral response,
+  .... but not an interaction between sex and b (yet!)
+
+  a1 is the "coefficient" parameterization of sigma. i.e., :   log(p) =
+  -a1*distance^2.  Therefore a1 = 1/(2*sigma*sigma).  We aim to change
+  this soon. 
+    %%     ~~Describe \code{model} here~~
 }
   \item{ssDF}{
 

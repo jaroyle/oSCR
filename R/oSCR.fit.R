@@ -1,9 +1,9 @@
 oSCR.fit <-
 function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = NULL,
-         distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1], 
-         encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL, 
-         trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, 
-         mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-6, nlmstepmax = 10, 
+         distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1],
+         encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL,
+         trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F,
+         mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-6, nlmstepmax = 10,
          predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T, print.level = 0,
          getStarts = FALSE){
 ##NOTES: 'session' = n0 different
@@ -81,7 +81,7 @@ my.model.matrix <- function(form,data){
 
   if(all(maxY == 1) & encmod == "P")
       stop("caphist looks binary but Poisson encounter model is selected")
-  
+
   pars.p0 <- NULL ; names.p0 <- NULL
   pars.a1 <- NULL ; names.a1 <- NULL
   pars.beta.trap <- NULL ; names.beta.trap <- NULL
@@ -482,7 +482,7 @@ my.model.matrix <- function(form,data){
   names.a1 <- names.a1[!is.na(names.a1)]
   pars.a1 <- rep(0,length(names.a1))
   pars.a1[1] <- log(1/(mmdm^2))
-  
+
   if(var.a1.1 && var.a1.2){
     aBothsexnsesh <- TRUE
   }else{
@@ -496,8 +496,8 @@ my.model.matrix <- function(form,data){
     }
    }
   }
-  
-############################################### 
+
+###############################################
 #  if(var.a1.1 && var.a1.2){
 #    pars.a1 <- rnorm(ns*2,0,0.2)#"a1.ss"
 #    tmpAsex <- rep(c(1,2),ns)
@@ -565,9 +565,10 @@ my.model.matrix <- function(form,data){
 
 
 ################################################################################
-# NO sex  
+# NO sex
 #
-
+#
+#
   msLL.nosex <- function(pv=pv, pn=pn, YY=YY, D=D, hiK=hiK, nG=nG, nK=nK, dm.den=dm.den, dm.trap=dm.trap){
 
   #p0
@@ -815,7 +816,7 @@ my.model.matrix <- function(form,data){
          if(encmod=="P"){
            probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(Pm)],log = TRUE))}
-                                           
+
        }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -856,7 +857,7 @@ if(!is.matrix(Pm)) browser()
       ll <- -1 * (part1 + part2)
       outLik <- outLik + ll
      }
-     
+
      #
      # PREDICT
      #
@@ -885,6 +886,12 @@ if(!is.matrix(Pm)) browser()
   }
 
 
+#
+#
+#
+#
+#
+#
 ################################################################################
 # WITH sex
 #
@@ -960,7 +967,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
      for(s in 1:ns){
-       alpha0[s,,1,1] <- tmpP + tmpSS[s] 
+       alpha0[s,,1,1] <- tmpP + tmpSS[s]
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
        alpha0[s,,2,1] <- tmpP + tmpSS[s] + tmpS
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
@@ -1261,7 +1268,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
           if(encmod=="P"){
            probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(probcap)],log = TRUE))}
-                                           
+
          }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -1292,7 +1299,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
           if(encmod=="P"){
            probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(probcap)],log = TRUE))}
-                                           
+
          }else{
         probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
@@ -1405,7 +1412,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
   }
 
 
-  
+
 ################################################################################
 #                   Post processing of the outputs etc...                      #
 ################################################################################

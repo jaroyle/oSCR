@@ -5,7 +5,10 @@
 make.trapCovs%%  ~~function to do ... ~~
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+This function takes a sensible "list of lists" format for covariates and
+converts it to the bizarre and unwiedly oSCR format.
+This will be internalized at some point but for now we suggest to use
+this function for convenience. 
 }
 \usage{
 make.trapCovs(lol)
@@ -13,13 +16,19 @@ make.trapCovs(lol)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{lol}{
-%%     ~~Describe \code{lol} here~~
+A list of lists.
 }
 }
 \details{
+  lol should be a list of lists where lol[[i]] is itself a LIST
+  representing covariate i for each session. Thus lol[[i]][[s]] should
+  be a J (traps) x K (occasions) matrix of covariate i for session s
+  
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
+  This is indescribable. But it can be input as the trapCovs argument to
+  the scrFrame.  
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
@@ -30,7 +39,7 @@ make.trapCovs(lol)
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Andy Royle %%  ~~who you are~~
 }
 \note{
 %%  ~~further notes~~
@@ -42,44 +51,35 @@ make.trapCovs(lol)
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
 
-## The function is currently defined as
-function (lol) 
-{
-    ncovs <- length(lol)
-    nsessions <- length(lol[[1]])
-    cnames <- names(lol)
-    outlist <- list(rep(NULL, nsessions))
-    for (s in 1:nsessions) {
-        ntrps <- nrow(lol[[1]][[s]])
-        tmp <- matrix(NA, nrow = ntrps, ncol = ncovs)
-        for (c in 1:ncovs) {
-            tmp[, c] <- lol[[c]][[s]][, 1]
-        }
-        tmp <- data.frame(tmp)
-        colnames(tmp) <- cnames
-        outlist[[s]] <- tmp
-    }
-    if (ncovs > 1) {
-        for (s in 1:nsessions) {
-            ntrps <- nrow(lol[[1]][[s]])
-            nocc <- ncol(lol[[1]][[s]])
-            for (k in 1:nocc) {
-                tmp <- matrix(NA, nrow = ntrps, ncol = ncovs)
-                for (c in 1:ncovs) {
-                  tmp[, c] <- lol[[c]][[s]][, k]
-                }
-                tmp <- data.frame(tmp)
-                colnames(tmp) <- cnames
-                outlist[[s]][[k]] <- tmp
-            }
-        }
-    }
-    outlist
-  }
+
+# load peromyscus data (not yet available)
+# o$am.effect is a vector of length 10 , binary indicator
+
+am<- matrix( o$am.effect, nrow=J,ncol=K,byrow=FALSE)
+#might not work if there's only one covariate...
+weird<-  list(am=list(am),am2=list(am))
+weird<-  make.trapCovs(weird)
+
+scrFrame <- list(  
+  caphist=list(y3d), 
+  indCovs=NULL,
+  traps=list(data.frame(traps)) ,
+  trapCovs=weird,
+  trapOperation=list(to),
+  type="scr",
+  nocc = K)
+class(scrFrame)<- "scrFrame"
+
+
+# grizzly bear example has 5 sessions and jul.lst and dur.lst are
+# lists of length 5 
+lol<- list(jul=jul.lst, dur=dur.lst)
+tmp<-make.trapCovs(lol)
+
+
+
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

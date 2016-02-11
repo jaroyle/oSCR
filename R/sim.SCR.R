@@ -3,7 +3,7 @@ sim.SCR <- function (N = 100, K = 20, alpha0 = -2.5, sigma = 0.5, discard0 = TRU
 
     if (is.null(traps_in)){
       traplocs <- expand.grid(X=seq(1,trap_dim[1],by=1),Y=seq(1,trap_dim[2],by=1))
-    } else {trapslocs <- traps_in}
+    } else {traplocs <- traps_in}
     ntraps <- nrow(traplocs)
     buffer <- 2
     Xl <- min(traplocs[, 1] - buffer)

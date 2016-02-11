@@ -177,18 +177,18 @@ for(i in 1:nrow(y2d)){
  
 
 if(is.null(mhst)){
-mug<- seq(-4, 1, 1)
+cat("doing a grid search to find starting values for model Mh, this can take awhile", fill=TRUE)
+mug<- seq(-3, 1, 1)
 sig<- seq(-3, 2, 0.5)
-n0<- seq(0.1, 4.5, 0.6)
+n0<- seq(0.1, 3.5, 0.6)
 gr<-as.matrix(expand.grid(mug, sig, n0))
 
 out<- matrix(NA,nrow=nrow(gr),ncol=4)
 for(s in 1:nrow(gr)){
-  cat("iter: ",s,fill=TRUE)
+###  cat("iter: ",s,fill=TRUE)
   out[s,]<- c(gr[s,],Mhlik(gr[s,], y2d=y2d))
 
 }
-
 mhst<- out[out[,4]==min(out[,4]), 1:3]
 }
 

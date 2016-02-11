@@ -1,8 +1,8 @@
 sim.SCR <- function (N = 100, K = 20, alpha0 = -2.5, sigma = 0.5, discard0 = TRUE,
-    array3d = FALSE, ssRes = 0.5, trap_dim = c(5,5), traps_in = NULL){
+    array3d = FALSE, ssRes = 0.5, traps_dim = c(5,5), traps_in = NULL){
 
     if (is.null(traps_in)){
-      traplocs <- expand.grid(X=seq(1,trap_dim[1],by=1),Y=seq(1,trap_dim[2],by=1))
+      traplocs <- expand.grid(X=seq(1,traps_dim[1],by=1),Y=seq(1,traps_dim[2],by=1))
     } else {traplocs <- traps_in}
     ntraps <- nrow(traplocs)
     buffer <- 2

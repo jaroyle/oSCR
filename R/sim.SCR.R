@@ -1,8 +1,9 @@
 sim.SCR <- function (N = 100, K = 20, alpha0 = -2.5, sigma = 0.5, discard0 = TRUE,
-    array3d = FALSE, ssRes = 0.5){
+    array3d = FALSE, ssRes = 0.5, trap_dim = c(5,5), traps.in = NULL){
 
-    traplocs <- cbind(sort(rep(1:5, 5)), rep(1:5, 5))
-    Dmat <- e2dist(traplocs, traplocs)
+    if (is.null(traps_in)){
+      traplocs <- expand.grid(X=seq(1,trap_dim[1],by=1),Y=seq(1,trap_dim[2],by=1))
+    }
     ntraps <- nrow(traplocs)
     buffer <- 2
     Xl <- min(traplocs[, 1] - buffer)

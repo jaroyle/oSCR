@@ -75,15 +75,16 @@ otis(y)
 
 N<- 100
 K<- 8
-nsims<- 20
+nsims<- 1
 for(sim in 1:nsims){
-y<- matrix(y,nrow=N,ncol=K)
+y<- matrix(0,nrow=N,ncol=K)
 for(i in 1:N){
-  p<- plogis(rnorm(1,0,-1.5))
+  p<- plogis(rnorm(1,-1.85, 0.5))
   y[i,]<- rbinom(K, 1, p)
   }
 
-otis(y)
+y<- y[apply(y,1,sum)>0,]
+otis(y, cov=c(1,1,1,1,0,0,0,0))
 }
 
 

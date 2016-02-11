@@ -564,6 +564,32 @@ my.model.matrix <- function(form,data){
 ################################################################################
 
 
+if(pBehave){
+    prevcap<- list()
+
+    for(s in 1:length(YY)){
+      Ys <- YY[[s]]
+
+     prevcap[[s]] <- array(0, dim=c(dim(Ys)[1],dim(Ys)[2],dim(Ys)[3]))
+       first<- matrix(0,dim(Ys)[1],dim(Ys)[2])
+      for(i in 1:dim(Ys)[1]){
+       for(j in 1:dim(Ys)[2]){
+        if(sum(Ys[i,j,])>0){
+          first[i,j]<- min((1:(dim(Ys)[3]))[Ys[i,j,]>0] )
+          prevcap[[s]][i,j,1:first[i,j]]<- 0
+        if(first[i,j] < dim(Ys)[3])
+          prevcap[[s]][i,j,(first[i,j]+1):(dim(Ys)[3])] <- 1
+        }
+       }
+      }
+       zeros <- array(0,c(1,dim(prevcap[[s]])[2],dim(prevcap[[s]])[3]))
+       prevcap[[s]] <- abind(prevcap[[s]],zeros,along=1)
+   }
+
+   }
+
+
+
 ################################################################################
 # NO sex
 #
@@ -670,22 +696,8 @@ my.model.matrix <- function(form,data){
   # calculate likelihood
     for(s in 1:length(YY)){
       Ys <- YY[[s]]
-     if(pBehave){
-       prevcap <- array(0, dim=c(dim(Ys)[1],dim(Ys)[2],dim(Ys)[3]))
-       first<- matrix(0,dim(Ys)[1],dim(Ys)[2])
-      for(i in 1:dim(Ys)[1]){
-       for(j in 1:dim(Ys)[2]){
-        if(sum(Ys[i,j,])>0){
-          first[i,j]<- min((1:(dim(Ys)[3]))[Ys[i,j,]>0] )
-          prevcap[i,j,1:first[i,j]]<- 0
-        if(first[i,j] < dim(Ys)[3])
-          prevcap[i,j,(first[i,j]+1):(dim(Ys)[3])] <- 1
-        }
-       }
-      }
-       zeros <- array(0,c(1,dim(prevcap)[2],dim(prevcap)[3]))
-       prevcap <- abind(prevcap,zeros,along=1)
-     }
+
+
 
 # multicatch block 1 [looks like not needed]
      if(!multicatch){
@@ -796,7 +808,7 @@ my.model.matrix <- function(form,data){
         Pm <-  matrix(0,sum(trimR),sum(trimC))
       for(k in 1:nK[s]){
        if(pBehave){
-         a0 <- alpha0[s,k,1] * (1-c(prevcap[i,,k])) + alpha0[s,k,2] * c(prevcap[i,,k])
+         a0 <- alpha0[s,k,1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,2] * c(prevcap[[s]][i,,k])
        }else{
          a0 <- rep(alpha0[s,k,1],nrow(D[[s]]))
        }
@@ -1074,22 +1086,24 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      if(predict)
       tmp.post <- matrix(NA,nG[s],nrow(Ys))
 
-     if(pBehave){
-       prevcap <- array(0, dim=c(dim(Ys)[1],dim(Ys)[2],dim(Ys)[3]))
-       first<- matrix(0,dim(Ys)[1],dim(Ys)[2])
-      for(i in 1:dim(Ys)[1]){
-       for(j in 1:dim(Ys)[2]){
-        if(sum(Ys[i,j,])>0){
-          first[i,j]<- min((1:(dim(Ys)[3]))[Ys[i,j,]>0] )
-          prevcap[i,j,1:first[i,j]]<- 0
-        if(first[i,j] < dim(Ys)[3])
-          prevcap[i,j,(first[i,j]+1):(dim(Ys)[3])] <- 1
-        }
-       }
-      }
-       zeros <- array(0,c(1,dim(prevcap)[2],dim(prevcap)[3]))
-       prevcap <- abind(prevcap,zeros,along=1)
-     }
+      # andy comment this out 2/11 2016
+#     if(pBehave){
+#       prevcap <- array(0, dim=c(dim(Ys)[1],dim(Ys)[2],dim(Ys)[3]))
+#       first<- matrix(0,dim(Ys)[1],dim(Ys)[2])
+#      for(i in 1:dim(Ys)[1]){
+#       for(j in 1:dim(Ys)[2]){
+#        if(sum(Ys[i,j,])>0){
+#          first[i,j]<- min((1:(dim(Ys)[3]))[Ys[i,j,]>0] )
+#          prevcap[i,j,1:first[i,j]]<- 0
+#        if(first[i,j] < dim(Ys)[3])
+#          prevcap[i,j,(first[i,j]+1):(dim(Ys)[3])] <- 1
+#        }
+#       }
+#      }
+#       zeros <- array(0,c(1,dim(prevcap)[2],dim(prevcap)[3]))
+#       prevcap <- abind(prevcap,zeros,along=1)
+#     }
+
 # multicatch block 1 [not needed]
      if(!multicatch){
        zeros <- array(0,c(1,dim(Ys)[2],dim(Ys)[3]))
@@ -1199,7 +1213,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       if(!is.na(sx[i])){
        for(k in 1:nK[s]){
         if(pBehave){
-          a0 <- alpha0[s,k,sx[i],1] * (1-c(prevcap[i,,k])) + alpha0[s,k,sx[i],2] * c(prevcap[i,,k])
+          a0 <- alpha0[s,k,sx[i],1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,sx[i],2] * c(prevcap[[s]][i,,k])
         }else{
           a0 <- rep(alpha0[s,k,sx[i],1],nrow(D[[s]]))
         }
@@ -1244,8 +1258,8 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       }else{
        for(k in 1:nK[s]){
         if(pBehave){
-          a0.1 <- alpha0[s,k,1,1] * (1-c(prevcap[i,,k])) + alpha0[s,k,1,2] * c(prevcap[i,,k])
-          a0.2 <- alpha0[s,k,2,1] * (1-c(prevcap[i,,k])) + alpha0[s,k,2,2] * c(prevcap[i,,k])
+          a0.1 <- alpha0[s,k,1,1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,1,2] * c(prevcap[[s]][i,,k])
+          a0.2 <- alpha0[s,k,2,1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,2,2] * c(prevcap[[s]][i,,k])
         }else{
           a0.1 <- rep(alpha0[s,k,1,1],nrow(D[[s]]))
           a0.2 <- rep(alpha0[s,k,2,1],nrow(D[[s]]))
@@ -1506,5 +1520,3 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
   }
  }
 }
-
-

@@ -164,10 +164,10 @@ my.model.matrix <- function(form,data){
   var.p0.1 <- "sex" %in% allvars.p0
   var.p0.2 <- "session" %in% allvars.p0
   var.p0.3 <- "t" %in% allvars.p0
-  var.p0.4 <- any(c("sex:session", "session:sex") %in% attr(terms(mod[[2]]),"term.labels"))
+  var.p0.4 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[2]]),"term.labels"))
   var.a1.1 <- "sex" %in% allvars.a1
   var.a1.2 <- "session" %in% allvars.a1
-  var.a1.3 <- any(c("sex:session", "session:sex") %in% attr(terms(mod[[2]]),"term.labels"))
+  var.a1.3 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[2]]),"term.labels"))
   pBehave <- "b" %in% all.vars(model[[2]])
 
   allvars.dist <- all.vars(model[[4]])

@@ -555,7 +555,9 @@ my.model.matrix <- function(form,data){
    if(length(pv)==length(start.vals)){
      pv <- start.vals
    }else{
-   message("The starting values provided are not the required length, using generated values")
+   message("The number of starting values provided doesnt match the \n
+           number of parameters in the model. Randomly generated values \n
+           are being used. Use getStarts = T to get correct length.")
    }
   }
 
@@ -1200,7 +1202,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
          main=paste("Session:",s," Individual: ",i," traps: ",sum(pp),sep=" "))
          points(ssDF[[s]][trimC,c("X","Y")],pch=16,col=2,cex=mycex)
          points(ssDF[[s]][trimC,],pch=16,col=2,cex=mycex)
-         points(scrFrame$traps[[s]][trimR,c("X","Y")],pch=3,col=4,cex=mycex,lwd=mycex,)
+         points(scrFrame$traps[[s]][trimR,c("X","Y")],pch=3,col=4,cex=mycex,lwd=mycex)
          points(scrFrame$traps[[s]][pp,c("X")],scrFrame$traps[[s]][pp,c("Y")],pch=16,col=3,cex=1.5)
        }
        #################################
@@ -1392,9 +1394,6 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 ################################################################################
 #                 Choosing and fitting the appropriate model                   #
 ################################################################################
-
-
-
 
 ## Fitting functions:
 ##  - msLL.nosex

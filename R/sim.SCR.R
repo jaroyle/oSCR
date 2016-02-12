@@ -1,9 +1,9 @@
 sim.SCR <- function (N = 100, K = 20, alpha0 = -2.5, sigma = 0.5, discard0 = TRUE,
-    array3d = FALSE, ssRes = 0.5, traps_dim = c(5,5), traps_in = NULL, buffer = NULL){
+    array3d = FALSE, ssRes = 0.5, traps_dim = c(5,5), traplocs = NULL, buffer = NULL){
 
-    if (is.null(traps_in)){
+    if (is.null(traplocs)){
       traplocs <- expand.grid(X=seq(1,traps_dim[1],by=1),Y=seq(1,traps_dim[2],by=1))
-    } else {traplocs <- traps_in}
+    }
     ntraps <- nrow(traplocs)
     if (is.null(buffer)){buffer <- sigma*4}
     Xl <- min(traplocs[, 1] - buffer)

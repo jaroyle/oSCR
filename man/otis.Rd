@@ -2,27 +2,34 @@
 \alias{otis}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Fit basic capture-recapture models from Otis et al. (1978) %%  ~~function to do ... ~~
+Fit some basic capture-recapture models based on Otis et al. (1978) %%  ~~function to do ... ~~
 }
 \description{
-This functions fits model M0, model Mh, .... [more later]%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+This functions fits models M0, Mt, Mh, and Mb and variations of those
+models. 
 }
 \usage{
-otis(y2d,mhst=NULL)
+otis(y2d,mhst=NULL, cov=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{y2d}{ nind x K (occasions) matrix of encounter histories. 
-%%     ~~Describe \code{y2d} here~~
+  \item{y2d}{ nind x K (occasions) matrix of encounter histories.  A
+    standard closed population capture-recapture data set. 
 }
-\item{mhst}{
+\item{mhst}{ Starting values for the logit-normal model Mh in order:
 (logit(p0), log(mu), log(n0)) where n0 = N - n.
 If no starting values are provided, the function does a grid search to find
 a decent starting value (this can take some time). 
 }
+\item{cov}{  This is a K x 1 vector of some covariate that might explain
+  variation in detection probability over time. e.g., a linear trend
+  covariate or weather conditions.  If supplied then models which
+  include this covariate will be fitted. 
+  }
 }
 \details{
-Fits model M0 and two versions of model Mh: the logit-normal model and a
+
+  Fits model M0 and two versions of model Mh: the logit-normal model and a
 two-point finite mixture model.
 
 Will add model Mb and model Mt and possibly others. 
@@ -51,10 +58,8 @@ Otis et al. (1978)
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
 
+# see also ?peromyscus 
 library(scrbook)
 data(beardata)
 trapmat<-beardata$trapmat

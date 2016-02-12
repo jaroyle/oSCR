@@ -52,7 +52,7 @@ if(behave==FALSE & !is.null(cov)){
 
 N<-nind + n0
 y0<- rbind(y2d, rep(0,K))
-llik<- rep(NA,nrow(y2d)+1    ) 
+llik<- rep(NA,nrow(y2d)+1    )
 for(i in 1:nrow(y0)){
    llik[i]<- sum(dbinom(y0[i,],1,p[i,],log=TRUE))
 }
@@ -65,7 +65,7 @@ M0lik<- function(parms){
  N<-nind + n0
  y0<- rbind(y2d, rep(0,K))
  p<- rbind(p, rep(expit(parms[1]), K) )
- llik<- rep(NA,nrow(y2d)+1    ) 
+ llik<- rep(NA,nrow(y2d)+1    )
  for(i in 1:nrow(y0)){
      llik[i]<- sum(dbinom(y0[i,],1,p[i,],log=TRUE))
   }
@@ -108,7 +108,7 @@ mu<- parms[1]
 sigma<-exp(parms[2])
 n0<-exp(parms[3])
 K<- ncol(y2d)
- 
+
 nind<- nrow(y2d)
 
 # add a row of zeros onto the matrix
@@ -120,10 +120,10 @@ nind<- nrow(y2d)
 # (note: the "integrate" function doesn't work either..... )
 for(i in 1:nrow(y2d) ){
  ym <- as.vector(y2d[i,])
- eta.gr<- seq(-8,8,.1) 
+ eta.gr<- seq(-8,8,.1)
  f <-  function(eta, sig = sigma){
            #dbinom( sum(ym),K, expit(mu+eta), log=FALSE)*dnorm(eta,0,sig)
-          apply(sapply(expit(mu+eta), dbinom, x = ym, size = 1),2,prod) * dnorm(eta,0,sig)        
+          apply(sapply(expit(mu+eta), dbinom, x = ym, size = 1),2,prod) * dnorm(eta,0,sig)
      }
   f.gr<- f(eta.gr)
   # Marginal likelihood right here:
@@ -174,7 +174,7 @@ for(i in 1:nrow(y2d)){
 
 -1*(    lgamma(n0+nind+1) - lgamma(n0+1) + sum(c(rep(1,nind), n0)*log(il)))
 }
- 
+
 
 if(is.null(mhst)){
 cat("doing a grid search to find starting values for model Mh, this can take awhile", fill=TRUE)
@@ -192,7 +192,7 @@ for(s in 1:nrow(gr)){
 mhst<- out[out[,4]==min(out[,4]), 1:3]
 }
 
- 
+
 
 # want a table of M0 Mb Mt Mh1 Mh2
 # N SE D SE AIC  (D computed if trap grid is provied)
@@ -226,7 +226,7 @@ AIC.Mh<- 2*tmp$minimum + 2*3
 Mh.out<- c(tmp$minimum, length(tmp$estimate), Nhat, SE, AIC.Mh)
 Mh.parms<- tmp$estimate
 
- 
+
 
 mh2st<-c(log(phat/(1-phat)), log(phat/(1-phat))-1, 0, log(n0hat))
 tmp<- nlm(Mh2lik,mh2st,y2d=y2d, hessian=TRUE)
@@ -257,8 +257,8 @@ AIC.Mcov<- 2*tmp$minimum + 2*3
 Mcov.out<- c(tmp$minimum, length(tmp$estimate), Nhat, SE, AIC.Mcov)
 Mcov.parms<- tmp$estimate
 }else{
-Mbcov.out<- c(NULL, NULL, NULL, NULL, NULL)
-Mbcov.parms<- rep(NULL, 4)
+Mcov.out<- rep(NA, 5)
+Mcov.parms<- rep(NA, 3)
 }
 
 ## model Mb
@@ -289,16 +289,11 @@ AIC.Mbcov<- 2*tmp$minimum + 2*4
 Mbcov.out<- c(tmp$minimum, length(tmp$estimate), Nhat, SE, AIC.Mbcov)
 Mbcov.parms<- tmp$estimate
 }else{
-Mbcov.out<- c(NULL, NULL, NULL, NULL, NULL)
-Mbcov.parms<- rep(NULL, 4)
+Mbcov.out<- rep(NA, 5)
+Mbcov.parms<- rep(NA, 4)
 }
 
-M0.parms
-Mh.parms
-Mh2.parms
-Mcov.parms
-Mb.parms
-Mbcov.parms
+
 names(M0.parms) <-   c("mu","n0")
 names(Mh.parms) <-   c("mu","logsigma","n0")
 names(Mh2.parms)<-   c("mu1","mu2","logit(psi)","n0")

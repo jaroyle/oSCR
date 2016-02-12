@@ -12,7 +12,7 @@ function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = 
 
 
 ################################################################################
-#                            Setting thing up!                                 #
+#                            Setting things up!                                 #
 ################################################################################
 
 # this is a function that make design matrices that are fully 'contrast' parameterizations

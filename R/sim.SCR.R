@@ -39,8 +39,8 @@ sim.SCR <- function (N = 100, K = 20, alpha0 = -2.5, sigma = 0.5, discard0 = TRU
             Y <- Y[ncaps > 0, , ]
         }
     }
-    ss <- expand.grid(seq(Xl + ssRes/2, Xu - ssRes/2, ssRes),
-                      seq(Yl + ssRes/2, Yu - ssRes/2, ssRes))
+    ss <- expand.grid(X=seq(Xl + ssRes/2, Xu - ssRes/2, ssRes),
+                      Y=seq(Yl + ssRes/2, Yu - ssRes/2, ssRes))
                       
     list(Y = Y, traplocs = traplocs, xlim = c(Xl, Xu), ylim = c(Yl,
         Yu), N = N, alpha0 = alpha0, alpha1 = alpha1, sigma = sigma,

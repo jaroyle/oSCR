@@ -6,7 +6,6 @@ sim.SCR <- function (N = 100, K = 20, alpha0 = -2.5, sigma = 0.5, discard0 = TRU
     }
     ntraps <- nrow(traplocs)
     if (is.null(buffer)){buffer <- sigma*4}
-    
     Xl <- min(traplocs[, 1] - buffer)
     Xu <- max(traplocs[, 1] + buffer)
     Yl <- min(traplocs[, 2] - buffer)

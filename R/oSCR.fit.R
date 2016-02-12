@@ -164,8 +164,10 @@ my.model.matrix <- function(form,data){
   var.p0.1 <- "sex" %in% allvars.p0
   var.p0.2 <- "session" %in% allvars.p0
   var.p0.3 <- "t" %in% allvars.p0
+  var.p0.4 <- any(c("sex:session", "session:sex") %in% attr(terms(mod[[2]]),"term.labels"))
   var.a1.1 <- "sex" %in% allvars.a1
   var.a1.2 <- "session" %in% allvars.a1
+  var.a1.3 <- any(c("sex:session", "session:sex") %in% attr(terms(mod[[2]]),"term.labels"))
   pBehave <- "b" %in% all.vars(model[[2]])
 
   allvars.dist <- all.vars(model[[4]])
@@ -355,9 +357,10 @@ my.model.matrix <- function(form,data){
 
 ################################################################################
 # p0: define sex and/or session specific parameters
-#  var.p0.1 <- "sex" %in% allvars.p0
-#  var.p0.2 <- "session" %in% allvars.p0
-#
+#  var.p0.1 <- "sex" only
+#  var.p0.2 <- "session" only
+#  var.p0.3 <- "t" only
+#  var.p0.4 <- "sex:session" / "session:sex"
 
   if("indCovs" %in% names(scrFrame)){
    if("sex" %in% names(scrFrame$indCovs[[1]])){
@@ -365,67 +368,44 @@ my.model.matrix <- function(form,data){
    }
   }
 
-  tmp.a0.name1 <- "p0.int"
-  tmp.a0.name2 <- ifelse(var.p0.1,"p0.male",NA)
+  if(sum(var.p0.1,var.p0.2,var.p0.3,var.p0.4)==0){
+    tmp.p0.names <- "p0.int"
+    pDot <- TRUE
+  }
+
+  if(var.p0.1){
+    tmp.p0.names <- c("p0.int","p0.male")
+    pJustsex <- TRUE
+  }
+  
   if(var.p0.2){
-   if(ns>1){
-     tmp.a0.name3 <- paste0("p0.sess",2:ns)
-   }
-  }else{
-    tmp.a0.name3 <- NA
-  }
-  if(var.p0.3){
-    tmp.a0.name4 <- paste0("p0.t",2:hiK)
-    pTime <- TRUE
-  }else{
-    tmp.a0.name4 <- NA
-  }
-  names.p0 <- c(tmp.a0.name1,tmp.a0.name2,tmp.a0.name3,tmp.a0.name4)
-  names.p0 <- names.p0[!is.na(names.p0)]
-  pars.p0 <- rep(0,length(names.p0))
-  pars.p0[1] <- qlogis(0.05)
-
-  if(var.p0.1 && var.p0.2){
-    pBothsexnsesh <- TRUE
-  }else{
-   if(var.p0.1){
-     pJustsex <- TRUE
-   }else{
-    if(var.p0.2){
-      pJustsesh <- TRUE
+    if(ns>1){
+      tmp.p0.names <- c("p0.int",paste0("p0.sess",2:ns))
     }else{
-      pDot <- TRUE
+      tmp.p0.names <- "p0.int"
     }
-   }
+    pJustsesh <- TRUE
   }
+  
+  if(var.p0.3){
+    tmp.p0.names <- c("p0.int",paste0("p0.t",2:hiK))
+    pTime <- TRUE
+  }    
+  if(var.p0.4){
+    if(ns>1){
+      tmp.p0.names <- c("p0.int",paste0("p0.f.sess",2:ns),paste0("p0.m.sess",1:ns))
+    }else{
+      tmp.p0.names <- c("p0.int","p0.male")
+      pJustsex <- TRUE
+    }
+    pBothsexnsesh <- TRUE
+  }  
 
-
-#  if(var.p0.1 && var.p0.2){
-#    pars.p0 <- rnorm(ns*2,qlogis(0.1),0.2)#"p.ss"
-#    tmpPsex <- rep(c(1,2),ns)
-#    tmpPsess <- rep(1:ns,each=2)
-#    names.p0 <- paste("p0.sex",tmpPsex,"session",tmpPsess,sep="")
-#    pBothsexnsesh <- TRUE
-#  }else{
-#   if(var.p0.1){
-#     pars.p0 <- rnorm(2,qlogis(0.1),0.2)#"p.sex"
-#     names.p0 <- c("p0.sex1","p0.sex2")
-#     pJustsex <- TRUE
-#   }else{
-#    if(var.p0.2){
-#      pars.p0 <- rnorm(ns,qlogis(0.1),0.2)#"p.ses"
-#      tmpPsess <- 1:ns
-#      names.p0 <-  paste("p0.session",tmpPsess,sep="")
-#      pJustsesh <- TRUE
-#    }else{
-#      pars.p0 <- rnorm(1,qlogis(0.1),0.2)#"p."
-#      names.p0 <- c("p0.")
-#      pDot <- TRUE
-#    }
-#   }
-#  }
-#
-  if(any(var.p0.1, var.a1.1) && !anySex)
+  names.p0 <- tmp.p0.names
+  pars.p0 <- rep(0,length(names.p0))
+  pars.p0[1] <- -1.5 #strting value for p 
+  
+  if(any(var.p0.1, var.p0.1, var.a1.1) && !anySex)
    stop("Sex defined in a model but no sex data provided.")
 
 

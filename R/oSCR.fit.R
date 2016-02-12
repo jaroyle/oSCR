@@ -129,16 +129,7 @@ my.model.matrix <- function(form,data){
   if(is.null(ssDF)){
     message("Generating a state space based on traps")
     dHPP <- TRUE
-    ssDF <- list()
-   for(i in 1:length(scrFrame$traps)){ # make a state space for every set of traps
-    dd <- as.matrix(dist(scrFrame$traps[[i]]))
-    dd[dd==0] <- NA
-    nnd <- mean(apply(dd,1,min,na.rm=T))
-    ssDF[[i]] <- expand.grid(seq(min(scrFrame$traps[[i]][,1])-4*nnd,
-                                 max(scrFrame$traps[[i]][,1])+4*nnd,nnd/4),
-                             seq(min(scrFrame$traps[[i]][,2])-4*nnd,
-                                 max(scrFrame$traps[[i]][,2])+4*nnd,nnd/4))
-   }
+    ssDF <- make.ssDF(scrFrame, buffer,res)
   }
 
   ns <- length(scrFrame$caphist)

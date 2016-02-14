@@ -934,12 +934,12 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     }
     if(pJustsex & !pTime){
       tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
-      tmpS <- c(0,pv[pn%in%names.p0[grep("p0.male",names.p0)]])
+      tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
      for(s in 1:ns){
        alpha0[s,,1,1] <- tmpP
        alpha0[s,,1,2] <- alpha0[s,,1,1] + tmpPB
        alpha0[s,,2,1] <- tmpP + tmpS
-       alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB + tmpS
+       alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
     if(pJustsex & pTime){
@@ -974,7 +974,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
-    if(pBothsexnsesh & !pTime){ # no sex here but still sex likelihood!
+    if(pBothsexnsesh & !pTime){ 
       tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]

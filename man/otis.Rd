@@ -28,19 +28,17 @@ a decent starting value (this can take some time).
   }
 }
 \details{
+  Default setting (cov=NULL) will fit 4 models: M0, Mb, Mh
+  (logit-normal) and Mh (2-point finite mixture).
 
-  Fits model M0 and two versions of model Mh: the logit-normal model and a
-two-point finite mixture model.
+  If cov= is specified then Mcov and Mb+cov are fitted
 
-Will add model Mb and model Mt and possibly others. 
+  Soon we will fit other models too. 
+   
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+Returns an AIC table including other model summaries (Nhat) and a table of model coefficients.
 }
 \references{
 Otis et al. (1978) 

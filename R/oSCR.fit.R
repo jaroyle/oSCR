@@ -1,4 +1,4 @@
-oSCR.fit.try <-
+oSCR.fit <-
 function(scrFrame, model = list(D~1, p0~1, sig~1, path~1), ssDF = NULL, costDF = NULL,
          distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1],
          encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL,
@@ -119,7 +119,7 @@ my.model.matrix <- function(form,data){
   bJustsex <- FALSE
   bJustsesh <- FALSE
   bBothsexnsesh <- FALSE
-  
+
   if(length(model)==3){model[[4]] <- formula(~1)}
   for(i in 1:4){
     model[[i]] <- update.formula(model[[i]],NULL~.)
@@ -178,7 +178,7 @@ my.model.matrix <- function(form,data){
   var.b.4 <- any(c("b:session:sex", "b:sex:session", "sex:session:b", "sex:b:session",
                    "session:b:sex","session:sex:b") %in% attr(terms(model[[2]]),"term.labels"))
   pBehave <- any(c(var.b.1,var.b.2,var.b.3,var.b.4))
-  
+
   allvars.dist <- all.vars(model[[4]])
   allvars.dist <- allvars.dist[!allvars.dist=="path"]
 
@@ -386,7 +386,7 @@ my.model.matrix <- function(form,data){
     tmp.p0.names <- c("p0.int","p0.male")
     pJustsex <- TRUE
   }
-  
+
   if(var.p0.2){
     if(ns>1){
       tmp.p0.names <- c("p0.int",paste0("p0.sess",2:ns))
@@ -408,11 +408,11 @@ my.model.matrix <- function(form,data){
     }
     pJustsex <- TRUE
   }
-  
+
   if(var.p0.3){
     tmp.p0.names <- c("p0.int",paste0("p0.t",2:hiK))
     pTime <- TRUE
-  }    
+  }
   if(var.p0.4){
     if(ns>1){
       tmp.p0.names <- c("p0.int",paste0("p0.f.sess",2:ns),paste0("p0.m.sess",1:ns))
@@ -421,12 +421,12 @@ my.model.matrix <- function(form,data){
       tmp.p0.names <- c("p0.int","p0.male")
       pJustsex <- TRUE
     }
-  }  
+  }
 
   names.p0 <- tmp.p0.names
   pars.p0 <- rep(0,length(names.p0))
-  pars.p0[1] <- -1.5 #strting value for p 
-  
+  pars.p0[1] <- -1.5 #strting value for p
+
   if(any(var.p0.1, var.p0.1, var.sig.1) && !anySex)
    stop("Sex defined in a model but no sex data provided.")
 
@@ -436,7 +436,7 @@ my.model.matrix <- function(form,data){
   # var.b.3 <- c("b:session", "session:b") %in% attr(terms(model[[2]]),"term.labels"))
   # var.b.4 <- c("b:session:sex", "b:sex:session", "sex:session:b", "sex:b:session",
   #               "session:b:sex","session:sex:b") %in% attr(terms(model[[2]]),"term.labels"))
-  
+
   if(var.b.1 & !var.b.2 & !var.b.3 & !var.b.4){
     pars.p0 <- c(pars.p0,0)
     names.p0 <- c(names.p0,"p.behav")
@@ -454,13 +454,13 @@ my.model.matrix <- function(form,data){
     names.p0 <- c(names.p0,paste0("p.behav.sess",1:ns))
     bJustsesh <- TRUE
   }
-  
+
   if(var.b.4){
     pars.p0 <- c(pars.p0,rep(0,2*ns))
     names.p0 <- c(names.p0, paste0("p.behav.f.sess",1:ns),paste0("p.behav.m.sess",1:ns))
     bBothsexnsesh <- TRUE
   }
-  
+
 
 ################################################################################
 # define sex and/or session specific parameters
@@ -475,7 +475,7 @@ my.model.matrix <- function(form,data){
   if(sum(var.sig.1,var.sig.2,var.sig.3)==0){
     aDot <- TRUE
   }
-  
+
   if(var.sig.2 & !var.sig.3){
     if(ns>1){
       tmp.sig.names <- c(tmp.sig.names,paste0("sig.sess.",2:ns))
@@ -484,12 +484,12 @@ my.model.matrix <- function(form,data){
       aDot <- TRUE
     }
   }
-    
+
   if(var.sig.1 & !var.sig.3){
     tmp.sig.names <- c(tmp.sig.names,"sig.male")
     aJustsex <- TRUE
-  }  
-  
+  }
+
   if(var.sig.3){
     if(ns>1){
       tmp.sig.names <- c(tmp.sig.names,paste0("sig.f.sess",2:ns),paste0("sig.m.sess",1:ns))
@@ -497,8 +497,8 @@ my.model.matrix <- function(form,data){
     }else{
       aJustsex <- TRUE
     }
-  }  
-  
+  }
+
   names.sig <- tmp.sig.names
   pars.sig <- rep(0.1,length(names.sig))
   pars.sig[1] <- log(mmdm)
@@ -608,21 +608,21 @@ if(pBehave){
 
     #add BR
     BRmat <- array(0, c(ns, hiK, 1))#[sess,K,sex,BR]
-    
+
     if(bDot){
       BRmat[,,1] <- pv[pn%in%names.p0[grep("p.behav",names.p0)]]
     }
-    
+
     if(bJustsesh){
       for(k in 1:hiK){
         BRmat[,k,1] <- pv[pn%in%names.p0[grep("p.behav.sess",names.p0)]]
         BRmat[,k,1] <- pv[pn%in%names.p0[grep("p.behav.sess",names.p0)]]
       }
     }
-    
+
     alpha0[,,2] <- alpha0[,,1] + BRmat[,,1]
 
-    
+
     #sig
     alphsig <- numeric(ns)
     if(aDot){
@@ -638,7 +638,7 @@ if(pBehave){
         alphsig[s] <- tmpA + tmpSS[s]
       }
     }
-    
+
     alphsig <- 1/(2*exp(alphsig)^2)
 
     #trap betas
@@ -890,7 +890,7 @@ if(!is.matrix(Pm)) browser()
 
 
 
-  
+
 ################################################################################
 # WITH sex
 #
@@ -912,7 +912,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         alpha0[s,,2,1] <- tmpP + tmpT
       }
     }
-    
+
     if(pJustsex & !pTime & !pJustsesh){
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
       for(s in 1:ns){
@@ -928,7 +928,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
          alpha0[s,,1,1] <- tmpP + tmpT
          alpha0[s,,2,1] <- tmpP + tmpT + tmpS
        }
-    }  
+    }
 
     if(pJustsesh & !pTime & !pJustsex){
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
@@ -937,7 +937,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         alpha0[s,,2,1] <- tmpP + tmpSS[s]
       }
     }
-    
+
     if(pJustsesh & pTime){
       tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
@@ -951,13 +951,13 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       # sigma no sex:
-      
+
       m0old <- oSCR.fit(scrFrame,model = list(~1,~1,~1,~1), ssDF = ssDF)
       m0new <- oSCR.fit.try(scrFrame,model = list(~1,~1,~1,~1), ssDF = ssDF)
-      
+
       m1old <- oSCR.fit(scrFrame,model = list(~1,~1,~session,~1), ssDF = ssDF)
       m1new <- oSCR.fit.try(scrFrame,model = list(~1,~1,~session,~1), ssDF = ssDF)
-      
+
       for(s in 1:ns){
         alpha0[s,,1,1] <- tmpP + tmpSS[s]
         alpha0[s,,2,1] <- tmpP + tmpSS[s] + tmpS
@@ -974,7 +974,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     }
 
     if(pBothsexnsesh & pTime){
-      stop("model with time varying parameters AND a sex-session interaction not implemented")  
+      stop("model with time varying parameters AND a sex-session interaction not implemented")
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
       tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
@@ -989,7 +989,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     if(bDot){
       BRmat[,,,1] <- pv[pn%in%names.p0[grep("p.behav",names.p0)]]
     }
-    
+
     if(bJustsex){
       BRmat[,,1,1] <- pv[pn%in%names.p0[grep("p.behav.f",names.p0)]]
       BRmat[,,2,1] <- pv[pn%in%names.p0[grep("p.behav.m",names.p0)]]
@@ -1007,23 +1007,23 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         BRmat[,k,2,1] <- pv[pn%in%names.p0[grep("p.behav.m.sess",names.p0)]]
       }
     }
-    
+
     alpha0[,,1,2] <- alpha0[,,1,1] + BRmat[,,1,1]
     alpha0[,,2,2] <- alpha0[,,2,1] + BRmat[,,2,1]
-    
+
     #sig
     alphsig <- matrix(NA,ns,2)
     tmpA <- pv[pn%in%names.sig[grep("sig.int",names.sig)]]
     if(aDot){
       alphsig[,] <- tmpA
     }
-    
+
     if(aJustsex & !aJustsesh){
       tmpSex <- pv[pn%in%names.sig[grep("sig.male",names.sig)]]
       alphsig[,1] <- tmpA
       alphsig[,2] <- tmpA + tmpSex
     }
-    
+
     if(aJustsesh & !aJustsex){
       tmpSS <- c(0,pv[pn%in%names.sig[grep("sig.sess",names.sig)]])
       for(s in 1:ns){
@@ -1031,7 +1031,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
        alphsig[s,2] <- tmpA + tmpSS[s]
      }
     }
-    
+
     if(aJustsesh & aJustsex){
       tmpSS <- c(0,pv[pn%in%names.sig[grep("sig.sess",names.sig)]])
       tmpSex <- pv[pn%in%names.sig[grep("sig.male",names.sig)]]
@@ -1049,7 +1049,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     }
 
     alphsig <- 1/(2*exp(alphsig)^2)
-    
+
   #trap betas  (no sex effect on covariates 0 could add 'Sex' for the interaction?)
     if(trap.covs){
       t.beta <- matrix(NA,ns,length(names.beta.trap))

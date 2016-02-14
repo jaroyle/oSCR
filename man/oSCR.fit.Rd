@@ -10,7 +10,7 @@ oSCR.fit%%  ~~function to do ... ~~
   models.
 }
 \usage{
-oSCR.fit(scrFrame, model = list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1), ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1], sexmod = c("constant", "session")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, hessian = T)
+oSCR.fit(scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, path ~ 1), ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1], sexmod = c("constant", "session")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, hessian = T)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

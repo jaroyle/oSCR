@@ -83,10 +83,10 @@ s.bear.sex = secr.fit(bear.cap, model = list(D ~ session, g0 ~ session, sigma ~ 
  
 # fit a selection of models in oSCR NEW:
  
-o.bear.0 =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1,       a1 ~ 1), ssDF=bear.ss)
-#o.bear.t =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ t,       a1 ~ 1), ssDF=bear.ss)
-o.bear.b =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ b,       a1 ~ 1), ssDF=bear.ss)
-o.bear.sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex,     a1 ~ sex), ssDF=bear.ss)
+o.bear.0 =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1,       sig ~ 1), ssDF=bear.ss)
+#o.bear.t =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ t,       sig ~ 1), ssDF=bear.ss)
+o.bear.b =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ b,       sig ~ 1), ssDF=bear.ss)
+o.bear.sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex,     sig ~ sex), ssDF=bear.ss)
 
 
 ## maybe str(beardata) ; plot(beardata) ...

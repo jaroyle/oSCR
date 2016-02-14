@@ -61,19 +61,17 @@ set to ‘NULL’.
   \item{model}{
  This is a list with 4 components describing the SCR model. The order of
   the components is: density model, detection model, "sigma" model and
-  least-cost path model. For example, the null model is:   list(D ~ 1, p0 ~ 1, a1 ~ 1, path ~ 1)
+  least-cost path model. For example, the null model is:   list(D ~ 1,
+  p0 ~ 1, sig ~ 1,  path ~ 1)
 
   The density model can include "session" as an effect and then a
   session-specific density is fitted.  Otherwise variables are "within
   session" variables (i.e., covariates).
 
   p0 can include "sex" "b" for local (trap level) behavioral response,
-  .... but not an interaction between sex and b (yet!)
+    or b*sex or include covariates. 
 
-  a1 is the "coefficient" parameterization of sigma. i.e., :   log(p) =
-  -a1*distance^2.  Therefore a1 = 1/(2*sigma*sigma).  We aim to change
-  this soon. 
-    %%     ~~Describe \code{model} here~~
+  sig is the log(sigma) in the model p = exp(- (1/2*sigma*sigma)*dist(x,s)^2)
 }
   \item{ssDF}{
 
@@ -277,7 +275,7 @@ if(!with.sex){
 ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buffer = 2) ) )
 
 if(truth=="multicatch"){
-out1 <- oSCR.fit(scrFrame,model=list(D~1,p0~1,a1~1),ssDF=ssDF,start.vals=c(-1, log(.5), 2) ,
+out1 <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,start.vals=c(-1, log(.5), 2) ,
 plotit=FALSE, multicatch=TRUE )
 exp(out1$outStats[3,3])*nrow(ssDF[[1]])
  ests1<- out1$outStats[,3]
@@ -285,7 +283,7 @@ exp(out1$outStats[3,3])*nrow(ssDF[[1]])
  ests1<- rep(NA, ifelse(with.sex,4,3))
 }
 
-out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,a1~1),ssDF=ssDF,start.vals=c(-1,log(.5), 2) ,
+out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,start.vals=c(-1,log(.5), 2) ,
 plotit=FALSE, multicatch=FALSE )
 exp(out1b$outStats[3,3])*nrow(ssDF[[1]])
 ests2<- out1b$outStats[,3]
@@ -296,9 +294,9 @@ outfile<- rbind(outfile, c(ests1,ests2))
 }
 
 if(with.sex)
-colnames(outfile)<-c("logitp0","loga1","logD","lpsi","logitp0","loga1","logD","lpsi")
+colnames(outfile)<-c("logitp0","logsig","logD","lpsi","logitp0","logsig","logD","lpsi")
 if(!with.sex)
-colnames(outfile)<-c("logitp0","loga1","logD","logitp0","loga1","logD")
+colnames(outfile)<-c("logitp0","logsig","logD","logitp0","logsig","logD")
 
 
  binomial data, 100 simulated data sets, means
@@ -307,8 +305,10 @@ colnames(outfile)<-c("logitp0","loga1","logD","logitp0","loga1","logD")
  
 (mn<- round(
  c(
-plogis(tmp[1]), sqrt(1/(2*exp(tmp[2]))), "N"=exp(tmp[3])*nrow(ssDF[[1]]), plogis(tmp[4]), 
-plogis(tmp[5]), sqrt(1/(2*exp(tmp[6]))), "N"=exp(tmp[7])*nrow(ssDF[[1]]), plogis(tmp[8]) ), 3)   )
+plogis(tmp[1]), exp(tmp[2]),  "N"=exp(tmp[3])*nrow(ssDF[[1]]), plogis(tmp[4]), 
+plogis(tmp[5]), exp(tmp[6]),  "N"=exp(tmp[7])*nrow(ssDF[[1]]),
+ plogis(tmp[8]) ), 3) 
+ )
 
 
 

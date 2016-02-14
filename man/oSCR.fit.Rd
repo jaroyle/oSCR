@@ -219,7 +219,7 @@ outfile<- NULL
 parms<-list(N=100, alpha0= -.40, sigma=0.5,alpha2=0)
 ssbuff<- 2
 
-truth<- "multicatch"
+truth<- "multicatch"   # "binomial"
 with.sex<- TRUE
 
 for(dataset in 1:100){
@@ -243,7 +243,7 @@ for(i in 1:nrow(Ycat)){
  }
 }
 if(truth=="binomial"){
- # Careful here because I haev a seed hard-wired into the code to produce the book data set
+ # Careful here because I have a seed hard-wired into the code to produce the book data set
 data<- simSCR0(N=parms$N, K=7, alpha0 = parms$alpha0, sigma = parms$sigma, array3d=TRUE, rnd=dataset*100 )
 y3d<- data$Y
 nind<- dim(y3d)[1]
@@ -275,7 +275,7 @@ if(!with.sex){
 ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buffer = 2) ) )
 
 if(truth=="multicatch"){
-out1 <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,start.vals=c(-1, log(.5), 2) ,
+out1 <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,
 plotit=FALSE, multicatch=TRUE )
 exp(out1$outStats[3,3])*nrow(ssDF[[1]])
  ests1<- out1$outStats[,3]
@@ -283,7 +283,7 @@ exp(out1$outStats[3,3])*nrow(ssDF[[1]])
  ests1<- rep(NA, ifelse(with.sex,4,3))
 }
 
-out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,start.vals=c(-1,log(.5), 2) ,
+out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,
 plotit=FALSE, multicatch=FALSE )
 exp(out1b$outStats[3,3])*nrow(ssDF[[1]])
 ests2<- out1b$outStats[,3]
@@ -299,16 +299,22 @@ if(!with.sex)
 colnames(outfile)<-c("logitp0","logsig","logD","logitp0","logsig","logD")
 
 
- binomial data, 100 simulated data sets, means
+# binomial data, 100 simulated data sets, means
 (tmp<- apply(outfile,2,mean) )
- 
- 
-(mn<- round(
- c(
+
+# Summarize output 
+if(with.sex){
+(mn<- round( c(
 plogis(tmp[1]), exp(tmp[2]),  "N"=exp(tmp[3])*nrow(ssDF[[1]]), plogis(tmp[4]), 
 plogis(tmp[5]), exp(tmp[6]),  "N"=exp(tmp[7])*nrow(ssDF[[1]]),
- plogis(tmp[8]) ), 3) 
- )
+ plogis(tmp[8]) ), 3) )
+}
+if(!with.sex){
+(mn<- round( c(
+plogis(tmp[1]), exp(tmp[2]),  "N"=exp(tmp[3])*nrow(ssDF[[1]]), 
+plogis(tmp[4]), exp(tmp[5]),  "N"=exp(tmp[6])*nrow(ssDF[[1]])  ), 3) )
+} 
+
 
 
 

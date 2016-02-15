@@ -570,66 +570,6 @@ if(pBehave){
    }
 
 
-   ## All the trim stuff is done here
-   ## Note: the "trap operation" should be done here too, REMOVE TRAPS THAT ARE NOT OPERATIONAL _OR_ far away
-   
-trimR<- trimC<- list()
-
-for(s in 1:length(YY)){
-    Ys<- YY[[s]]
-# multicatch block 1 [looks like not needed]
-     if(!multicatch){
-       zeros <- array(0,c(1,dim(Ys)[2],dim(Ys)[3]))
-       Ys <- abind(Ys,zeros,along=1)
-     }
-     if(multicatch){
-       zeros <- array(0,c(1, dim(Ys)[2], dim(Ys)[3]))
-       Ys <- abind(Ys,zeros,along=1)
-     }
-
-    
-    trimR[[s]]<- list()
-    trimC[[s]]<- list()
-    for(i in 1:nrow(Ys)){
- 
-     if(is.null(trimS)){
-        pp <- rep(T,ncol(Ys))
-        trimC[[s]][[i]] <- rep(T,nG[s])
-        trimR[[s]][[i]] <- pp
-      }else{
-       if(i<nrow(Ys)){
-         pp <- apply(Ys[i,,],1,sum)>0
-         trimR[[s]][[i]] <- apply(
-                   rbind(
-                    rep(trimS+2,nrow(scrFrame$traps[[s]])),
-                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
-                                          scrFrame$traps[[s]][,c("X","Y")])),2,min)<=(2*trimS)
-         trimC[[s]][[i]] <- apply(
-                   rbind(
-                    rep(trimS+2,nG[s]),
-                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
-                                          ssDF[[s]][,c("X","Y")])),2,min,na.rm=T)<=trimS
-       }else{
-         pp <- rep(T,ncol(Ys))
-         trimC[[s]][[i]] <- apply(
-                   rbind(
-                    rep(trimS+2,nG[s]),
-                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
-                                          ssDF[[s]][,c("X","Y")])),2,min,na.rm=T)<=trimS
-         #trimC <- rep(T,nG[[s]])
-         trimR[[s]][[i]] <- pp
-       }
-   }
-   
-   # multicatch block 2
-      if(multicatch)#need all traps!
-       trimR[[s]][[i]] <- rep(T,length(trimR[[s]][[i]]))
-
-}
-}   
-   
-   
-   
 
 ################################################################################
 # NO sex
@@ -809,25 +749,54 @@ for(s in 1:length(YY)){
      }
 
      for(i in 1:nrow(Ys)){
-         
-   
+      if(is.null(trimS)){
+        pp <- rep(T,ncol(Ys))
+        trimC <- rep(T,nG[s])
+        trimR <- pp
+      }else{
+       if(i<nrow(Ys)){
+         pp <- apply(Ys[i,,],1,sum)>0
+         trimR <- apply(
+                   rbind(
+                    rep(trimS+2,nrow(scrFrame$traps[[s]])),
+                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
+                                          scrFrame$traps[[s]][,c("X","Y")])),2,min)<=(2*trimS)
+         trimC <- apply(
+                   rbind(
+                    rep(trimS+2,nG[s]),
+                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
+                                          ssDF[[s]][,c("X","Y")])),2,min,na.rm=T)<=trimS
+       }else{
+         pp <- rep(T,ncol(Ys))
+         trimC <- apply(
+                   rbind(
+                    rep(trimS+2,nG[s]),
+                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
+                                          ssDF[[s]][,c("X","Y")])),2,min,na.rm=T)<=trimS
+         #trimC <- rep(T,nG[[s]])
+         trimR <- pp
+       }
+      }
+# multicatch block 2
+      if(multicatch)#need all traps!
+       trimR <- rep(T,length(trimR))
 
        #################################
        #visualize the local evaluations
        if(plotit){
          plot(ssDF[[s]][,c("X","Y")],pch=16,col="grey",cex=0.5,asp=1,
          main=paste("Session:",s," Individual: ",i," traps: ",sum(pp),sep=" "))
-         points(ssDF[[s]][trimC[[s]][[i]],c("X","Y")],pch=16,col=2,cex=mycex)
-         points(ssDF[[s]][trimC[[s]][[i]],],pch=16,col=2,cex=mycex)
-         points(scrFrame$traps[[s]][trimR[[s]][[i]],c("X","Y")],pch=3,col=4,cex=mycex,lwd=mycex)
+         points(ssDF[[s]][trimC,c("X","Y")],pch=16,col=2,cex=mycex)
+         points(ssDF[[s]][trimC,],pch=16,col=2,cex=mycex)
+         points(scrFrame$traps[[s]][trimR,c("X","Y")],pch=3,col=4,cex=mycex,lwd=mycex)
          points(scrFrame$traps[[s]][pp,c("X")],scrFrame$traps[[s]][pp,c("Y")],pch=16,col=3,cex=1.5)
        }
        #################################
 # multicatch block 3
        if(multicatch)
-        Pm <-  matrix(0,sum(trimR[[s]][[i]])+1,sum(trimC[[s]][[i]]))
+        Pm <-  matrix(0,sum(trimR)+1,sum(trimC))
       if(!multicatch)
-        Pm <-  matrix(0,sum(trimR[[s]][[i]]),sum(trimC[[s]][[i]]))
+        Pm <-  matrix(0,sum(trimR),sum(trimC))
       for(k in 1:nK[s]){
        if(pBehave){
          a0 <- alpha0[s,k,1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,2] * c(prevcap[[s]][i,,k])
@@ -838,37 +807,37 @@ for(s in 1:length(YY)){
          a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
        }
        if(encmod=="B")
-         probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+         probcap <- c(plogis(a0[trimR])) * exp(-alphsig[s] * D[[s]][trimR,trimC]^2)
        if(encmod=="P")
-         probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+         probcap <- c(exp(a0[trimR])) * exp(-alphsig[s] * D[[s]][trimR,trimC]^2)
 
 # multicatch block 4
         if(!multicatch){
          if(encmod=="B"){
-           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1,
+           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                            probcap[1:length(Pm)],log = TRUE))}
          if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(Pm)],log = TRUE))}
 
        }else{
-        probcap<- rbind(probcap,rep(1, sum(trimC[[s]][[i]]) ) )
+        probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
         ###probcap<-   exp(probcap)/(1+sum(exp(probcap)))   #NOTE: need a trap mask multiplied here
         # probcap[1:length(probcap)] <- c(dbinom(rep(   c(Ys[i,trimR,k],1-sum(Ys[i,trimR,k]) ),sum(trimC))  ,    1,
         #                                   probcap[1:length(Pm)],log = TRUE))
-        vvv<-  rep(   c(Ys[i,trimR[[s]][[i]],k],1-any(Ys[i,trimR[[s]][[i]],k]>0) ),sum(trimC[[s]][[i]]))      # I think this and below is computing the multinomial likelihood
+        vvv<-  rep(   c(Ys[i,trimR,k],1-any(Ys[i,trimR,k]>0) ),sum(trimC))      # I think this and below is computing the multinomial likelihood
         vvv[vvv==1]<-    log( probcap[1:length(Pm)][vvv==1] )
         probcap[1:length(Pm)]<- vvv
        }
        if(!is.null(scrFrame$trapOperation)){
-         probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],k]
+         probcap <- probcap * scrFrame$trapOperation[[s]][trimR,k]
        }
         Pm[1:length(Pm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
       }
        lik.cond <- numeric(nG[s])
 if(!is.matrix(Pm)) browser()
-       lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm=T))
+       lik.cond[trimC] <- exp(colSums(Pm,na.rm=T))
        lik.marg[i] <- sum(lik.cond * pi.s)
       }
 
@@ -898,7 +867,7 @@ if(!is.matrix(Pm)) browser()
      if(predict){ #needs to be ammended - currently WRONG!
        tmp.post <- matrix(NA,nG[s],nrow(Ys))
       for(i in 1:nrow(Ys)){
-        Pm <-  matrix(0,length(trimR[[s]][[i]]),length(trimC[[s]][[i]]))
+        Pm <-  matrix(0,length(trimR),length(trimC))
        for(k in 1:dim(Ys)[3]){
         probcap <- c(plogis(a0)) * exp(-alphsig[s] * D[[s]]^2)
         probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,,k],nG[s]),1,probcap[1:length(Pm)],log = TRUE))
@@ -1209,23 +1178,54 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      }
 
      for(i in 1:nrow(Ys)){
-  
+           if(is.null(trimS)){
+        pp <- rep(T,ncol(Ys))
+        trimC <- rep(T,nG[s])
+        trimR <- pp
+      }else{
+       if(i<nrow(Ys)){
+         pp <- apply(Ys[i,,],1,sum)>0
+         trimR <- apply(
+                   rbind(
+                    rep(trimS+2,nrow(scrFrame$traps[[s]])),
+                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
+                                          scrFrame$traps[[s]][,c("X","Y")])),2,min)<=(2*trimS)
+         trimC <- apply(
+                   rbind(
+                    rep(trimS+2,nG[s]),
+                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
+                                          ssDF[[s]][,c("X","Y")])),2,min,na.rm=T)<=trimS
+       }else{
+         pp <- rep(T,ncol(Ys))
+         trimC <- apply(
+                   rbind(
+                    rep(trimS+2,nG[s]),
+                     e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X","Y")]),sum(pp),2),
+                                          ssDF[[s]][,c("X","Y")])),2,min,na.rm=T)<=trimS
+         #trimC <- rep(T,nG[[s]])
+         trimR <- pp
+       }
+      }
+# multicatch block 2
+      if(multicatch)#need all traps!
+       trimR <- rep(T,length(trimR))
+
        #################################
        #visualize the local evaluations
        if(plotit){
          plot(ssDF[[s]][,c("X","Y")],pch=16,col="grey",cex=0.5,asp=1,
          main=paste("Session:",s," Individual: ",i," traps: ",sum(pp),sep=" "))
-         points(ssDF[[s]][trimC[[s]][[i]],c("X","Y")],pch=16,col=2,cex=mycex)
-         points(ssDF[[s]][trimC[[s]][[i]],],pch=16,col=2,cex=mycex)
-         points(scrFrame$traps[[s]][trimR[[s]][[i]],c("X","Y")],pch=3,col=4,cex=mycex,lwd=mycex)
+         points(ssDF[[s]][trimC,c("X","Y")],pch=16,col=2,cex=mycex)
+         points(ssDF[[s]][trimC,],pch=16,col=2,cex=mycex)
+         points(scrFrame$traps[[s]][trimR,c("X","Y")],pch=3,col=4,cex=mycex,lwd=mycex)
          points(scrFrame$traps[[s]][pp,c("X")],scrFrame$traps[[s]][pp,c("Y")],pch=16,col=3,cex=1.5)
        }
        #################################
 # multicatch block 3
       if(multicatch)
-       Pm <- Pm1 <- Pm2 <- matrix(0,sum(trimR[[s]][[i]])+1,sum(trimC[[s]][[i]]))
+       Pm <- Pm1 <- Pm2 <- matrix(0,sum(trimR)+1,sum(trimC))
       if(!multicatch)
-       Pm <- Pm1 <- Pm2 <- tmpPm <- matrix(0,sum(trimR[[s]][[i]]),sum(trimC[[s]][[i]]))
+       Pm <- Pm1 <- Pm2 <- tmpPm <- matrix(0,sum(trimR),sum(trimC))
 
       if(!is.na(sx[i])){
        for(k in 1:nK[s]){
@@ -1238,35 +1238,35 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
           a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
         }
         if(encmod=="B")
-          probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s,sx[i]] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+          probcap <- c(plogis(a0[trimR])) * exp(-alphsig[s,sx[i]] * D[[s]][trimR,trimC]^2)
         if(encmod=="P")
-          probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s,sx[i]] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+          probcap <- c(exp(a0[trimR])) * exp(-alphsig[s,sx[i]] * D[[s]][trimR,trimC]^2)
 
 ## Multicatch block 4
         if(!multicatch){
          if(encmod=="B"){
-          probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1,
+          probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                           probcap[1:length(Pm)],log = TRUE))}
          if(encmod=="P"){
-          probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),
+          probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                           probcap[1:length(Pm)],log = TRUE))}
         }else{
-        probcap<- rbind(probcap,rep(1, sum(trimC[[s]][[i]]) ) )
+        probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
         ###probcap<-   exp(probcap)/(1+sum(exp(probcap)))   #NOTE: need a trap mask multiplied here
         # probcap[1:length(probcap)] <- c(dbinom(rep(   c(Ys[i,trimR,k],1-sum(Ys[i,trimR,k]) ),sum(trimC))  ,    1,
         #                                   probcap[1:length(Pm)],log = TRUE))
-        vvv<-  rep(   c(Ys[i,trimR[[s]][[i]],k],1-any(Ys[i,trimR[[s]][[i]],k]>0) ),sum(trimC[[s]][[i]]))      # I think this and below is computing the multinomial likelihood
+        vvv<-  rep(   c(Ys[i,trimR,k],1-any(Ys[i,trimR,k]>0) ),sum(trimC))      # I think this and below is computing the multinomial likelihood
         vvv[vvv==1]<-    log( probcap[1:length(Pm)][vvv==1] )
         probcap[1:length(Pm)]<- vvv
         }
         if(!is.null(scrFrame$trapOperation)){
-          probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],k]
+          probcap <- probcap * scrFrame$trapOperation[[s]][trimR,k]
         }
          Pm[1:length(Pm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
        }
         lik.cond <- numeric(nG[s])
-        lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm=T))
+        lik.cond[trimC] <- exp(colSums(Pm,na.rm=T))
         tmpPsi <- (sx[i]==1) * (1-psi.sex[s]) + (sx[i]==2) * psi.sex[s]
         lik.marg[i] <- sum(lik.cond * pi.s) * tmpPsi
         if(predict){
@@ -1289,21 +1289,21 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 # multicatch block 4 repeated
         #mixture #1
         if(encmod=="B")
-          probcap <- c(plogis(a0.1[trimR[[s]][[i]]])) * exp(-alphsig[s,1] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+          probcap <- c(plogis(a0.1[trimR])) * exp(-alphsig[s,1] * D[[s]][trimR,trimC]^2)
         if(encmod=="P")
-          probcap <- c(exp(a0.1[trimR[[s]][[i]]])) * exp(-alphsig[s,1] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+          probcap <- c(exp(a0.1[trimR])) * exp(-alphsig[s,1] * D[[s]][trimR,trimC]^2)
          if(!multicatch){
           if(encmod=="B"){
-           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1,
+           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                            probcap[1:length(probcap)],log = TRUE))}
           if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(probcap)],log = TRUE))}
 
          }else{
-        probcap<- rbind(probcap,rep(1, sum(trimC[[s]][[i]]) ) )
+        probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
-        vvv<-  rep(   c(Ys[i,trimR[[s]][[i]],k],1-any(Ys[i,trimR[[s]][[i]],k]>0) ),sum(trimC[[s]][[i]]))      # I think this and below is computing the multinomial likelihood
+        vvv<-  rep(   c(Ys[i,trimR,k],1-any(Ys[i,trimR,k]>0) ),sum(trimC))      # I think this and below is computing the multinomial likelihood
         vvv[vvv==1]<-    log( probcap[1:length(Pm)][vvv==1] )
         probcap[1:length(Pm)]<- vvv
         # In Chris' code
@@ -1313,28 +1313,28 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         #                                   probcap[1:length(probcap)],log = TRUE))
          }
          if(!is.null(scrFrame$trapOperation)){
-           probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],k]
+           probcap <- probcap * scrFrame$trapOperation[[s]][trimR,k]
          }
          Pm1[1:length(Pm1)] <- Pm1[1:length(Pm1)] + probcap[1:length(probcap)]
 
          #mixture #1
          if(encmod=="B")
-           probcap <- c(plogis(a0.2[trimR[[s]][[i]]])) * exp(-alphsig[s,2] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+           probcap <- c(plogis(a0.2[trimR])) * exp(-alphsig[s,2] * D[[s]][trimR,trimC]^2)
          if(encmod=="P")
-           probcap <- c(exp(a0.2[trimR[[s]][[i]]])) * exp(-alphsig[s,2] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+           probcap <- c(exp(a0.2[trimR])) * exp(-alphsig[s,2] * D[[s]][trimR,trimC]^2)
 
          if(!multicatch){
           if(encmod=="B"){
-           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1,
+           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR,k],sum(trimC)),1,
                                            probcap[1:length(probcap)],log = TRUE))}
           if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR,k],sum(trimC)),
                                            probcap[1:length(probcap)],log = TRUE))}
 
          }else{
-        probcap<- rbind(probcap,rep(1, sum(trimC[[s]][[i]]) ) )
+        probcap<- rbind(probcap,rep(1, sum(trimC) ) )
         probcap<- t(t(probcap)/colSums(probcap))
-        vvv<-  rep(   c(Ys[i,trimR[[s]][[i]],k],1-any(Ys[i,trimR[[s]][[i]],k]>0) ),sum(trimC[[s]][[i]]))      # I think this and below is computing the multinomial likelihood
+        vvv<-  rep(   c(Ys[i,trimR,k],1-any(Ys[i,trimR,k]>0) ),sum(trimC))      # I think this and below is computing the multinomial likelihood
         vvv[vvv==1]<-    log( probcap[1:length(Pm)][vvv==1] )
         probcap[1:length(Pm)]<- vvv
        #    probcap<- rbind(probcap,rep(1, sum(trimC)))
@@ -1343,13 +1343,13 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
        #                                    probcap[1:length(probcap)],log = TRUE))
          }
          if(!is.null(scrFrame$trapOperation)){
-           probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],k]
+           probcap <- probcap * scrFrame$trapOperation[[s]][trimR,k]
          }
          Pm2[1:length(Pm2)] <- Pm2[1:length(Pm2)] + probcap[1:length(probcap)]
        }
         lik.cond1 <- lik.cond2 <- numeric(nG[s])
-        lik.cond1[trimC[[s]][[i]]] <- exp(colSums(Pm1,na.rm=T))
-        lik.cond2[trimC[[s]][[i]]] <- exp(colSums(Pm2,na.rm=T))
+        lik.cond1[trimC] <- exp(colSums(Pm1,na.rm=T))
+        lik.cond2[trimC] <- exp(colSums(Pm2,na.rm=T))
         lik.marg1[i] <- sum(lik.cond1 * pi.s)
         lik.marg2[i] <- sum(lik.cond2 * pi.s)
         lik.marg[i]<- lik.marg1[i] * (1-psi.sex[s]) + lik.marg2[i] * psi.sex[s]
@@ -1384,7 +1384,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      if(predict){ #needs to be ammended - currently WRONG!
        tmp.post <- matrix(NA,nG[s],nrow(Ys))
       for(i in 1:nrow(Ys)){
-        Pm <-  matrix(0,length(trimR[[s]][[i]]),length(trimC[[s]][[i]]))
+        Pm <-  matrix(0,length(trimR),length(trimC))
        for(k in 1:dim(Ys)[3]){
          probcap <- c(plogis(a0)) * exp(-alphsig[s] * D[[s]]^2)
          probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,,k],nG[s]),1,probcap[1:length(Pm)],log = TRUE))
@@ -1409,6 +1409,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 ################################################################################
 #                 Choosing and fitting the appropriate model                   #
 ################################################################################
+
 ## Fitting functions:
 ##  - msLL.nosex
 ##  - msLL.sex

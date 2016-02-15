@@ -276,7 +276,7 @@ ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buf
 
 if(truth=="multicatch"){
 out1 <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,
-plotit=FALSE, multicatch=TRUE )
+plotit=FALSE, multicatch=TRUE , trimS=3)
 exp(out1$outStats[3,3])*nrow(ssDF[[1]])
  ests1<- out1$outStats[,3]
 }else{
@@ -284,7 +284,7 @@ exp(out1$outStats[3,3])*nrow(ssDF[[1]])
 }
 
 out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,
-plotit=FALSE, multicatch=FALSE )
+plotit=FALSE, multicatch=FALSE, trimS=3)
 exp(out1b$outStats[3,3])*nrow(ssDF[[1]])
 ests2<- out1b$outStats[,3]
 
@@ -308,11 +308,14 @@ if(with.sex){
 plogis(tmp[1]), exp(tmp[2]),  "N"=exp(tmp[3])*nrow(ssDF[[1]]), plogis(tmp[4]), 
 plogis(tmp[5]), exp(tmp[6]),  "N"=exp(tmp[7])*nrow(ssDF[[1]]),
  plogis(tmp[8]) ), 3) )
+names(mn)<-c("p0","sigma","N","psi.sex","p0","sigma","N","psi.sex")
 }
 if(!with.sex){
 (mn<- round( c(
 plogis(tmp[1]), exp(tmp[2]),  "N"=exp(tmp[3])*nrow(ssDF[[1]]), 
 plogis(tmp[4]), exp(tmp[5]),  "N"=exp(tmp[6])*nrow(ssDF[[1]])  ), 3) )
+names(mn)<-c("p0","sigma","N","p0","sigma","N")
+
 } 
 
 

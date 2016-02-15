@@ -89,6 +89,47 @@ o.bear.b =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ b,       sig ~ 1), ssDF=
 o.bear.sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex,     sig ~ sex), ssDF=bear.ss)
 
 
+#
+#
+# Here is an example of using secr with the "hcov" capability to handle
+#    sex. This is equivalent to how oSCR deals with sex
+#
+library("secr")
+library("scrbook")
+data("beardata")
+ 
+#oSCR data
+y3d <- beardata$bearArray
+traps.df <-data.frame(X=beardata$trapmat[,1],Y=beardata$trapmat[,2])
+sex.df <- data.frame(sex=beardata$sex-1)
+bear.sf <- list(caphist=list(y3d),
+                traps = list(traps.df),
+                indCovs = list(sex.df),
+                trapCovs = NULL,
+                type="scr")
+class(bear.sf) <- "scrFrame"
+ 
+bear.ss <- make.ssDF(bear.sf, buffer=20, res=2)
+ 
+#secr data
+secr.traps <- as.matrix(cbind(c(1:dim(beardata$trapmat)[1]), beardata$trapmat * 1000))
+colnames(secr.traps) <- c("trapID", "x", "y")
+traps1 <- as.data.frame(secr.traps[, 1:3])
+trapfile1 <- read.traps(data = traps1, detector = "proximity")
+bear.df <- as.data.frame(beardata$flat)
+bear.df$Session <- rep(1,nrow(bear.df))
+bear.cap <- make.capthist(bear.df, trapfile1, fmt = "trapID", noccasions = 8)
+indCovs <- data.frame(sex = beardata$sex)
+covariates(bear.cap) <- indCovs
+secr.mask <- read.mask(data = bear.ss[[1]]*1000, spacing=2000)
+ 
+#### try sex:
+s.bear.0 = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ 1, sigma ~ 1), hcov= "sex", mask = secr.mask)
+o.bear.0 = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1, sig ~ 1), ssDF=bear.ss)
+ 
+s.bear.Sex = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ h2, sigma ~ 1), hcov= "sex", mask = secr.mask)
+o.bear.Sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex, sig ~ 1), ssDF=bear.ss)
+
 ## maybe str(beardata) ; plot(beardata) ...
 }
 \keyword{datasets}

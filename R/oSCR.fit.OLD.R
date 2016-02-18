@@ -1,4 +1,4 @@
-oSCR.fit <-
+oSCR.fitxxx <-
 function(scrFrame, model = list(D~1, p0~1, a1~1, path~1), ssDF = NULL, costDF = NULL,
          distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1],
          encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL,
@@ -974,7 +974,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
        alpha0[s,,2,2] <- alpha0[s,,2,1] + tmpPB
      }
     }
-    if(pBothsexnsesh & !pTime){ 
+    if(pBothsexnsesh & !pTime){
       tmpP <- pv[pn%in%names.p0[grep("p0.int",names.p0)]]
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]

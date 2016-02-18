@@ -60,6 +60,23 @@ text(traps[ncaps>0,],as.character(ncaps[ncaps>0]))
 browser()
 }
 
+Nhat<- sum(out1p$d.s)
+
+# number of individuals not detected at each pixel
+# this is wrong, should involve lik.condl ... ie Pr(y=0 | s)
+n0<- out1p$d.s*out1p$lik.cond
+# probability that a guy at pixel s is NOT captured
+plot(rasterFromXYZ(cbind(out1p$ssDF[[1]],out1p$lik.cond)))
+out1p$preds[[1]][nguys,]<- n0
+# Does not include the "n0" weighting yet
+library(raster)
+total<- apply(out1p$preds[[1]],2,sum)
+# check
+sum(total)
+r<- rasterFromXYZ(cbind(out1p$ssDF[[1]],total))
+
+plot(r)
+title("Density map")
 
 ## maybe str(predict.oSCR) ; plot(predict.oSCR) ...
 }

@@ -750,13 +750,14 @@ for(s in 1:length(YY)){
 
     outLik <- 0
     
-    
-    preds<- list()
+    if(predict)
+       preds<- list()
     
   # calculate likelihood
     for(s in 1:length(YY)){
       Ys <- YY[[s]]
-      preds[[s]]<- matrix(NA,nrow=nrow(Ys)+1,ncol=nrow(ssDF[[s]]))
+      if(predict)
+         preds[[s]]<- matrix(NA,nrow=nrow(Ys)+1,ncol=nrow(ssDF[[s]]))
 
 # multicatch block 1 [looks like not needed]
      if(!multicatch){
@@ -878,6 +879,7 @@ for(s in 1:length(YY)){
        if(!is.matrix(Pm)) browser()
        lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm=T))
        lik.marg[i] <- sum(lik.cond * pi.s)
+       if(predict)
        preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
    }
 
@@ -901,25 +903,6 @@ for(s in 1:length(YY)){
       outLik <- outLik + ll
      }
 
-     #
-     # PREDICT
-     #
-     if(predict){ #needs to be ammended - currently WRONG!
-         #tmp.post <- matrix(NA,nG[s],nrow(Ys))
-      #for(i in 1:nrow(Ys)){
-      #  Pm <-  matrix(0,length(trimR[[s]][[i]]),length(trimC[[s]][[i]]))
-      # for(k in 1:dim(Ys)[3]){
-      #  probcap <- c(plogis(a0)) * exp(-alphsig[s] * D[[s]]^2)
-      #  probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,,k],nG[s]),1,probcap[1:length(Pm)],log = TRUE))
-      #  Pm[1:length(tmpPm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
-      # }
-      #  lik.cond <- exp(colSums(Pm))
-      #  tmp.post[,i]<- (lik.cond*(1/nG[s]))/lik.marg[i]
-      #}
-      #posterior[[s]] <- cbind(ssDF[[s]][,c("X","Y")],tmp.post)
-}
-
-
 
 }  # end i loop here
 if(!predict){
@@ -927,8 +910,7 @@ if(!predict){
       return(out)
     }
     if(predict){
-#          # lik.cond is lik.cond for the ALL ZERO guy
-        return(list(preds=preds, pi.s=pi.s, ssDF=ssDF, data=YY, traps=scrFrame$traps, d.s=d.s, lik.marg=lik.marg,
+       return(list(preds=preds, pi.s=pi.s, ssDF=ssDF, data=YY, traps=scrFrame$traps, d.s=d.s, lik.marg=lik.marg,
                     lik.cond=lik.cond)  )
     }
   }

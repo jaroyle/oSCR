@@ -140,7 +140,7 @@ if(any(ncaps>0)){
 points(traps[ncaps>0,],pch=20,col="white")
 text(traps[ncaps>0,],as.character(ncaps[ncaps>0]))
 }
-browser()
+#browser()
 }
 
 Nhat<- sum(out1p$d.s)

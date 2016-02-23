@@ -1353,7 +1353,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         lik.marg2[i] <- sum(lik.cond2 * pi.s)
         lik.marg[i]<- lik.marg1[i] * (1-psi.sex[s]) + lik.marg2[i] * psi.sex[s]
         if(predict){
-          lik.cond <- (lik.cond1 * (1-psi.sex[s]) + lik.cond2 * psi.sex[s]) * pi.s
+          lik.cond <- (lik.cond1 * (1-psi.sex[s]) + lik.cond2 * psi.sex[s]) 
           preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
         }
        }

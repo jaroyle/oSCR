@@ -28,6 +28,89 @@ library(scrbook)
 library(oSCR)
 # Prediction example
 
+make.statespace <- 
+function (ll = NULL, minx = NA, maxx = NA, miny = NA, maxy = NA, 
+    nx = 40, ny = NULL, buffer = 0,delta) 
+{
+    if (is.null(ny)) 
+        ny <- nx
+    if (!is.null(ll)) {
+        minx <- min(ll[, 1])
+        maxx <- max(ll[, 1])
+        miny <- min(ll[, 2])
+        maxy <- max(ll[, 2])
+        minx <- minx - buffer
+        maxx <- maxx + buffer
+        miny <- miny - buffer
+        maxy <- maxy + buffer
+    }
+    xgr <- seq(minx + delta/2, maxx - delta/2, delta)
+    ygr<-  seq(miny + delta/2, maxy - delta/2, delta)
+    gr<- as.matrix(expand.grid(xgr,ygr))
+    dimnames(gr)<-list(NULL,c("X","Y"))
+gr
+}
+
+set.seed(2014)
+ 
+ 
+
+ 
+parms<-list(N=100, alpha0= -.40, sigma=0.5,alpha2=0)
+ssbuff<- 2
+
+truth<- "multicatch"   # "binomial"
+with.sex<- TRUE
+ 
+# simulate some data
+
+if(truth=="multicatch"){
+ data<-simMnSCR(parms,K=7,ssbuff=2)
+ traplocs<- data$X
+ nind<-nrow(data$Ycat)
+ Ycat<-data$Ycat
+ # K = 7, ntraps = 25
+ y3d<- array(0,dim=c(nrow(Ycat), 25, 7))
+ 
+for(i in 1:nrow(Ycat)){
+ for(k in 1:7){
+   if(Ycat[i,k]<26)
+   y3d[i,Ycat[i,k],k]<- 1
+  }
+ }
+}
+if(truth=="binomial"){
+ # Careful here because I have a seed hard-wired into the code to produce the book data set
+data<- simSCR0(N=parms$N, K=7, alpha0 = parms$alpha0, sigma = parms$sigma, array3d=TRUE, rnd=2014)
+y3d<- data$Y
+nind<- dim(y3d)[1]
+traplocs<- data$traplocs
+}
+ 
+
+if(with.sex)
+  sex<- rbinom(nind,1,0.5)
+
+traplocs <- cbind(sort(rep(1:5, 5)), rep(1:5, 5))
+ 
+## Convert data for oSCR
+
+# trap list: dataframe with named X and Y columns
+traplocs <- list(data.frame(X=traplocs[,1],Y=traplocs[,2]) )
+  
+if(with.sex){
+  scrFrame <- list(caphist=list(y3d), indCovs=list(data.frame(sex=sex)),
+                   type="scr", traps=traplocs,trapCovs=NULL, nocc= dim(y3d)[3] )
+  class(scrFrame) <- "scrFrame"
+}
+if(!with.sex){
+  scrFrame <- list(caphist=list(y3d), indCovs=NULL, 
+                   type="scr", traps=traplocs,trapCovs=NULL, nocc= dim(y3d)[3] )
+  class(scrFrame) <- "scrFrame"
+}
+ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buffer = 2) ) )
+
+
 # Fit a model using oSCR.fit
 out1<- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,plotit=FALSE, 
 multicatch=TRUE , trimS=3,start.vals=out1$outStats[,3])

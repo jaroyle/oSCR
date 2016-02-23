@@ -249,11 +249,11 @@ y3d<- data$Y
 nind<- dim(y3d)[1]
 traplocs<- data$traplocs
 }
+
 if(with.sex)
   sex<- rbinom(nind,1,0.5)
 
 traplocs <- cbind(sort(rep(1:5, 5)), rep(1:5, 5))
- 
  
 ## Convert data for oSCR
 
@@ -271,7 +271,7 @@ if(!with.sex){
   class(scrFrame) <- "scrFrame"
 }
 
-
+ 
 ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buffer = 2) ) )
 
 if(truth=="multicatch"){

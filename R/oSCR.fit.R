@@ -1123,14 +1123,17 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     if(sexmod=='session') psi.sex <- plogis(pv[grep("psi",pn)])
 
     outLik <- 0
+    
+    if(predict)
+       preds<- list()
 
  # calculate likelihood
     for(s in 1:length(YY)){
      Ys <- YY[[s]]
      if(predict)
-      tmp.post <- matrix(NA,nG[s],nrow(Ys))
+       preds[[s]]<- matrix(NA,nrow=nrow(Ys)+1,ncol=nrow(ssDF[[s]]))
 
-      # andy comment this out 2/11 2016
+#   andy comment this out 2/11 2016
 #     if(pBehave){
 #       prevcap <- array(0, dim=c(dim(Ys)[1],dim(Ys)[2],dim(Ys)[3]))
 #       first<- matrix(0,dim(Ys)[1],dim(Ys)[2])
@@ -1266,7 +1269,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         tmpPsi <- (sx[i]==1) * (1-psi.sex[s]) + (sx[i]==2) * psi.sex[s]
         lik.marg[i] <- sum(lik.cond * pi.s) * tmpPsi
         if(predict){
-          tmp.post[,i] <- (lik.cond*pi.s)/lik.marg[i]
+           preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
         }
       }else{
        for(k in 1:nK[s]){
@@ -1349,11 +1352,11 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         lik.marg1[i] <- sum(lik.cond1 * pi.s)
         lik.marg2[i] <- sum(lik.cond2 * pi.s)
         lik.marg[i]<- lik.marg1[i] * (1-psi.sex[s]) + lik.marg2[i] * psi.sex[s]
+        if(predict)
+           preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
        }
-      }
-      if(predict)
-       posterior[[s]] <- cbind(ssDF[[s]][,c("X","Y")],tmp.post)
-
+      }  # end loop over n.individuals ... i index
+ 
      ###Liklihood:
      if(!predict){
      ##Binomial:
@@ -1373,33 +1376,16 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       ll <- -1 * (part1 + part2)
       outLik <- outLik + ll
   }
-  #
-  #
-  # PREDICT
-  #
-     if(predict){ #needs to be ammended - currently WRONG!
-       tmp.post <- matrix(NA,nG[s],nrow(Ys))
-      for(i in 1:nrow(Ys)){
-        Pm <-  matrix(0,length(trimR[[s]][[i]]),length(trimC[[s]][[i]]))
-       for(k in 1:dim(Ys)[3]){
-         probcap <- c(plogis(a0)) * exp(-alphsig[s] * D[[s]]^2)
-         probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,,k],nG[s]),1,probcap[1:length(Pm)],log = TRUE))
-         Pm[1:length(tmpPm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
-       }
-        lik.cond <- exp(colSums(Pm))
-        tmp.post[,i]<- (lik.cond*(1/nG[s]))/lik.marg[i]
-      }
-      posterior[[s]] <- cbind(ssDF[[s]][,c("X","Y")],tmp.post)
-     }
-   }
+   }  # end loop over sessions
     if(!predict){
       out <- outLik
       return(out)
     }
-    if(predict){
-      return(posterior)
-    }
-  }
+    if(predict){ 
+        return(list(preds=preds, pi.s=pi.s, ssDF=ssDF, data=YY, traps=scrFrame$traps, d.s=d.s, lik.marg=lik.marg,
+                    lik.cond=lik.cond)  )
+     }  # end predict
+  } # end msLL.sex likelihood
 
 
 ################################################################################
@@ -1516,14 +1502,15 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message("Using ll function 'msLL.nosex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-     myfit <- msLL.nosex(p=start.vals,pn=pn,YY=YY,D=D, hiK=hiK, nG=nG,nK=nK, dm.den=dm.den,dm.trap=dm.trap)
+     myfit <- msLL.nosex(p=start.vals,pn=pn,YY=YY,D=D, 
+                  hiK=hiK, nG=nG,nK=nK, dm.den=dm.den,dm.trap=dm.trap)
  
  }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-     myfit <- msLL.sex(p=start.vals,pn=pn,YY=YY,D=D,
-              nG=nG,K=K, hiK=hiK, dm.den=dm.den,dm.trap=dm.trap)
+     myfit <- msLL.sex(p=start.vals,pn=pn,YY=YY,D=D,nK=nK,
+              nG=nG,hiK=hiK, dm.den=dm.den,dm.trap=dm.trap)
   }
   return(myfit)
   }

@@ -1,5 +1,5 @@
-\name{rbs}
-\alias{rbs}
+\name{slowworm}
+\alias{slowworms}
 \docType{data}
 \title{
 The slow worm data from Beni Schmidt

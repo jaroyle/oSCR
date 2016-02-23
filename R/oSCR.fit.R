@@ -880,7 +880,7 @@ for(s in 1:length(YY)){
        lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm=T))
        lik.marg[i] <- sum(lik.cond * pi.s)
        if(predict)
-       preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
+       preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
    }
 
      ###Liklihood:
@@ -1352,8 +1352,10 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         lik.marg1[i] <- sum(lik.cond1 * pi.s)
         lik.marg2[i] <- sum(lik.cond2 * pi.s)
         lik.marg[i]<- lik.marg1[i] * (1-psi.sex[s]) + lik.marg2[i] * psi.sex[s]
-        if(predict)
-           preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
+        if(predict){
+          lik.cond <- (lik.cond1 * (1-psi.sex[s]) + lik.cond2 * psi.sex[s]) * pi.s
+          preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
+        }
        }
       }  # end loop over n.individuals ... i index
  

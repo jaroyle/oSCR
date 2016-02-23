@@ -382,12 +382,12 @@ my.model.matrix <- function(form,data){
     pDot <- TRUE
   }
 
-  if(var.p0.1){
+  if(var.p0.1 & !var.p0.2){
     tmp.p0.names <- c("p0.int","p0.male")
     pJustsex <- TRUE
   }
 
-  if(var.p0.2){
+  if(!var.p0.1 & var.p0.2){
     if(ns>1){
       tmp.p0.names <- c("p0.int",paste0("p0.sess",2:ns))
       pJustsesh <- TRUE
@@ -410,7 +410,7 @@ my.model.matrix <- function(form,data){
   }
 
   if(var.p0.3){
-    tmp.p0.names <- c("p0.int",paste0("p0.t",2:hiK))
+    tmp.p0.names <- c(tmp.p0.names,paste0("p0.t",2:hiK))
     pTime <- TRUE
   }
   if(var.p0.4){
@@ -876,7 +876,7 @@ for(s in 1:length(YY)){
         Pm[1:length(Pm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
       }
        lik.cond <- numeric(nG[s])
-       if(!is.matrix(Pm)) browser()
+       if(!is.matrix(Pm))
        lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm=T))
        lik.marg[i] <- sum(lik.cond * pi.s)
        if(predict)

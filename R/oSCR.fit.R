@@ -28,12 +28,12 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-       max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,c("X","Y")]),na.rm=T))
+       max.dist <- c(max.dist,max(0,dist(matrix(scrFrame$traps[[i]][where,c("X","Y")],ncol=2)),na.rm=T))
      }
     }
     #trimS <- 6*max.dist
 #  }
-   mmdm <- mean(max.dist,na.rm=T)
+   mmdm <- mean(max.dist[max.dist>0],na.rm=T)
 ################################################################################
 # Some setting and checks
 #
@@ -376,6 +376,8 @@ my.model.matrix <- function(form,data){
      anySex <- TRUE
    }
   }
+
+  tmp.p0.names <- "p0.int"
 
   if(sum(var.p0.1,var.p0.2,var.p0.3,var.p0.4)==0){
     tmp.p0.names <- "p0.int"
@@ -1038,6 +1040,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     alpha0[,,1,2] <- alpha0[,,1,1] + BRmat[,,1,1]
     alpha0[,,2,2] <- alpha0[,,2,1] + BRmat[,,2,1]
 
+
     #sig
     alphsig <- matrix(0,ns,2)
     tmpA <- pv[pn%in%names.sig[grep("sig.int",names.sig)]]
@@ -1074,7 +1077,6 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       alphsig[,1] <- tmpA + tmpSF
       alphsig[,2] <- tmpA + tmpSM
     }
-
     alphsig <- 1/(2*exp(alphsig)^2)
 
   #trap betas  (no sex effect on covariates 0 could add 'Sex' for the interaction?)

@@ -1039,7 +1039,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     alpha0[,,2,2] <- alpha0[,,2,1] + BRmat[,,2,1]
 
     #sig
-    alphsig <- matrix(NA,ns,2)
+    alphsig <- matrix(0,ns,2)
     tmpA <- pv[pn%in%names.sig[grep("sig.int",names.sig)]]
     if(aDot){
       alphsig[,] <- tmpA

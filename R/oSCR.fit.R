@@ -934,7 +934,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       alpha0[,,,1] <- tmpP
     }
 
-    if(pDot & pTime){
+    if(pTime){
       tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
       for(s in 1:ns){
         alpha0[s,,1,1] <- tmpP + tmpT

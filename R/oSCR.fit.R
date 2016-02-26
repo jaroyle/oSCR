@@ -503,7 +503,7 @@ my.model.matrix <- function(form,data){
 
   names.sig <- tmp.sig.names
   pars.sig <- rep(0.1,length(names.sig))
-  pars.sig[1] <- log(mmdm)
+  pars.sig[1] <- log(0.5 * mmdm)
 
 ################################################################################
 # some objects to fit models
@@ -793,8 +793,7 @@ for(s in 1:length(YY)){
       }
      }
 
-
-      lik.marg <- rep(NA,nrow(Ys))
+     lik.marg <- rep(NA,nrow(Ys))
 
      #rescale the pi.s when using trimS
      if(!is.null(trimS)){
@@ -835,10 +834,11 @@ for(s in 1:length(YY)){
        }
        #################################
 # multicatch block 3
-       if(multicatch)
+      if(multicatch)
         Pm <-  matrix(0,sum(trimR[[s]][[i]])+1,sum(trimC[[s]][[i]]))
       if(!multicatch)
         Pm <-  matrix(0,sum(trimR[[s]][[i]]),sum(trimC[[s]][[i]]))
+      
       for(k in 1:nK[s]){
        if(pBehave){
          a0 <- alpha0[s,k,1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,2] * c(prevcap[[s]][i,,k])
@@ -856,10 +856,10 @@ for(s in 1:length(YY)){
 # multicatch block 4
         if(!multicatch){
          if(encmod=="B"){
-           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1,
+           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1, 
                                            probcap[1:length(Pm)],log = TRUE))}
          if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])), 
                                            probcap[1:length(Pm)],log = TRUE))}
 
        }else{
@@ -878,11 +878,11 @@ for(s in 1:length(YY)){
         Pm[1:length(Pm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
       }
        lik.cond <- numeric(nG[s])
-       if(!is.matrix(Pm))
+#if(!is.matrix(Pm)) <--- WHAT OS THIS?
        lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm=T))
        lik.marg[i] <- sum(lik.cond * pi.s)
        if(predict)
-       preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
+         preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
    }
 
      ###Liklihood:
@@ -1478,6 +1478,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
                  Area = areaS,
                  ED = ED,
                  nObs = unlist(lapply(scrFrame$caphist,nrow)),
+                 mmdm = mmdm,
                  #VcV = VcV,
                  nll = myfit$minimum,
                  AIC = 2*myfit$minimum + 2* length(myfit$estimate),

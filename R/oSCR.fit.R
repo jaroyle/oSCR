@@ -979,14 +979,6 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     if(pJustsesh & pJustsex & !pTime & !pBothsexnsesh){
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
-      # sigma no sex:
-
-      m0old <- oSCR.fit(scrFrame,model = list(~1,~1,~1,~1), ssDF = ssDF)
-      m0new <- oSCR.fit.try(scrFrame,model = list(~1,~1,~1,~1), ssDF = ssDF)
-
-      m1old <- oSCR.fit(scrFrame,model = list(~1,~1,~session,~1), ssDF = ssDF)
-      m1new <- oSCR.fit.try(scrFrame,model = list(~1,~1,~session,~1), ssDF = ssDF)
-
       for(s in 1:ns){
         alpha0[s,,1,1] <- tmpP + tmpSS[s]
         alpha0[s,,2,1] <- tmpP + tmpSS[s] + tmpS

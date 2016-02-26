@@ -28,7 +28,7 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-       max.dist <- c(max.dist,max(0,dist(matrix(scrFrame$traps[[i]][where,c("X","Y")],ncol=2)),na.rm=T))
+       max.dist <- c(max.dist,max(0,dist(as.matrix(scrFrame$traps[[i]][where,c("X","Y")])),na.rm=T))
      }
     }
     #trimS <- 6*max.dist

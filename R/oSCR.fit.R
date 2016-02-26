@@ -1,5 +1,5 @@
 oSCR.fit <-
-function(scrFrame, model = list(D~1, p0~1, sig~1, path~1), ssDF = NULL, costDF = NULL,
+function(scrFrame, model = list(D~1, p0~1, sig~1, asu~1), ssDF = NULL, costDF = NULL,
          distmet=c("euc","user","ecol")[1], sexmod = c('constant','session')[1],
          encmod = c("B","P")[1], DorN = c('D','N')[1], directions = 8, Dmat = NULL,
          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F,
@@ -180,7 +180,7 @@ my.model.matrix <- function(form,data){
   pBehave <- any(c(var.b.1,var.b.2,var.b.3,var.b.4))
 
   allvars.dist <- all.vars(model[[4]])
-  allvars.dist <- allvars.dist[!allvars.dist=="path"]
+  allvars.dist <- allvars.dist[!allvars.dist=="asu"]
 
   for(s in 1:ns){
    if(!is.null(trimS)){

@@ -818,9 +818,9 @@ for(s in 1:length(YY)){
        pi.s <- (d.s*pixels)/sum(d.s*pixels)
      }
 
+     # Kern <- exp(-alphsig[s] * D[[s]]^2)
+
      for(i in 1:nrow(Ys)){
-
-
 
        #################################
        #visualize the local evaluations
@@ -850,9 +850,11 @@ for(s in 1:length(YY)){
        }
        if(encmod=="B")
          probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+         #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
        if(encmod=="P")
          probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
-
+         #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
+       
 # multicatch block 4
         if(!multicatch){
          if(encmod=="B"){

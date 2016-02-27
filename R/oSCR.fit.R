@@ -851,6 +851,7 @@ for(s in 1:length(YY)){
        if(encmod=="B")
          probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
          #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+
        if(encmod=="P")
          probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
          #probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
@@ -1244,6 +1245,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         }
         if(encmod=="B")
           probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s,sx[i]] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
+
         if(encmod=="P")
           probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s,sx[i]] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
 

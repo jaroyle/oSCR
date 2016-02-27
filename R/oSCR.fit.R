@@ -749,10 +749,10 @@ for(s in 1:length(YY)){
     if(!n0Session) n0 <- rep(exp(pv[pn%in%names.n0]),ns)
 
     outLik <- 0
-    
+
     if(predict)
        preds<- list()
-    
+
   # calculate likelihood
     for(s in 1:length(YY)){
       Ys <- YY[[s]]
@@ -836,7 +836,7 @@ for(s in 1:length(YY)){
         Pm <-  matrix(0,sum(trimR[[s]][[i]])+1,sum(trimC[[s]][[i]]))
       if(!multicatch)
         Pm <-  matrix(0,sum(trimR[[s]][[i]]),sum(trimC[[s]][[i]]))
-      
+
       for(k in 1:nK[s]){
        if(pBehave){
          a0 <- alpha0[s,k,1] * (1-c(prevcap[[s]][i,,k])) + alpha0[s,k,2] * c(prevcap[[s]][i,,k])
@@ -851,16 +851,16 @@ for(s in 1:length(YY)){
          #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
 
        if(encmod=="P")
-         probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
+         probcap <- c(exp(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
          #probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
-       
+
 # multicatch block 4
         if(!multicatch){
          if(encmod=="B"){
-           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1, 
+           probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),1,
                                            probcap[1:length(Pm)],log = TRUE))}
          if(encmod=="P"){
-           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])), 
+           probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,trimR[[s]][[i]],k],sum(trimC[[s]][[i]])),
                                            probcap[1:length(Pm)],log = TRUE))}
 
        }else{
@@ -1128,7 +1128,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     if(sexmod=='session') psi.sex <- plogis(pv[grep("psi",pn)])
 
     outLik <- 0
-    
+
     if(predict)
        preds<- list()
 
@@ -1359,12 +1359,12 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         lik.marg2[i] <- sum(lik.cond2 * pi.s)
         lik.marg[i]<- lik.marg1[i] * (1-psi.sex[s]) + lik.marg2[i] * psi.sex[s]
         if(predict){
-          lik.cond <- (lik.cond1 * (1-psi.sex[s]) + lik.cond2 * psi.sex[s]) 
+          lik.cond <- (lik.cond1 * (1-psi.sex[s]) + lik.cond2 * psi.sex[s])
           preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
         }
        }
       }  # end loop over n.individuals ... i index
- 
+
      ###Liklihood:
      if(!predict){
      ##Binomial:
@@ -1389,7 +1389,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       out <- outLik
       return(out)
     }
-    if(predict){ 
+    if(predict){
         return(list(preds=preds, pi.s=pi.s, ssDF=ssDF, data=YY, traps=scrFrame$traps, d.s=d.s, lik.marg=lik.marg,
                     lik.cond=lik.cond)  )
      }  # end predict
@@ -1472,7 +1472,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     ED <- NULL
   }
   endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y") # Date stamp for start
-  
+
   output <- list(call = cl,
                  #scrFrame = scrFrame,
                  #G = NULL,
@@ -1498,16 +1498,16 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
   if(predict){
   message("Predicting model: D",paste(model)[1],", p0",paste(model)[2],", sigma",
            paste(model)[3],", cost",paste(model)[4], sep=" ")
-  
+
 # msLL.nosex <- function(pv=pv, pn=pn, YY=YY, D=D, hiK=hiK, nG=nG, nK=nK, dm.den=dm.den, dm.trap=dm.trap){
 
   if(!anySex){
      message("Using ll function 'msLL.nosex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
      message(" ")
-     myfit <- msLL.nosex(p=start.vals,pn=pn,YY=YY,D=D, 
+     myfit <- msLL.nosex(p=start.vals,pn=pn,YY=YY,D=D,
                   hiK=hiK, nG=nG,nK=nK, dm.den=dm.den,dm.trap=dm.trap)
- 
+
  }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))

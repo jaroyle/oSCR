@@ -985,6 +985,16 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       }
     }
 
+    if(pJustsesh & pJustsex & pTime & !pBothsexnsesh){
+      tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
+      tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
+      tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
+      for(s in 1:ns){
+        alpha0[s,,1,1] <- tmpP + tmpT + tmpSS[s]
+        alpha0[s,,2,1] <- tmpP + tmpT + tmpSS[s] + tmpS
+      }
+    }
+
     if(pBothsexnsesh & !pTime){
       tmpSSF <- c(0,pv[pn%in%names.p0[grep("p0.f.sess",names.p0)]])
       tmpSSM <- pv[pn%in%names.p0[grep("p0.m.sess",names.p0)]]

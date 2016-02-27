@@ -1452,7 +1452,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     trans.mle[grep("pBehav",pn)] <- pars[grep("pBehav",pn)]
   }
   #see my hessian!
-  sese <- rep(rep(NA,length(pv)))
+  std.err <- rep(rep(NA,length(pv)))
   trans.se <- rep(NA,length(pv))
   if("hessian"%in%names(myfit)){
    if(sum(myfit$hessian)!=0){

@@ -28,12 +28,10 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-       max.dist <- c(max.dist,max(0,dist(as.matrix(scrFrame$traps[[i]][where,c("X","Y")])),na.rm=T))
+       max.dist <- c(max.dist,max(0,dist(matrix(scrFrame$traps[[i]][where,c("X","Y")],ncol=2)),na.rm=T))
      }
     }
-    #trimS <- 6*max.dist
-#  }
-   mmdm <- mean(max.dist[max.dist>0],na.rm=T)
+    mmdm <- mean(max.dist[max.dist>0],na.rm=T)
 ################################################################################
 # Some setting and checks
 #
@@ -945,7 +943,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       }
     }
 
-    if(pJustsex & !pTime & !pJustsesh){
+    if(pJustsex & !pTime & !pJustsesh & !pBothsexnsesh){
       tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
       for(s in 1:ns){
         alpha0[s,,1,1] <- tmpP
@@ -953,7 +951,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       }
     }
 
-    if(pJustsex & pTime & !pJustsesh){
+    if(pJustsex & pTime & !pJustsesh & !pBothsexnsesh){
        tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
        tmpS <- pv[pn%in%names.p0[grep("p0.male",names.p0)]]
        for(s in 1:ns){
@@ -962,7 +960,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
        }
     }
 
-    if(pJustsesh & !pTime & !pJustsex){
+    if(pJustsesh & !pTime & !pJustsex & !pBothsexnsesh){
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       for(s in 1:ns){
         alpha0[s,,1,1] <- tmpP + tmpSS[s]
@@ -970,7 +968,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
       }
     }
 
-    if(pJustsesh & pTime){
+    if(pJustsesh & pTime & !pJustsex & !pBothsexnsesh){
       tmpT <- c(0,pv[pn%in%names.p0[grep("p0.t",names.p0)]])
       tmpSS <- c(0,pv[pn%in%names.p0[grep("p0.sess",names.p0)]])
       for(s in 1:ns){

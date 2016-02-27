@@ -818,7 +818,7 @@ for(s in 1:length(YY)){
        pi.s <- (d.s*pixels)/sum(d.s*pixels)
      }
 
-     # Kern <- exp(-alphsig[s] * D[[s]]^2)
+     Kern <- exp(-alphsig[s] * D[[s]]^2)
 
      for(i in 1:nrow(Ys)){
 
@@ -849,11 +849,11 @@ for(s in 1:length(YY)){
          a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
        }
        if(encmod=="B")
-         probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
-         #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
+         probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
+         #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
        if(encmod=="P")
-         probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
-         #probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
+         probcap <- c(plogis(a0[trimR[[s]][[i]]])) * Kern[trimR[[s]][[i]],trimC[[s]][[i]]]
+         #probcap <- c(exp(a0[trimR[[s]][[i]]])) * exp(-alphsig[s] * D[[s]][trimR[[s]][[i]],trimC[[s]][[i]]]^2)
        
 # multicatch block 4
         if(!multicatch){

@@ -28,7 +28,7 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-       max.dist <- c(max.dist,max(0,dist(matrix(scrFrame$traps[[i]][where,c("X","Y")],ncol=2)),na.rm=T))
+       max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,c("X","Y")]),na.rm=T))
      }
     }
     mmdm <- mean(max.dist[max.dist>0],na.rm=T)
@@ -1409,7 +1409,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
   if(!predict){
   message("Fitting model: D",paste(model)[1],", p0",paste(model)[2],", sigma",
-           paste(model)[3],", cost",paste(model)[4], sep=" ")
+           paste(model)[3],", asu",paste(model)[4], sep=" ")
 
   if(!anySex){
      message("Using ll function 'msLL.nosex' \nHold on tight!")
@@ -1452,26 +1452,20 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     trans.mle[grep("pBehav",pn)] <- pars[grep("pBehav",pn)]
   }
   #see my hessian!
-    if("hessian"%in%names(myfit)){
-#    sese <- sqrt(diag(solve(myfit$hessian)))
-    # add 95%CI's here
-    #  trans.se[which(pn %in% "p0.")] <- plogis(pars[which(pn %in% "p0.")])
-    #  trans.se[which(pn %in% "sig.")] <- exp(pars[which(pn %in% "sig.")])
-    #  trans.se[which(pn %in% "n0")] <- exp(pars[which(pn %in% "n0")])
-    trans.se <- rep(NA,length(pv))
-  }else{
-    sese <- rep(rep(NA,length(pv)))
-    trans.se <- rep(NA,length(pv))
+  sese <- rep(rep(NA,length(pv)))
+  trans.se <- rep(NA,length(pv))
+  if("hessian"%in%names(myfit)){
+   if(sum(myfit$hessian)!=0){
+     std.err <- sqrt(diag(solve(myfit$hessian)))
+   }
   }
   outStats <- data.frame( parameters=pn,
                           link = links,
                           mle=round(myfit$estimate,3),
-                          #se = sese,
+                          std.er = std.err,
                           mle.tr = round(trans.mle,3),
                           se.tr = trans.se)
   VcV <- NULL
-  idx <- outStats[,"parameters"] == "sig.int"
-  sigma <- sqrt(1/(2*exp(outStats[idx,"mle"])))
   if(DorN=="N"){
     ED <- (exp(pars[grep("n0.",pn)]) + unlist(lapply(scrFrame$caphist,nrow)))/areaS
   }else{

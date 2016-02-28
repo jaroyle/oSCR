@@ -1462,9 +1462,9 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
   }
   outStats <- data.frame( parameters=pn,
                           link = links,
-                          mle=round(myfit$estimate,3),
+                          mle= myfit$estimate,
                           std.er = std.err,
-                          mle.tr = round(trans.mle,3),
+                          mle.tr = trans.mle,
                           se.tr = trans.se)
   VcV <- NULL
   if(DorN=="N"){

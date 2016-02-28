@@ -28,7 +28,8 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-       max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,c("X","Y")]),na.rm=T))
+      if(sum(where)>1) 
+        max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,c("X","Y")]),na.rm=T))
      }
     }
     mmdm <- mean(max.dist[max.dist>0],na.rm=T)

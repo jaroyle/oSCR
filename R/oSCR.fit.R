@@ -6,8 +6,6 @@ function(scrFrame, model = list(D~1, p0~1, sig~1, asu~1), ssDF = NULL, costDF = 
          mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-6, nlmstepmax = 10,
          predict=FALSE, smallslow = FALSE, multicatch=FALSE,hessian=T, print.level = 0,
          getStarts = FALSE){
-##NOTES: 'session' = n0 different
-##       'Session' = betas differ too!
 ##       Reommend trimming the State space to trim value!
 
 
@@ -155,10 +153,10 @@ my.model.matrix <- function(form,data){
 #
 
   allvars.D <- all.vars(model[[1]])
-  dens.fx <- allvars.D[!allvars.D %in% c("D","session","Session")]
+  dens.fx <- allvars.D[!allvars.D %in% c("D","session")]
 
   allvars.T <- all.vars(model[[2]])
-  trap.fx <- allvars.T[!allvars.T %in% c("p0","session","Session","sex","t","T","b")]
+  trap.fx <- allvars.T[!allvars.T %in% c("p0","session","sex","t","T","b")]
 
   allvars.p0a <- all.vars(model[[2]])
   allvars.p0 <- allvars.p0a[!allvars.p0a=="p0"]
@@ -210,8 +208,8 @@ my.model.matrix <- function(form,data){
    }
 
   #make the design matrix
-    mod2 <- update(model[[2]],~. - sex - session - Session - t - b - 1)
-   if(any(c("session","Session") %in% allvars.T)) tSession <- TRUE
+    mod2 <- update(model[[2]],~. - sex - session - t - b - 1)
+   if(any(c("session") %in% allvars.T)) tSession <- TRUE
     for(s in 1:ns){
       tmp.dm <- list()
     for(k in 1:nK[s]){
@@ -230,7 +228,7 @@ my.model.matrix <- function(form,data){
    }#end s
 
    #set up the parameters to be estimated
-   if("Session" %in% all.vars(model[[2]])){
+   if("session" %in% all.vars(model[[2]])){
      tmpTsess <- rep(1:ns,each=length(t.nms))
      tmpTcovs <- rep(t.nms,ns)
      names.beta.trap <- paste("t.beta.",tmpTcovs,".sess",tmpTsess,sep="")
@@ -258,7 +256,7 @@ my.model.matrix <- function(form,data){
   if(DorN=="N"){
    if(length(dens.fx)>0){
      dIPP <- TRUE
-     mod1 <- update(model[[1]],~. - sex - Session - session - 1)
+     mod1 <- update(model[[1]],~. - sex - session - 1)
     for(s in 1:ns){
       dm.den[[s]] <- my.model.matrix(mod1,ssDF[[s]])
       if(s==1) d.nms <- colnames(dm.den[[s]])
@@ -711,7 +709,7 @@ for(s in 1:length(YY)){
     #trap betas
     if(trap.covs){
       t.beta <- matrix(NA,ns,length(t.nms))
-     if("Session" %in% all.vars(model[[2]])){
+     if("session" %in% all.vars(model[[2]])){
       for(s in 1:ns){
         t.beta[s,] <- pv[pn%in%names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)]]
       }
@@ -726,7 +724,7 @@ for(s in 1:length(YY)){
     if(DorN=="N"){
      if(dIPP){
        d.beta <- matrix(NA,ns,length(d.nms))
-      if("Session" %in% all.vars(model[[1]])){
+      if("session" %in% all.vars(model[[1]])){
        for(s in 1:ns){
          d.beta[s,] <- pv[pn%in%names.beta.den[grep(paste("sess",s,sep=""),names.beta.den)]]
        }
@@ -1086,7 +1084,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
   #trap betas  (no sex effect on covariates 0 could add 'Sex' for the interaction?)
     if(trap.covs){
       t.beta <- matrix(NA,ns,length(names.beta.trap))
-     if("Session" %in% all.vars(model[[2]])){
+     if("session" %in% all.vars(model[[2]])){
       for(s in 1:ns){
         t.beta[s,] <- pv[pn%in%names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)]]
       }
@@ -1101,7 +1099,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
     if(DorN=="N"){
      if(dIPP){
        d.beta <- matrix(NA,ns,length(d.nms))
-      if("Session" %in% all.vars(model[[1]])){
+      if("session" %in% all.vars(model[[1]])){
        for(s in 1:ns){
          d.beta[s,] <- pv[pn%in%names.beta.den[grep(paste("sess",s,sep=""),names.beta.den)]]
        }

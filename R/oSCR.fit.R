@@ -1491,7 +1491,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
                  AIC = 2*myfit$minimum + 2* length(myfit$estimate),
                  started = starttime,
                  ended = endtime,
-                 proctime = (proc.time() - ptm)[3])
+                 proctime = (proc.time() - ptm)[3]/60)
    class(output) <- "oSCR.fit"
    return(output)
   }

@@ -1416,7 +1416,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      message(" ")
      myfit <- suppressWarnings(
                nlm(msLL.nosex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK, dm.den=dm.den,
-                   dm.trap=dm.trap,hessian=T, print.level = print.level))
+                   dm.trap=dm.trap,hessian=T, print.level = print.level, iterlim = 200))
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
      message(paste(pn," ",sep=" | "))
@@ -1424,7 +1424,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      myfit <- suppressWarnings(
                nlm(msLL.sex,p=pv,pn=pn,YY=YY,D=D,nG=nG,nK=nK, hiK=hiK,
                    dm.den=dm.den,dm.trap=dm.trap,hessian=T,
-                   print.level = print.level) )
+                   print.level = print.level, iterlim = 200) )
   }
 
 

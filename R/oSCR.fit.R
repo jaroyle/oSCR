@@ -1201,7 +1201,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
      if(DorN=="N"){
       if(dIPP){
         d.s <- exp(dm.den[[s]] %*% d.beta[s,])
-        pis <- (d.s*pixels)/sum(d.s*pixels)
+        pi.s <- (d.s*pixels)/sum(d.s*pixels)
       }
       if(dHPP){
         pi.s <- pixels/(sum(pixels))

@@ -154,17 +154,14 @@ my.model.matrix <- function(form,data){
 
   allvars.D <- all.vars(model[[1]])
   dens.fx <- allvars.D[!allvars.D %in% c("D","session")]
-
   allvars.T <- all.vars(model[[2]])
   trap.fx <- allvars.T[!allvars.T %in% c("p0","session","sex","t","T","b")]
-
-  allvars.p0a <- all.vars(model[[2]])
-  allvars.p0 <- allvars.p0a[!allvars.p0a=="p0"]
-  allvars.siga <- all.vars(model[[3]])
-  allvars.sig <- allvars.siga[!allvars.siga=="sig"]
-  var.p0.1 <- "sex" %in% allvars.p0
-  var.p0.2 <- "session" %in% allvars.p0
-  var.p0.3 <- "t" %in% allvars.p0
+  allvars.sig <- all.vars(model[[3]])
+  allvars.dist <- all.vars(model[[4]])
+  
+  var.p0.1 <- "sex" %in% allvars.T
+  var.p0.2 <- "session" %in% allvars.T
+  var.p0.3 <- "t" %in% allvars.T
   var.p0.4 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[2]]),"term.labels"))
   var.sig.1 <- "sex" %in% allvars.sig
   var.sig.2 <- "session" %in% allvars.sig
@@ -175,9 +172,6 @@ my.model.matrix <- function(form,data){
   var.b.4 <- any(c("b:session:sex", "b:sex:session", "sex:session:b", "sex:b:session",
                    "session:b:sex","session:sex:b") %in% attr(terms(model[[2]]),"term.labels"))
   pBehave <- any(c(var.b.1,var.b.2,var.b.3,var.b.4))
-
-  allvars.dist <- all.vars(model[[4]])
-  allvars.dist <- allvars.dist[!allvars.dist=="asu"]
 
   for(s in 1:ns){
    if(!is.null(trimS)){

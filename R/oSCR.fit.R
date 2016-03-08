@@ -1448,14 +1448,22 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 ################################################################################
   links <- rep(NA,length(pn))
   pars <- myfit$estimate
-  links[grep("p0.int",pn)] <- "(logit)"
+  if(encmod=="B"){
+    links[grep("p0.int",pn)] <- "(logit)"
+  } else {
+    links[grep("p0.int",pn)] <- "(log)"
+  }
   links[grep("sig.int",pn)] <- "(log)"
   links[grep("n0.",pn)] <- "(log)"
   links[grep("d0.",pn)] <- "(log)"
   links[grep("psi",pn)] <- "(logit)"
   links[grep("beta",pn)] <- "(Identity)"
   trans.mle <- rep(0,length(pv))
-  trans.mle[grep("p0.int",pn)] <- plogis(pars[grep("p0.int",pn)])
+  if(encmod=="B"){
+    trans.mle[grep("p0.int",pn)] <- plogis(pars[grep("p0.int",pn)])
+  } else {
+    trans.mle[grep("p0.int",pn)] <- exp(pars[grep("p0.int",pn)])
+  }
   trans.mle[grep("sig.int",pn)] <- exp(pars[grep("sig.int",pn)])
   trans.mle[grep("n0.",pn)] <- exp(pars[grep("n0.",pn)])
   trans.mle[grep("d0.",pn)] <- exp(pars[grep("d0.",pn)])

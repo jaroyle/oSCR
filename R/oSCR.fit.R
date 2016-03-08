@@ -202,7 +202,12 @@ my.model.matrix <- function(form,data){
    }
 
   #make the design matrix
-    mod2 <- update(model[[2]],~. - sex - session - t - b - 1)
+   mod2 <- update(model[[2]],~. - sex - session - t - b - 1)
+   if("session" %in% all.vars(mod2)){
+     # fix interactions with session
+     mod2 <- as.formula(paste0("~",paste(all.vars(mod2)[all.vars(mod2)!="session"],collapse="+")))
+     mod2 <- update(mod2,~. - 1)
+   }
    if(any(c("session") %in% allvars.T)) tSession <- TRUE
     for(s in 1:ns){
       tmp.dm <- list()
@@ -221,11 +226,17 @@ my.model.matrix <- function(form,data){
      dm.trap[[s]] <- tmp.dm
    }#end s
 
-   #set up the parameters to be estimated
-   if("session" %in% all.vars(model[[2]])){
-     tmpTsess <- rep(1:ns,each=length(t.nms))
-     tmpTcovs <- rep(t.nms,ns)
-     names.beta.trap <- paste("t.beta.",tmpTcovs,".sess",tmpTsess,sep="")
+   #set up the parameters to be estimated (allow for session interaction)
+   if(any(paste0("session:",t.nms) %in% attr(terms(model[[2]]),"term.labels"))){
+     t.nms.sess <- t.nms[which(paste0("session:",t.nms) %in% attr(terms(model[[2]]),"term.labels"))]
+     tmpTsess <- rep(1:ns,each=length(t.nms.sess))
+     tmpTcovs <- rep(t.nms.sess,ns)
+     names.beta.trap1 <- paste("t.beta.",tmpTcovs,".sess",tmpTsess,sep="")
+     if(length(t.nms)>length(t.nms.sess)){
+       names.beta.trap <- c(names.beta.trap1,paste("t.beta.",t.nms[!t.nms %in% t.nms.sess],sep=""))
+     } else {
+       names.beta.trap <- names.beta.trap1
+     }
      pars.beta.trap <- rnorm(length(names.beta.trap))
    }else{
      names.beta.trap <- paste("t.beta.",t.nms,sep="")
@@ -234,14 +245,14 @@ my.model.matrix <- function(form,data){
   }
 
 ################################################################################
-# design matrix for the density - can have session specififcty
+# design matrix for the density - can have session specificity
 
   # check all covariates are present:
   if(length(dens.fx)>0){
     dcovnms <- colnames(ssDF[[1]]) # covs MUST be the same!
     dCovMissing <- dens.fx[which(!dens.fx %in% dcovnms)]
    if(length(dCovMissing)>0){
-     stop("I cant find theses covariates in 'ssDF'",
+     stop("I can't find these covariates in 'ssDF'",
           for(i in dCovMissing)print(i))
    }
   }
@@ -703,15 +714,20 @@ for(s in 1:length(YY)){
     #trap betas
     if(trap.covs){
       t.beta <- matrix(NA,ns,length(t.nms))
-     if("session" %in% all.vars(model[[2]])){
-      for(s in 1:ns){
-        t.beta[s,] <- pv[pn%in%names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)]]
+      if(any(paste0("session:",t.nms) %in% attr(terms(model[[2]]),"term.labels"))){
+        for(s in 1:ns){
+          if(length(t.nms)>length(t.nms.sess)){
+            t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)],
+                                     names.beta.trap[charmatch(t.nms[!t.nms %in% t.nms.sess],names.beta.trap)])]
+          } else {
+            t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)])]
+          }
+        }
+      } else {
+        for(s in 1:ns){
+          t.beta[s,] <- pv[pn%in%names.beta.trap]
+        }
       }
-     }else{
-      for(s in 1:ns){
-        t.beta[s,] <- pv[pn%in%names.beta.trap]
-      }
-     }
     }
 
   #density betas
@@ -877,7 +893,7 @@ for(s in 1:length(YY)){
        lik.marg[i] <- sum(lik.cond * pi.s)
        if(predict)
          preds[[s]][i,]<- (lik.cond*pi.s)/lik.marg[i]
-   }
+   } #end i loop
 
      ###Liklihood:
      if(!predict){
@@ -900,7 +916,7 @@ for(s in 1:length(YY)){
      }
 
 
-}  # end i loop here
+}  # end s loop here
 if(!predict){
       out <- outLik
       return(out)
@@ -1077,15 +1093,20 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
   #trap betas  (no sex effect on covariates 0 could add 'Sex' for the interaction?)
     if(trap.covs){
-      t.beta <- matrix(NA,ns,length(names.beta.trap))
-     if("session" %in% all.vars(model[[2]])){
-      for(s in 1:ns){
-        t.beta[s,] <- pv[pn%in%names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)]]
-      }
-     }else{
-      for(s in 1:ns){
-        t.beta[s,] <- pv[pn%in%names.beta.trap]
-      }
+      t.beta <- matrix(NA,ns,length(t.nms))
+      if(any(paste0("session:",t.nms) %in% attr(terms(model[[2]]),"term.labels"))){
+        for(s in 1:ns){
+          if(length(t.nms)>length(t.nms.sess)){
+            t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)],
+                                    names.beta.trap[charmatch(t.nms[!t.nms %in% t.nms.sess],names.beta.trap)])]
+          } else {
+            t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)])]
+          }
+        }
+      } else {
+        for(s in 1:ns){
+          t.beta[s,] <- pv[pn%in%names.beta.trap]
+        }
      }
     }
 

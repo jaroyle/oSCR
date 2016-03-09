@@ -233,7 +233,8 @@ my.model.matrix <- function(form,data){
      tmpTcovs <- rep(t.nms.sess,ns)
      names.beta.trap1 <- paste("t.beta.",tmpTcovs,".sess",tmpTsess,sep="")
      if(length(t.nms)>length(t.nms.sess)){
-       names.beta.trap <- c(names.beta.trap1,paste("t.beta.",t.nms[!t.nms %in% t.nms.sess],sep=""))
+       t.nms.nosess <- t.nms[!t.nms %in% t.nms.sess]
+       names.beta.trap <- c(names.beta.trap1,paste("t.beta.",t.nms.nosess,sep=""))
      } else {
        names.beta.trap <- names.beta.trap1
      }
@@ -718,7 +719,7 @@ for(s in 1:length(YY)){
         for(s in 1:ns){
           if(length(t.nms)>length(t.nms.sess)){
             t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)],
-                                     names.beta.trap[charmatch(t.nms[!t.nms %in% t.nms.sess],names.beta.trap)])]
+                                     names.beta.trap[as.vector(unlist(sapply(t.nms.nosess,function(x){grep(x,names.beta.trap)})))])]
           } else {
             t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)])]
           }
@@ -1098,7 +1099,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         for(s in 1:ns){
           if(length(t.nms)>length(t.nms.sess)){
             t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)],
-                                    names.beta.trap[charmatch(t.nms[!t.nms %in% t.nms.sess],names.beta.trap)])]
+                                    names.beta.trap[as.vector(unlist(sapply(t.nms.nosess,function(x){grep(x,names.beta.trap)})))])]
           } else {
             t.beta[s,] <- pv[pn%in%c(names.beta.trap[grep(paste("sess",s,sep=""),names.beta.trap)])]
           }

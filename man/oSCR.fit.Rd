@@ -115,7 +115,9 @@ covariate values.
 %%     ~~Describe \code{PROJ} here~~
 }
   \item{pxArea}{
-%%     ~~Describe \code{pxArea} here~~
+    Area of state-space pixels. Default value of pxArea=1 returns "Area"
+    = number of pixels in the state-space.
+    %%     ~~Describe \code{pxArea} here~~
 }
   \item{plotit}{
 %%     ~~Describe \code{plotit} here~~

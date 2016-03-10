@@ -24,6 +24,22 @@ this is not a data file, just an R script (see below)
 }
 \examples{
 
+
+predict.oSCR <- function(scrFrame, ssDF, scr.fit){
+ 
+  mles <- scr.fit$rawOutput$estimates
+  mod <- scr.fit$call
+  mc<- mod$multicatch
+  tr<- mod$trimS
+  prediction <- oSCR.fit(scrFrame=scrFrame, ssDF=ssDF, model=mod, start.vals=mles, trimS=tr, 
+  multicatch=scr.fit$call$mc,
+  predict=TRUE)
+  return(prediction)
+ 
+}
+
+
+
 library(scrbook)
 library(oSCR)
 # Prediction example
@@ -113,11 +129,15 @@ ssDF <- list(     data.frame(      make.statespace(traplocs[[1]], delta =.5, buf
 
 # Fit a model using oSCR.fit
 out1<- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,plotit=FALSE, 
-multicatch=TRUE , trimS=3,start.vals=out1$outStats[,3])
+multicatch=TRUE , trimS=3)
+
+out1p<- predict.oSCR(scrFrame, ssDF, scr.fit=out1)
 
 # make a prediction by feeding in the MLEs and use predict=TRUE
-out1p <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,plotit=FALSE, 
-multicatch=TRUE , trimS=3,start.vals=out1$outStats[,3],predict=TRUE)
+#out1p <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,plotit=FALSE, 
+#multicatch=TRUE , trimS=3,start.vals=out1$outStats[,3],predict=TRUE)
+
+
 
 nguys<- dim(out1p$preds[[1]])[1]
 # Uses function spatial.plot from scrbook to make a graphical depicture of 

@@ -71,6 +71,11 @@ my.model.matrix <- function(form,data){
       stop("error: multicatch system cannot have > 1 capture.")
    }
   }
+
+  if(predict & is.null(start.vals)){
+    stop("Starting values required to predict (hint: use estimated MLEs)")
+  }
+
 ## ADD A CHECK FOR POISSON vs. BINOMIAL DATA RELATIVE TO SELECTED ENCOUNTER MODEL!
   maxY <- unlist(lapply(scrFrame$caphist,max))
   if(any(maxY > 1) & encmod == "B")

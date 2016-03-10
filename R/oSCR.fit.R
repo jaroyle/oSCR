@@ -1428,6 +1428,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
   if(!anySex){
      message("Using ll function 'msLL.nosex' \nHold on tight!")
+     message(Sys.time())
      message(paste(pn," ",sep=" | "))
      message(" ")
      myfit <- suppressWarnings(
@@ -1435,6 +1436,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
                    dm.trap=dm.trap,hessian=T, print.level = print.level, iterlim = 200))
   }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
+     message(Sys.time())
      message(paste(pn," ",sep=" | "))
      message(" ")
      myfit <- suppressWarnings(
@@ -1526,6 +1528,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
   if(!anySex){
      message("Using ll function 'msLL.nosex' \nHold on tight!")
+     message(Sys.time())
      message(paste(pn," ",sep=" | "))
      message(" ")
      myfit <- msLL.nosex(p=start.vals,pn=pn,YY=YY,D=D,
@@ -1533,6 +1536,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
 
  }else{
      message("Using ll function 'msLL.sex' \nHold on tight!")
+     message(Sys.time())
      message(paste(pn," ",sep=" | "))
      message(" ")
      myfit <- msLL.sex(p=start.vals,pn=pn,YY=YY,D=D,nK=nK,

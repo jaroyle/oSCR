@@ -1295,8 +1295,7 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         tmpPsi <- (sx[i]==1) * (1-psi.sex[s]) + (sx[i]==2) * psi.sex[s]
         lik.marg[i] <- sum(lik.cond * pi.s) * tmpPsi
         if(predict){
-            lik.cond <- (lik.cond * (1-psi.sex[s]) + lik.cond * psi.sex[s])
-            preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
+              preds[[s]][i,]<- lik.cond*pi.s*tmpPsi/lik.marg[i]
         }
       }else{
        for(k in 1:nK[s]){

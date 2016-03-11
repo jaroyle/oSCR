@@ -26,7 +26,7 @@ my.model.matrix <- function(form,data){
     for(i in 1:length(scrFrame$caphist)){
      for(j in 1:nrow(scrFrame$caphist[[i]])){
        where <- apply(scrFrame$caphist[[i]][j,,],1,sum)>0
-      if(sum(where)>1) 
+      if(sum(where)>1)
         max.dist <- c(max.dist,max(0,dist(scrFrame$traps[[i]][where,c("X","Y")]),na.rm=T))
      }
     }
@@ -163,7 +163,7 @@ my.model.matrix <- function(form,data){
   trap.fx <- allvars.T[!allvars.T %in% c("p0","session","sex","t","T","b")]
   allvars.sig <- all.vars(model[[3]])
   allvars.dist <- all.vars(model[[4]])
-  
+
   var.p0.1 <- "sex" %in% allvars.T
   var.p0.2 <- "session" %in% allvars.T
   var.p0.3 <- "t" %in% allvars.T
@@ -1295,7 +1295,8 @@ msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         tmpPsi <- (sx[i]==1) * (1-psi.sex[s]) + (sx[i]==2) * psi.sex[s]
         lik.marg[i] <- sum(lik.cond * pi.s) * tmpPsi
         if(predict){
-           preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
+            lik.cond <- (lik.cond * (1-psi.sex[s]) + lik.cond * psi.sex[s])
+            preds[[s]][i,]<- lik.cond*pi.s/lik.marg[i]
         }
       }else{
        for(k in 1:nK[s]){

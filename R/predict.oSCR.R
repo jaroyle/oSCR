@@ -1,5 +1,4 @@
- predict.oSCR <-
-function (scrFrame, scr.fit, ssDF, costDF = NULL)
+predict.oSCR <-    function (scrFrame, scr.fit, ssDF, costDF = NULL)
 {
     mles <- scr.fit$rawOutput$estimate
     call <- scr.fit$call
@@ -16,6 +15,7 @@ call.fix <- names(call)[!names(call) %in% c("", "scrFrame",
     r<- list()
  for(s in 1:nsess){
     nguys<- dim(out$preds[[s]])[1]
+
     Nhat<- sum(out$ss.bits[[s]][,"d.s"])
 
     library(raster)

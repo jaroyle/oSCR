@@ -141,6 +141,10 @@ out1p<- predict.oSCR(scrFrame, scr.fit=out1, ssDF)
 
 
 
+###
+### BELOW HERE IS OBSOLETE NEEDS REVISED
+###
+
 nguys<- dim(out1p$preds[[1]])[1]
 # Uses function spatial.plot from scrbook to make a graphical depicture of 
 # the posterior of s for each individual including the all-0 encounter history

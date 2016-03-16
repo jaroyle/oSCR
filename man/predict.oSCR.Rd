@@ -135,11 +135,24 @@ multicatch=TRUE , trimS=3)
 
 out1p<- predict.oSCR(scrFrame, scr.fit=out1, ssDF)
 
+plot(out1p[[1]])
+title("Estimated local density: E( N(s) | data )")
+
+# Summing up the local density value = Nhat
+
+ sum(values(out1p[[1]]))
+#[1] 104.2319
+
+
 # make a prediction by feeding in the MLEs and use predict=TRUE
 #out1p <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1),ssDF=ssDF,plotit=FALSE, 
 #multicatch=TRUE , trimS=3,start.vals=out1$outStats[,3],predict=TRUE)
 
 
+
+###
+## BELOW HERE IS OBSOLETE NEEDS REVISED to produce single-individual predictions
+###
 
 nguys<- dim(out1p$preds[[1]])[1]
 # Uses function spatial.plot from scrbook to make a graphical depicture of 
@@ -179,7 +192,6 @@ total<- apply(out1p$preds[[1]],2,sum)
 # check
 sum(total)
 r<- rasterFromXYZ(cbind(out1p$ssDF[[1]],total))
-
 plot(r)
 title("Density map")
 

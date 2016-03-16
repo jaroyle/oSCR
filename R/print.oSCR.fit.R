@@ -12,5 +12,7 @@ cat("-------------------------------------------------",fill=TRUE)
 cat(" Summary table of model parameters:","\n")
 
 print(tmpFit,...)
+cat("-------------------------------------------------",fill=TRUE)
+cat(" AIC: ", x$AIC,fill=TRUE)
 
 }

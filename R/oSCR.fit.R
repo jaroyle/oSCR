@@ -1,10 +1,10 @@
 oSCR.fit <-
 function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~ 
     1), ssDF = NULL, costDF = NULL, distmet = c("euc", "user", 
-    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B", 
+    "lcp","resist")[1], sexmod = c("constant", "session")[1], encmod = c("B", 
     "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
     trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
-    plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
+    plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, iterlim = 200,
     nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
     hessian = T, print.level = 0, getStarts = FALSE) 
 {
@@ -697,9 +697,12 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))), 
                   direction = directions)
                 trLayer <- geoCorrection(tr, scl = F)
-                D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, 
-                  c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X", 
-                  "Y"))]))
+                if(distmet == "lcp"){
+                  D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c("X","Y")]))
+                }
+                if(distmet == "resist"){
+                  D[[s]] <- as.matrix(commuteDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X","Y"))])))
+                }
             }
             if (smallslow) {
                 if (distmet == "euc") {
@@ -1081,9 +1084,12 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))), 
                   direction = directions)
                 trLayer <- geoCorrection(tr, scl = F)
-                D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, 
-                  c("X", "Y")]), as.matrix(ssDF[[s]][, c("X", 
-                  "Y")]))
+                if(distmet == "lcp"){
+                  D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c("X","Y")]))
+                }
+                if(distmet == "resist"){
+                  D[[s]] <- as.matrix(commuteDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X","Y"))])))
+                }
             }
             if (smallslow) {
                 if (distmet == "euc") {
@@ -1357,7 +1363,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 myfit <- suppressWarnings(nlm(msLL.nosex, p = pv, 
                   pn = pn, YY = YY, D = D, nG = nG, nK = nK, 
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap, 
-                  hessian = T, print.level = print.level, iterlim = 200))
+                  hessian = T, print.level = print.level, iterlim = iterlim))
             }
             else {
                 message("Using ll function 'msLL.sex' \nHold on tight!")
@@ -1367,7 +1373,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 myfit <- suppressWarnings(nlm(msLL.sex, p = pv, 
                   pn = pn, YY = YY, D = D, nG = nG, nK = nK, 
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap, 
-                  hessian = T, print.level = print.level, iterlim = 200))
+                  hessian = T, print.level = print.level, iterlim = iterlim))
             }
             links <- rep(NA, length(pn))
             pars <- myfit$estimate

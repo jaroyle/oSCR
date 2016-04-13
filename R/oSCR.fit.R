@@ -570,7 +570,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
 
 
 
-    msLL.nosex <- function(pv = pv, pn = pn, scrFrame$caphist = scrFrame$caphist, D = D,
+    msLL.nosex <- function(pv = pv, pn = pn, scrFrame$caphist, D = D,
         hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         alpha0 <- array(0, dim = c(ns, hiK, 2))
         tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]

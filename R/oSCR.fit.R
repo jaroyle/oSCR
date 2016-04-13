@@ -88,7 +88,6 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
     singleT <- NULL
     singleG <- NULL
     D <- list()
-    YY <- list()
     dm.den <- list()
     tmp.dm <- list()
     dm.trap <- list()
@@ -459,12 +458,6 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
     names.sig <- tmp.sig.names
     pars.sig <- rep(0.1, length(names.sig))
     pars.sig[1] <- log(0.5 * mmdm)
-    if (scrFrame$type == "scr") {
-        YY <- scrFrame$caphist
-    }
-    if (scrFrame$type == "secr") {
-        YY <- "secr2scr"
-    }
     if (anySex) {
         if (sexmod == "constant") {
             pars.sex <- 0
@@ -493,8 +486,8 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
     }
     if (pBehave) {
         prevcap <- list()
-        for (s in 1:length(YY)) {
-            Ys <- YY[[s]]
+        for (s in 1:length(scrFrame$caphist)) {
+            Ys <- scrFrame$caphist[[s]]
             prevcap[[s]] <- array(0, dim = c(dim(Ys)[1], dim(Ys)[2],
                 dim(Ys)[3]))
             first <- matrix(0, dim(Ys)[1], dim(Ys)[2])
@@ -514,77 +507,70 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
         }
     }
 
+
     trimR <- trimC <- list()
-    for (s in 1:length(YY)) {
-        Ys <- YY[[s]]
-        if (!multicatch) {
-            zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-            Ys <- abind(Ys, zeros, along = 1)
-        }
-        if (multicatch) {
-            zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-            Ys <- abind(Ys, zeros, along = 1)
-        }
-        trimR[[s]] <- list()
-        trimC[[s]] <- list()
-
-        for (i in 1:nrow(Ys)) {
-           trimR[[s]][[i]]<- list()
-
-            if (is.null(trimS)) {
-                pp <- rep(T, ncol(Ys))
-                trimC[[s]][[i]] <- rep(T, nG[s])
-                for(k in 1:nK[s]){
-                    trimR[[s]][[i]][[k]] <- pp
-                }
-            }
-            else {
-                if (i < nrow(Ys)) {
-                  pp <- apply(Ys[i, , ], 1, sum) > 0
-
-                  for(k in 1:nK[s]){
-                 if (!is.null(scrFrame$trapOperation)) {
-
-                     trimR[[s]][[i]][[k]] <- (apply(rbind(rep(trimS +
-                    2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
-                    c("X", "Y")])), 2, min) <= (2 * trimS)) & (scrFrame$trapOperation[[s]][,k]==1)
-
-                  }else{
-                         trimR[[s]][[i]][[k]] <- apply(rbind(rep(trimS +
-                    2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
-                    c("X", "Y")])), 2, min) <= (2 * trimS)
-                     }
-
-                  }
-
-                  trimC[[s]][[i]] <- apply(rbind(rep(trimS +
-                    2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
-                    "Y")])), 2, min, na.rm = T) <= trimS
-                }   # end loop over i
-                else {
-                  pp <- rep(T, ncol(Ys))
-                  trimC[[s]][[i]] <- apply(rbind(rep(trimS +
-                    2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
-                    "Y")])), 2, min, na.rm = T) <= trimS
-                  for(k in 1:nK[s])
-                       trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
+    for (s in 1:length(scrFrame$caphist)){
+      Ys <- scrFrame$caphist[[s]]
+      zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
+      Ys <- abind(Ys, zeros, along = 1)
+      trimR[[s]] <- list()
+      trimC[[s]] <- list()
+      
+      for(i in 1:nrow(Ys)){
+        trimR[[s]][[i]]<- list()
+        if(is.null(trimS)){
+          pp <- rep(T, ncol(Ys))
+          trimC[[s]][[i]] <- rep(T, nG[s])
+          for(k in 1:nK[s]){
+            trimR[[s]][[i]][[k]] <- pp
+          }
+        }else{
+          if(i < nrow(Ys)){
+            pp <- apply(Ys[i, , ], 1, sum) > 0
+            for(k in 1:nK[s]){
+              if(!is.null(scrFrame$trapOperation)){
+                canx.traps <- scrFrame$trapOperation[[s]][,k]
+              }else{
+                canx.traps <- rep(1, length(pp))
               }
-
+              if(!multicatch){
+                trimR[[s]][[i]][[k]] <- (apply(
+                                          rbind(
+                                            rep(trimS * 3, nrow(scrFrame$traps[[s]])), 
+                                            e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X", "Y")]), sum(pp), 2), 
+                                                   scrFrame$traps[[s]][,c("X", "Y")])), 2, min, na.rm = T) <= (2 * trimS)) & (canx.traps==1)
+              }else{
+                trimR[[s]][[i]][[k]] <- rep(T, length(trimR[[s]][[i]][[k]])) & (canx.traps==1)
+              }
             }
-            if (multicatch) {
-                for(k in 1:nK[s]){
-                trimR[[s]][[i]][[k]] <- rep(T, length(trimR[[s]][[i]][[k]]))
-                 }
-               }
-
+            trimC[[s]][[i]] <- apply(
+                                rbind(
+                                  rep(trimS + 2, nG[s]), 
+                                  e2dist(matrix(unlist(scrFrame$traps[[s]][pp, c("X", "Y")]), sum(pp), 2), 
+                                         ssDF[[s]][, c("X","Y")])), 2, min, na.rm = T) <= trimS
+          }else{
+            pp <- rep(T, ncol(Ys))
+            trimC[[s]][[i]] <- apply(
+                                rbind(
+                                  rep(trimS + 2, nG[s]), 
+                                  e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X", "Y")]), sum(pp), 2), 
+                                         ssDF[[s]][, c("X", "Y")])), 2, min, na.rm = T) <= trimS
+            for(k in 1:nK[s]){
+              if(!is.null(scrFrame$trapOperation)){
+                canx.traps <- scrFrame$trapOperation[[s]][,k]
+              }else{
+                canx.traps <- rep(1, length(pp))
+              }
+              trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
             }
+          }
         }
+      }
+    }
 
-    msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
+
+
+    msLL.nosex <- function(pv = pv, pn = pn, scrFrame$caphist = scrFrame$caphist, D = D,
         hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         alpha0 <- array(0, dim = c(ns, hiK, 2))
         tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]
@@ -698,8 +684,8 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
             lik.bits <- list()
             ss.bits <- list()
         }
-        for (s in 1:length(YY)) {
-            Ys <- YY[[s]]
+        for (s in 1:length(scrFrame$caphist)) {
+            Ys <- scrFrame$caphist[[s]]
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
@@ -881,10 +867,10 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
         }
         if (predict) {
             return(list(preds = preds, lik.bits = lik.bits, ss.bits = ss.bits,
-                ssDF = ssDF, data = YY, traps = scrFrame$traps))
+                ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
         }
     }
-    msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den,
+    msLL.sex <- function(pv, pn, scrFrame$caphist, D, Y, nG, nK, hiK, dm.den,
         dm.trap) {
         alpha0 <- array(0, c(ns, hiK, 2, 2))
         tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]
@@ -1096,8 +1082,8 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
             lik.bits <- list()
             ss.bits <- list()
         }
-        for (s in 1:length(YY)) {
-            Ys <- YY[[s]]
+        for (s in 1:length(scrFrame$caphist)) {
+            Ys <- scrFrame$caphist[[s]]
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
@@ -1411,7 +1397,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
         }
         if (predict) {
             return(list(preds = preds, ss.bits = ss.bits, lik.bits = lik.bits,
-                ssDF = ssDF, data = YY, traps = scrFrame$traps))
+                ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
         }
     }
     if (getStarts == TRUE) {
@@ -1429,7 +1415,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
                 myfit <- suppressWarnings(nlm(msLL.nosex, p = pv,
-                  pn = pn, YY = YY, D = D, nG = nG, nK = nK,
+                  pn = pn, scrFrame$caphist = scrFrame$caphist, D = D, nG = nG, nK = nK,
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                   hessian = T, print.level = print.level, iterlim = 200))
             }
@@ -1439,7 +1425,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
                 myfit <- suppressWarnings(nlm(msLL.sex, p = pv,
-                  pn = pn, YY = YY, D = D, nG = nG, nK = nK,
+                  pn = pn, scrFrame$caphist = scrFrame$caphist, D = D, nG = nG, nK = nK,
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                   hessian = T, print.level = print.level, iterlim = 200))
             }
@@ -1519,7 +1505,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
                 myfit <- msLL.nosex(p = start.vals, pn = pn,
-                  YY = YY, D = D, hiK = hiK, nG = nG, nK = nK,
+                  scrFrame$caphist = scrFrame$caphist, D = D, hiK = hiK, nG = nG, nK = nK,
                   dm.den = dm.den, dm.trap = dm.trap)
             }
             else {
@@ -1527,7 +1513,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(Sys.time())
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
-                myfit <- msLL.sex(p = start.vals, pn = pn, YY = YY,
+                myfit <- msLL.sex(p = start.vals, pn = pn, scrFrame$caphist = scrFrame$caphist,
                   D = D, nK = nK, nG = nG, hiK = hiK, dm.den = dm.den,
                   dm.trap = dm.trap)
             }

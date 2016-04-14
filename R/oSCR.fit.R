@@ -583,7 +583,12 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                     c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X", 
                     "Y")])), 2, min, na.rm = T) <= trimS 
                   for(k in 1:nK[s]){
-                     trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
+                  if (!is.null(scrFrame$trapOperation)) {
+                      trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
+                  }else{
+                      trimR[[s]][[i]][[k]]<- pp 
+                      }
+                  
                       nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]])
                   }
          

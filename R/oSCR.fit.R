@@ -570,11 +570,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
 
 
 
-<<<<<<< HEAD
     msLL.nosex <- function(pv = pv, pn = pn, scrFrame = scrFrame, D = D,
-=======
-    msLL.nosex <- function(pv = pv, pn = pn, YY = scrFrame$caphist, D = D,
->>>>>>> d5edb13f3251814340cc221cc1d44deb676ffbdc
         hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         alpha0 <- array(0, dim = c(ns, hiK, 2))
         tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]
@@ -874,11 +870,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
         }
     }
-<<<<<<< HEAD
     msLL.sex <- function(pv, pn, scrFrame, D, Y, nG, nK, hiK, dm.den,
-=======
-    msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den,
->>>>>>> d5edb13f3251814340cc221cc1d44deb676ffbdc
         dm.trap) {
         alpha0 <- array(0, c(ns, hiK, 2, 2))
         tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]
@@ -1423,11 +1415,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
                 myfit <- suppressWarnings(nlm(msLL.nosex, p = pv,
-<<<<<<< HEAD
                   pn = pn, scrFrame = scrFrame, D = D, nG = nG, nK = nK,
-=======
-                  pn = pn, YY = scrFrame$caphist, D = D, nG = nG, nK = nK,
->>>>>>> d5edb13f3251814340cc221cc1d44deb676ffbdc
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                   hessian = T, print.level = print.level, iterlim = 200))
             }
@@ -1437,11 +1425,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
                 myfit <- suppressWarnings(nlm(msLL.sex, p = pv,
-<<<<<<< HEAD
                   pn = pn, scrFrame = scrFrame, D = D, nG = nG, nK = nK,
-=======
-                  pn = pn, YY = scrFrame$caphist, D = D, nG = nG, nK = nK,
->>>>>>> d5edb13f3251814340cc221cc1d44deb676ffbdc
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                   hessian = T, print.level = print.level, iterlim = 200))
             }
@@ -1521,11 +1505,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
                 myfit <- msLL.nosex(p = start.vals, pn = pn,
-<<<<<<< HEAD
                   scrFrame = scrFrame, D = D, hiK = hiK, nG = nG, nK = nK,
-=======
-                  YY = scrFrame$caphist, D = D, hiK = hiK, nG = nG, nK = nK,
->>>>>>> d5edb13f3251814340cc221cc1d44deb676ffbdc
                   dm.den = dm.den, dm.trap = dm.trap)
             }
             else {
@@ -1533,11 +1513,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 message(Sys.time())
                 message(paste(pn, " ", sep = " | "))
                 message(" ")
-<<<<<<< HEAD
                 myfit <- msLL.sex(p = start.vals, pn = pn, scrFrame = scrFrame,
-=======
-                myfit <- msLL.sex(p = start.vals, pn = pn, YY = scrFrame$caphist,
->>>>>>> d5edb13f3251814340cc221cc1d44deb676ffbdc
                   D = D, nK = nK, nG = nG, hiK = hiK, dm.den = dm.den,
                   dm.trap = dm.trap)
             }

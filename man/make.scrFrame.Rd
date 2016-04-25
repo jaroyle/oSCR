@@ -1,11 +1,10 @@
 \name{make.scrFrame}
 \alias{make.scrFrame}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Make an scrFrame object.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+A helper function for making the scrFrame object required for model fitting in \pkg{oSCR}
 }
 \usage{
 make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, 
@@ -53,3 +52,4 @@ trapCovs <- rbs$scrFrame$trapCovs
 
 sf <- make.scrFrame(caphist = caphist, traps = traps, trapCovs = trapCovs, type = "scr")
 sf
+}

@@ -1469,7 +1469,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }   # end likelihood
 
     if(getStarts == FALSE){
-        if (!predict) {
+        if (!predict){
             message("Fitting model: D", paste(model)[1], ", p0",
                 paste(model)[2], ", sigma", paste(model)[3],
                 ", asu", paste(model)[4], sep = " ")
@@ -1481,7 +1481,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 myfit <- suppressWarnings(nlm(msLL.nosex, p = pv,
                   pn = pn, YY = YY, D = D, nG = nG, nK = nK,
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
-                  hessian = T, print.level = print.level, iterlim = 200))
+                  hessian = hessian, print.level = print.level, iterlim = 200))
             }
             else {
                 message("Using ll function 'msLL.sex' \nHold on tight!")
@@ -1491,7 +1491,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 myfit <- suppressWarnings(nlm(msLL.sex, p = pv,
                   pn = pn, YY = YY, D = D, nG = nG, nK = nK,
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
-                  hessian = T, print.level = print.level, iterlim = 200))
+                  hessian = hessian, print.level = print.level, iterlim = 200))
             }
             links <- rep(NA, length(pn))
             pars <- myfit$estimate
@@ -1508,34 +1508,26 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             links[grep("beta", pn)] <- "(Identity)"
             trans.mle <- rep(0, length(pv))
             if (encmod == "B") {
-                trans.mle[grep("p0.int", pn)] <- plogis(pars[grep("p0.int",
-                  pn)])
+                trans.mle[grep("p0.int", pn)] <- plogis(pars[grep("p0.int", pn)])
             }
             else {
-                trans.mle[grep("p0.int", pn)] <- exp(pars[grep("p0.int",
-                  pn)])
+                trans.mle[grep("p0.int", pn)] <- exp(pars[grep("p0.int", pn)])
             }
-            trans.mle[grep("sig.int", pn)] <- exp(pars[grep("sig.int",
-                pn)])
-            trans.mle[grep("n0.", pn)] <- exp(pars[grep("n0.",
-                pn)])
-            trans.mle[grep("d0.", pn)] <- exp(pars[grep("d0.",
-                pn)])
-            trans.mle[grep("psi", pn)] <- plogis(pars[grep("psi",
-                pn)])
-            trans.mle[grep("beta", pn)] <- pars[grep("beta",
-                pn)]
+            trans.mle[grep("sig.int", pn)] <- exp(pars[grep("sig.int", pn)])
+            trans.mle[grep("n0.", pn)] <- exp(pars[grep("n0.", pn)])
+            trans.mle[grep("d0.", pn)] <- exp(pars[grep("d0.", pn)])
+            trans.mle[grep("psi", pn)] <- plogis(pars[grep("psi", pn)])
+            trans.mle[grep("beta", pn)] <- pars[grep("beta", pn)]
             if (pBehave) {
                 links[grep("pBehav", pn)] <- "(Identity)"
-                trans.mle[grep("pBehav", pn)] <- pars[grep("pBehav",
-                  pn)]
+                trans.mle[grep("pBehav", pn)] <- pars[grep("pBehav", pn)]
             }
             std.err <- rep(rep(NA, length(pv)))
             trans.se <- rep(NA, length(pv))
-            if ("hessian" %in% names(myfit)) {
-                if (sum(myfit$hessian) != 0) {
-                  std.err <- sqrt(diag(solve(myfit$hessian)))
-                }
+            if("hessian" %in% names(myfit)) {
+              if(sum(myfit$hessian) != 0){
+                std.err <- sqrt(diag(solve(myfit$hessian)))
+              }
             }
             outStats <- data.frame(parameters = pn, link = links,
                 mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,

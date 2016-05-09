@@ -1,26 +1,26 @@
 oSCR.fit <-
-function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
-    1), ssDF = NULL, costDF = NULL, distmet = c("euc", "user",
-    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B",
-    "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL,
-    trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1,
-    plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06,
-    nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE,
-    hessian = T, print.level = 0, getStarts = FALSE)
+function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, 
+          ssDF = NULL, costDF = NULL, distmet = c("euc", "user", 
+    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B", 
+    "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
+    trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
+    plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
+    nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
+    hessian = T, print.level = 0, getStarts = FALSE) 
 {
     my.model.matrix <- function(form, data) {
-        mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[,
-            sapply(data.frame(data), is.factor)]), contrasts,
+        mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
+            sapply(data.frame(data), is.factor)]), contrasts, 
             contrasts = FALSE)))
         return(mdm)
     }
     max.dist <- NULL
     for (i in 1:length(scrFrame$caphist)) {
         for (j in 1:nrow(scrFrame$caphist[[i]])) {
-            where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) >
+            where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 
                 0
-            if (sum(where) > 1)
-                max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where,
+            if (sum(where) > 1) 
+                max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where, 
                   c("X", "Y")]), na.rm = T))
         }
     }
@@ -28,20 +28,20 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
     ptm <- proc.time()
     starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
     cl <- match.call(expand.dots = TRUE)
-    if (!require(abind))
+    if (!require(abind)) 
         stop("need to install package 'abind'")
-    if (!require(Formula))
+    if (!require(Formula)) 
         stop("need to load package 'Formula'")
     if (distmet == "ecol") {
-        if (!require(raster))
+        if (!require(raster)) 
             stop("need to install package 'raster'")
-        if (!require(gdistance))
+        if (!require(gdistance)) 
             stop("need to install package 'gdistance'")
     }
     if (!inherits(scrFrame, "scrFrame")) {
         stop("Data must be of class 'scrFrame'")
     }
-    if (encmod == "B" & max(unlist(lapply(scrFrame$caphist, max))) >
+    if (encmod == "B" & max(unlist(lapply(scrFrame$caphist, max))) > 
         1) {
         stop("Data in caphist must be Binary")
     }
@@ -50,13 +50,13 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
             message("Projection not provided, using default: '+proj=utm +zone=12 +datum=WGS84'")
         }
     }
-    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist))
+    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist)) 
         stop("A 'state space' object must be provided for EACH session.")
     if (multicatch) {
         for (s in 1:length(scrFrame$caphist)) {
-            captures <- apply(scrFrame$caphist[[s]], c(1, 3),
+            captures <- apply(scrFrame$caphist[[s]], c(1, 3), 
                 sum)
-            if (any(captures > 1))
+            if (any(captures > 1)) 
                 stop("error: multicatch system cannot have > 1 capture.")
         }
     }
@@ -64,9 +64,9 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
         stop("Starting values required to predict (hint: use estimated MLEs)")
     }
     maxY <- unlist(lapply(scrFrame$caphist, max))
-    if (any(maxY > 1) & encmod == "B")
+    if (any(maxY > 1) & encmod == "B") 
         stop("caphist must be binary when using the Binomial encounter model")
-    if (all(maxY == 1) & encmod == "P")
+    if (all(maxY == 1) & encmod == "P") 
         stop("caphist looks binary but Poisson encounter model is selected")
     pars.p0 <- NULL
     names.p0 <- NULL
@@ -1469,7 +1469,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
     }   # end likelihood
 
     if(getStarts == FALSE){
-        if (!predict) {
+        if (!predict){
             message("Fitting model: D", paste(model)[1], ", p0",
                 paste(model)[2], ", sigma", paste(model)[3],
                 ", asu", paste(model)[4], sep = " ")
@@ -1481,7 +1481,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 myfit <- suppressWarnings(nlm(msLL.nosex, p = pv,
                   pn = pn, YY = YY, D = D, nG = nG, nK = nK,
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
-                  hessian = T, print.level = print.level, iterlim = 200))
+                  hessian = hessian, print.level = print.level, iterlim = 200))
             }
             else {
                 message("Using ll function 'msLL.sex' \nHold on tight!")
@@ -1491,7 +1491,7 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
                 myfit <- suppressWarnings(nlm(msLL.sex, p = pv,
                   pn = pn, YY = YY, D = D, nG = nG, nK = nK,
                   hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
-                  hessian = T, print.level = print.level, iterlim = 200))
+                  hessian = hessian, print.level = print.level, iterlim = 200))
             }
             links <- rep(NA, length(pn))
             pars <- myfit$estimate
@@ -1508,34 +1508,26 @@ function (scrFrame, model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~
             links[grep("beta", pn)] <- "(Identity)"
             trans.mle <- rep(0, length(pv))
             if (encmod == "B") {
-                trans.mle[grep("p0.int", pn)] <- plogis(pars[grep("p0.int",
-                  pn)])
+                trans.mle[grep("p0.int", pn)] <- plogis(pars[grep("p0.int", pn)])
             }
             else {
-                trans.mle[grep("p0.int", pn)] <- exp(pars[grep("p0.int",
-                  pn)])
+                trans.mle[grep("p0.int", pn)] <- exp(pars[grep("p0.int", pn)])
             }
-            trans.mle[grep("sig.int", pn)] <- exp(pars[grep("sig.int",
-                pn)])
-            trans.mle[grep("n0.", pn)] <- exp(pars[grep("n0.",
-                pn)])
-            trans.mle[grep("d0.", pn)] <- exp(pars[grep("d0.",
-                pn)])
-            trans.mle[grep("psi", pn)] <- plogis(pars[grep("psi",
-                pn)])
-            trans.mle[grep("beta", pn)] <- pars[grep("beta",
-                pn)]
+            trans.mle[grep("sig.int", pn)] <- exp(pars[grep("sig.int", pn)])
+            trans.mle[grep("n0.", pn)] <- exp(pars[grep("n0.", pn)])
+            trans.mle[grep("d0.", pn)] <- exp(pars[grep("d0.", pn)])
+            trans.mle[grep("psi", pn)] <- plogis(pars[grep("psi", pn)])
+            trans.mle[grep("beta", pn)] <- pars[grep("beta", pn)]
             if (pBehave) {
                 links[grep("pBehav", pn)] <- "(Identity)"
-                trans.mle[grep("pBehav", pn)] <- pars[grep("pBehav",
-                  pn)]
+                trans.mle[grep("pBehav", pn)] <- pars[grep("pBehav", pn)]
             }
             std.err <- rep(rep(NA, length(pv)))
             trans.se <- rep(NA, length(pv))
-            if ("hessian" %in% names(myfit)) {
-                if (sum(myfit$hessian) != 0) {
-                  std.err <- sqrt(diag(solve(myfit$hessian)))
-                }
+            if("hessian" %in% names(myfit)) {
+              if(sum(myfit$hessian) != 0){
+                std.err <- sqrt(diag(solve(myfit$hessian)))
+              }
             }
             outStats <- data.frame(parameters = pn, link = links,
                 mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,

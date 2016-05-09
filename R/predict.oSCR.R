@@ -3,7 +3,7 @@ predict.oSCR <-    function (scrFrame, scr.fit, ssDF, costDF = NULL)
     mles <- scr.fit$rawOutput$estimate
     call <- scr.fit$call
     oSCR.fit2 <- oSCR.fit
-call.fix <- names(call)[!names(call) %in% c("", "scrFrame",
+    call.fix <- names(call)[!names(call) %in% c("", "scrFrame",
         "ssDF", "costDF")]
     for (i in 1:length(call.fix)) {
         formals(oSCR.fit2)[[call.fix[i]]] <- call[[call.fix[i]]]
@@ -15,11 +15,8 @@ call.fix <- names(call)[!names(call) %in% c("", "scrFrame",
     r<- list()
  for(s in 1:nsess){
     nguys<- dim(out$preds[[s]])[1]
-
     Nhat<- sum(out$ss.bits[[s]][,"d.s"])
-
     library(raster)
-
 # number of individuals not detected at each pixel
 # this is wrong, should involve lik.condl ... ie Pr(y=0 | s)
 n0<- out$ss.bits[[s]][,"d.s"]*out$ss.bits[[s]][,"lik.cond"]
@@ -28,15 +25,13 @@ cat("Nhat: ", sum(n0) + nguys  - 1, fill=TRUE)
 ##plot(rasterFromXYZ(cbind(out1$ssDF[[1]],out1$lik.cond)))
 out$preds[[s]][nguys,]<- n0
 # Does not include the "n0" weighting yet
-
-total<- apply(out$preds[[1]],2,sum)
+total<- apply(out$preds[[s]],2,sum)
 # check
 cat("sum of predictions: ", sum(total) , fill=TRUE)
-
-r[[s]]<- rasterFromXYZ(cbind(out$ssDF[[s]],total))
+r[[s]]<- rasterFromXYZ(cbind(out$ssDF[[s]][,c("X","Y")],total))
 
 }
 
 
-return(r)
+return(list(r=r, preds=out$preds, ssDF=out$ssDF))
 }

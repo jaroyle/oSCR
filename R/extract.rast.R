@@ -6,7 +6,7 @@ extract.rast <- function(ss, rast, mult=1, cov.name="val.1",func=median){
     aa <- rasterFromXYZ(tmpR, crs=projection(rast))
     bb <- rasterToPolygons(aa)
     r1 <- extract(rast,bb,fun=func)
-    ss[[i]][,cov.name] <- r1
+    ss[[i]][,cov.name] <- r1[order(bb$id)]
   }
   return(ss)
 }

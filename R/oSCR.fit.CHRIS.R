@@ -1083,8 +1083,8 @@ oSCR.fit.cs <-function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~ 1), scrFrame,
                                                                                                                                             })))])]
           }
           else {
-            t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(paste("sess",
-                                                                   s, sep = ""), names.beta.trap)])]
+            t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(paste("sess",s, sep = ""), 
+                                                             names.beta.trap)])]
           }
         }
       }

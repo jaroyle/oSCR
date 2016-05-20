@@ -1,17 +1,18 @@
 oSCR.fit <-
-  function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, 
-            ssDF = NULL, costDF = NULL, distmet = c("euc", "user", 
-                                                    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B", 
-                                                                                                                 "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
-            trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
-            plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
-            nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
-            hessian = T, print.level = 0, getStarts = FALSE) 
-  {
+  function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
+            ssDF = NULL, costDF = NULL, distmet = c("euc", "user","lcp","resist")[1], 
+            sexmod = c("constant", "session")[1], encmod = c("B","P")[1], 
+            DorN = c("D", "N")[1], directions = 8, Dmat = NULL, trimS = NULL, 
+            start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 0.5, 
+            tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, 
+            smallslow = FALSE, multicatch = FALSE, hessian = T, print.level = 0, 
+            getStarts = FALSE){
+    
     my.model.matrix <- function(form, data) {
-      mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
-                                                                                              sapply(data.frame(data), is.factor)]), contrasts, 
-                                                                              contrasts = FALSE)))
+      mdm <- suppressWarnings(
+        model.matrix(form, data,
+                     contrasts.arg = lapply(data.frame(data[, sapply(data.frame(data), is.factor)]), 
+                                            contrasts, contrasts = FALSE)))
       return(mdm)
     }
     max.dist <- NULL
@@ -32,7 +33,7 @@ oSCR.fit <-
       stop("need to install package 'abind'")
     if (!require(Formula)) 
       stop("need to load package 'Formula'")
-    if (distmet == "ecol") {
+    if (distmet %in% c("lcp","resist")) {
       if (!require(raster)) 
         stop("need to install package 'raster'")
       if (!require(gdistance)) 
@@ -45,7 +46,7 @@ oSCR.fit <-
         1) {
       stop("Data in caphist must be Binary")
     }
-    if (distmet == "ecol") {
+    if(distmet %in% c("lcp","resist")){
       if (is.null(PROJ)) {
         message("Projection not provided, using default: '+proj=utm +zone=12 +datum=WGS84'")
       }
@@ -322,8 +323,8 @@ oSCR.fit <-
       pars.n0 <- NULL
       names.n0 <- NULL
     }
-    if (distmet == "ecol" && length(allvars.dist) == 0) {
-      message("You specified 'ecological distance' (distmet='ecol') but provided no\ncost surface.\n    Euclidean distance will be used.")
+    if ((distmet %in% c("lcp","resist")) && length(allvars.dist) == 0) {
+      message("You specified 'ecological distance'  but provided no\ncost surface.\n    Euclidean distance will be used.")
     }
     if (length(allvars.dist) > 0) {
       ccovnms <- colnames(costDF[[1]])
@@ -335,7 +336,7 @@ oSCR.fit <-
       }
     }
     mod4 <- update(model[[4]], ~. - sex - session - 1)
-    if (distmet == "ecol") {
+    if (distmet %in% c("lcp","resist")) {
       for (s in 1:ns) {
         dm.cost[[s]] <- my.model.matrix(mod4, costDF[[s]])
         names.dist <- paste("c.beta.", allvars.dist, sep = "")
@@ -714,7 +715,7 @@ oSCR.fit <-
       else {
         d.beta <- pv[pn %in% names.beta.den]
       }
-      if (distmet == "ecol") {
+      if (distmet %in% c("lcp","resist")) {
         dist.beta <- pv[pn %in% names.dist]
       }
       if (n0Session)
@@ -740,7 +741,7 @@ oSCR.fit <-
           zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
           Ys <- abind(Ys, zeros, along = 1)
         }
-        if (distmet == "ecol") {
+        if (distmet == "lcp") {
           cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
           costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
                                                        2)], cost))
@@ -753,15 +754,28 @@ oSCR.fit <-
           tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
                            direction = directions)
           trLayer <- geoCorrection(tr, scl = F)
-          D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][,
-                                                                        c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X",
-                                                                                                                 "Y"))]))
+          D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c("X","Y")]))
+        }
+        if (distmet == "resist") {
+          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
+                                                       2)], cost))
+          if (is.null(PROJ)) {
+            projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
+          }
+          else {
+            projection(costR) <- PROJ
+          }
+          tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
+                           direction = directions)
+          trLayer <- geoCorrection(tr, scl = F)
+          D[[s]] <- as.matrix(commuteDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X","Y"))])))
         }
         if (smallslow) {
           if (distmet == "euc") {
             D <- list()
-            D[[s]] <- e2dist(scrFrame$traps[[s]][, c("X",
-                                                     "Y")], ssDF[[s]][, c("X", "Y")])
+            D[[s]] <- e2dist(scrFrame$traps[[s]][,c("X","Y")], 
+                             ssDF[[s]][, c("X", "Y")])
           }
         }
         lik.marg <- rep(NA, nrow(Ys))
@@ -1114,7 +1128,7 @@ oSCR.fit <-
       else {
         d.beta <- pv[pn %in% names.beta.den]
       }
-      if (distmet == "ecol") {
+      if (distmet %in% c("lcp","resist")) {
         dist.beta <- pv[pn %in% names.dist]
       }
       if (n0Session)
@@ -1145,7 +1159,7 @@ oSCR.fit <-
           Ys <- abind(Ys, zeros, along = 1)
         }
         sx <- c(scrFrame$indCovs[[s]]$sex + 1, NA)
-        if (distmet == "ecol") {
+        if (distmet == "lcp") {
           cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
           costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
                                                        2)], cost))
@@ -1158,9 +1172,22 @@ oSCR.fit <-
           tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
                            direction = directions)
           trLayer <- geoCorrection(tr, scl = F)
-          D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][,
-                                                                        c("X", "Y")]), as.matrix(ssDF[[s]][, c("X",
-                                                                                                               "Y")]))
+          D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c("X","Y")]))
+        }
+        if (distmet == "resist") {
+          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
+                                                       2)], cost))
+          if (is.null(PROJ)) {
+            projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
+          }
+          else {
+            projection(costR) <- PROJ
+          }
+          tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
+                           direction = directions)
+          trLayer <- geoCorrection(tr, scl = F)
+          D[[s]] <- as.matrix(commuteDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X","Y"))])))
         }
         if (smallslow) {
           if (distmet == "euc") {

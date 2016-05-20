@@ -137,10 +137,11 @@ if(!is.list(tdf))  ntdf<- 1
 
 if(ntdf!=nsess){
    if(var(K)!=0 ){
-      cat("variable trap operation period indicated but not provided",fill=TRUE)
+      cat("Error: variable trap operation period indicated but not provided",fill=TRUE)
       return(NULL)
+      # Note: this still isn't right because TDF may not have K trap deployment columns....
       }
-   cat("# tdf files not equal to number of sessions. Assuming trap coords constant across sessions",fill=TRUE)
+   cat("Warning: # tdf files not equal to number of sessions. Assuming trap coords constant across sessions",fill=TRUE)
   
   tdfx<- list()
   for(s in 1:nsess){
@@ -207,7 +208,12 @@ if(is.list(tdf)){
 
  } # end TDF processing for non-list , closes "else" statement above
 
- 
+ for(s in 1:length(trapopp)){
+   if(any(is.na(trapopp))){
+    return("Error: missing values not allowed in trap operation")
+   }
+   } 
+
 } # end TDF processing
 
 sex.oscr = list(data.frame(sex=usex[[1]][,2]), data.frame(sex=usex[[2]][,2]))

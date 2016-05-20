@@ -57,7 +57,7 @@ Andy Royle %%  ~~who you are~~
 # o$am.effect is a vector of length 10 , binary indicator
 
 am<- matrix( o$am.effect, nrow=J,ncol=K,byrow=FALSE)
-#might not work if there's only one covariate...
+# here is an example with two covariates
 weird<-  list(am=list(am),am2=list(am))
 weird<-  make.trapCovs(weird)
 
@@ -71,11 +71,9 @@ scrFrame <- list(
   nocc = K)
 class(scrFrame)<- "scrFrame"
 
+# See the help file ?peromyscus for some models that are run using this scrFrame
 
-# grizzly bear example has 5 sessions and jul.lst and dur.lst are
-# lists of length 5 
-lol<- list(jul=jul.lst, dur=dur.lst)
-tmp<-make.trapCovs(lol)
+
 
 
 

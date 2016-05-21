@@ -1,26 +1,26 @@
-oSCR.fit <-
-  function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, 
-            ssDF = NULL, costDF = NULL, distmet = c("euc", "user", 
-                                                    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B", 
-                                                                                                                 "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
-            trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
-            plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
-            nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
-            hessian = T, print.level = 0, getStarts = FALSE) 
+oSCR.fit.CHRIS <-
+  function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
+            ssDF = NULL, costDF = NULL, distmet = c("euc", "user",
+                                                    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B",
+                                                                                                                 "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL,
+            trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1,
+            plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06,
+            nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE,
+            hessian = T, print.level = 0, getStarts = FALSE)
   {
     my.model.matrix <- function(form, data) {
-      mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
-                                                                                              sapply(data.frame(data), is.factor)]), contrasts, 
+      mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[,
+                                                                                              sapply(data.frame(data), is.factor)]), contrasts,
                                                                               contrasts = FALSE)))
       return(mdm)
     }
     max.dist <- NULL
     for (i in 1:length(scrFrame$caphist)) {
       for (j in 1:nrow(scrFrame$caphist[[i]])) {
-        where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 
+        where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) >
           0
-        if (sum(where) > 1) 
-          max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where, 
+        if (sum(where) > 1)
+          max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where,
                                                                   c("X", "Y")]), na.rm = T))
       }
     }
@@ -28,20 +28,20 @@ oSCR.fit <-
     ptm <- proc.time()
     starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
     cl <- match.call(expand.dots = TRUE)
-    if (!require(abind)) 
+    if (!require(abind))
       stop("need to install package 'abind'")
-    if (!require(Formula)) 
+    if (!require(Formula))
       stop("need to load package 'Formula'")
     if (distmet == "ecol") {
-      if (!require(raster)) 
+      if (!require(raster))
         stop("need to install package 'raster'")
-      if (!require(gdistance)) 
+      if (!require(gdistance))
         stop("need to install package 'gdistance'")
     }
     if (!inherits(scrFrame, "scrFrame")) {
       stop("Data must be of class 'scrFrame'")
     }
-    if (encmod == "B" & max(unlist(lapply(scrFrame$caphist, max))) > 
+    if (encmod == "B" & max(unlist(lapply(scrFrame$caphist, max))) >
         1) {
       stop("Data in caphist must be Binary")
     }
@@ -50,13 +50,13 @@ oSCR.fit <-
         message("Projection not provided, using default: '+proj=utm +zone=12 +datum=WGS84'")
       }
     }
-    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist)) 
+    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist))
       stop("A 'state space' object must be provided for EACH session.")
     if (multicatch) {
       for (s in 1:length(scrFrame$caphist)) {
-        captures <- apply(scrFrame$caphist[[s]], c(1, 3), 
+        captures <- apply(scrFrame$caphist[[s]], c(1, 3),
                           sum)
-        if (any(captures > 1)) 
+        if (any(captures > 1))
           stop("error: multicatch system cannot have > 1 capture.")
       }
     }
@@ -64,9 +64,9 @@ oSCR.fit <-
       stop("Starting values required to predict (hint: use estimated MLEs)")
     }
     maxY <- unlist(lapply(scrFrame$caphist, max))
-    if (any(maxY > 1) & encmod == "B") 
+    if (any(maxY > 1) & encmod == "B")
       stop("caphist must be binary when using the Binomial encounter model")
-    if (all(maxY == 1) & encmod == "P") 
+    if (all(maxY == 1) & encmod == "P")
       stop("caphist looks binary but Poisson encounter model is selected")
     pars.p0 <- NULL
     names.p0 <- NULL
@@ -513,19 +513,19 @@ oSCR.fit <-
         prevcap[[s]] <- abind(prevcap[[s]], zeros, along = 1)
       }
     }
-    
+
     if (getStarts == TRUE) {
       oSCR.start <- list(parameters = pn, values = pv)
       return(oSCR.start)
     }
-    
-    
-    
+
+
+
     nR<- nC<- list()
     trimR <- trimC <- list()
     for (s in 1:length(YY)) {
-      
-      
+
+
       Ys <- YY[[s]]
       if (!multicatch) {
         zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
@@ -535,12 +535,12 @@ oSCR.fit <-
         zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
         Ys <- abind(Ys, zeros, along = 1)
       }
-      
+
       trimR[[s]] <- list()
       trimC[[s]] <- list()
       nR[[s]]<- nC[[s]]<- list()
-      
-      
+
+
       for (i in 1:nrow(Ys)) {
         trimR[[s]][[i]]<- list()
         nR[[s]][[i]]<- list()
@@ -554,35 +554,35 @@ oSCR.fit <-
         else {
           if (i < nrow(Ys)) {
             pp <- apply(Ys[i, , ], 1, sum) > 0
-            
+
             for(k in 1:nK[s]){
               if (!is.null(scrFrame$trapOperation)) {
-                
+
                 trimR[[s]][[i]][[k]] <- (apply(rbind(rep(trimS*3 +
                                                            2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
                                                                                                                                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
                                                                                                                                                                                    c("X", "Y")])), 2, min) <= (2 * trimS)) & (scrFrame$trapOperation[[s]][,k]==1)
-                
-                
-                
+
+
+
               }else{
                 trimR[[s]][[i]][[k]] <- apply(rbind(rep(trimS*3 +
                                                           2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
                                                                                                                                   c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
                                                                                                                                                                                   c("X", "Y")])), 2, min) <= (2 * trimS)
-                
-                
+
+
               }
               nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]]   )
             }
-            
+
             trimC[[s]][[i]] <- apply(rbind(rep(trimS +
                                                  2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
                                                                                                      c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
                                                                                                                                                "Y")])), 2, min, na.rm = T) <= trimS
           }   # end loop over i
           else {
-            
+
             pp <- rep(T, ncol(Ys))
             trimC[[s]][[i]] <- apply(rbind(rep(trimS +
                                                  2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
@@ -594,13 +594,13 @@ oSCR.fit <-
               }else{
                 trimR[[s]][[i]][[k]]<- pp
               }
-              
+
               nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]])
             }
-            
+
           }
         }
-        
+
         if (multicatch) {
           for(k in 1:nK[s]){
             trimR[[s]][[i]][[k]] <- rep(T, length(trimR[[s]][[i]][[k]]))
@@ -610,9 +610,9 @@ oSCR.fit <-
         nC[[s]][[i]]<- sum(trimC[[s]][[i]])
       }
     }
-    
-    
-    
+
+
+
     msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
                            hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
       alpha0 <- array(0, dim = c(ns, hiK, 2))
@@ -805,18 +805,18 @@ oSCR.fit <-
             points(scrFrame$traps[[s]][pp, c("X")], scrFrame$traps[[s]][pp,
                                                                         c("Y")], pch = 16, col = 3, cex = 1.5)
           }
-          
-          
+
+
           lik.cond <- numeric(nG[s])
           #               if (multicatch)
           #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]) + 1, sum(trimC[[s]][[i]]))
           #                if (!multicatch)
           #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
-          
+
           for (k in 1:nK[s]) {
-            
-            
-            
+
+
+
             if (pBehave) {
               a0 <- alpha0[s, k, 1] * (1 - c(prevcap[[s]][i,
                                                           , k])) + alpha0[s, k, 2] * c(prevcap[[s]][i,
@@ -862,10 +862,10 @@ oSCR.fit <-
             #cat("dim probca: ", dim(probcap),fill=TRUE)
             #cat("length lik.cond: ", length(lik.cond),fill=TRUE)
             #cat("sum trimC: ", sum(trimC[[s]][[i]]), fill=TRUE)
-            
+
             ####        lik.cond[trimC[[s]][[i]]]<- lik.cond[trimC[[s]][[i]]] + colSums(probcap)
-            
-            
+
+
             if(is.matrix(probcap))
               lik.cond[trimC[[s]][[i]]]<- lik.cond[trimC[[s]][[i]]] + colSums(probcap)
             if(!is.matrix(probcap))
@@ -882,7 +882,7 @@ oSCR.fit <-
           #  b<<- lik.cond
           #  return(0)
           lik.marg[i] <- sum(lik.cond * pi.s)
-          
+
           if (predict)
             preds[[s]][i, ] <- (lik.cond * pi.s)/lik.marg[i]
         }
@@ -1210,21 +1210,21 @@ oSCR.fit <-
                                                                         c("Y")], pch = 16, col = 3, cex = 1.5)
           }
           if (!is.na(sx[i])) {
-            
-            
+
+
             #                     if (multicatch)
             #                  Pm <- Pm1 <- Pm2 <- matrix(0, sum(trimR[[s]][[i]][[k]]) +                     1, sum(trimC[[s]][[i]]))
             #                if (!multicatch)
             #                  Pm <- Pm1 <- Pm2 <- tmpPm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
-            
+
             lik.cond <- numeric(nG[s])
-            
-            
+
+
             for (k in 1:nK[s]) {
-              
-              
-              
-              
+
+
+
+
               if (pBehave) {
                 a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i,
                                                                    , k])) + alpha0[s, k, sx[i], 2] * c(prevcap[[s]][i,
@@ -1270,17 +1270,17 @@ oSCR.fit <-
               #                    if (!is.null(scrFrame$trapOperation)) {
               #                      probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],k]
               #                    }
-              
+
               if(is.matrix(probcap))
                 lik.cond[trimC[[s]][[i]]]<- lik.cond[trimC[[s]][[i]]] + colSums(probcap)
               if(!is.matrix(probcap))
                 lik.cond[trimC[[s]][[i]]]<- lik.cond[trimC[[s]][[i]]] + probcap
-              
+
               #####Pm[1:length(Pm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
-              
+
             }
-            
-            
+
+
             #                  lik.cond <- numeric(nG[s])
             lik.cond[trimC[[s]][[i]]] <- exp(lik.cond[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
             ######            lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm = T))
@@ -1292,21 +1292,21 @@ oSCR.fit <-
             }
           }
           else {
-            
-            
+
+
             #               if (multicatch)
             #                  Pm <- Pm1 <- Pm2 <- matrix(0, sum(trimR[[s]][[i]][[k]]) +                     1, sum(trimC[[s]][[i]]))
             #                if (!multicatch)
             #                  Pm <- Pm1 <- Pm2 <- tmpPm <- matrix(0, sum(trimR[[s]][[i]][[k]]),                     sum(trimC[[s]][[i]]))
-            
+
             lik.cond1<- lik.cond2 <- numeric(nG[s])
-            
-            
+
+
             for (k in 1:nK[s]) {
-              
-              
-              
-              
+
+
+
+
               if (pBehave) {
                 a0.1 <- alpha0[s, k, 1, 1] * (1 - c(prevcap[[s]][i,
                                                                  , k])) + alpha0[s, k, 1, 2] * c(prevcap[[s]][i,
@@ -1358,17 +1358,17 @@ oSCR.fit <-
               #                    if (!is.null(scrFrame$trapOperation)) {
               #                      probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]][[k]],  k]
               #                    }
-              
-              
+
+
               #Pm1[1:length(Pm1)] <- Pm1[1:length(Pm1)] +  probcap[1:length(probcap)]
               if(is.matrix(probcap))
                 lik.cond1[trimC[[s]][[i]]]<- lik.cond1[trimC[[s]][[i]]] + colSums(probcap)
               if(!is.matrix(probcap))
                 lik.cond1[trimC[[s]][[i]]]<- lik.cond1[trimC[[s]][[i]]] + probcap
-              
+
               #               lik.cond1[trimC[[s]][[i]]]<- lik.cond1[trimC[[s]][[i]]] + colSums(probcap)
-              
-              
+
+
               if (encmod == "B")
                 probcap <- c(plogis(a0.2[trimR[[s]][[i]][[k]]])) *
                   exp(-alphsig[s, 2] * D[[s]][trimR[[s]][[i]][[k]],
@@ -1403,25 +1403,25 @@ oSCR.fit <-
               #                      probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],
               #                        k]
               #                    }
-              
+
               if(is.matrix(probcap))
                 lik.cond2[trimC[[s]][[i]]]<- lik.cond2[trimC[[s]][[i]]] + colSums(probcap)
               if(!is.matrix(probcap))
                 lik.cond2[trimC[[s]][[i]]]<- lik.cond2[trimC[[s]][[i]]] + probcap
-              
+
               #               lik.cond2[trimC[[s]][[i]]]<- lik.cond2[trimC[[s]][[i]]] + colSums(probcap)
-              
+
               ###Pm2[1:length(Pm2)] <- Pm2[1:length(Pm2)] +  probcap[1:length(probcap)]
             }
-            
+
             ###lik.cond1 <- lik.cond2 <- numeric(nG[s])
             #     lik.cond1[trimC[[s]][[i]]] <- exp(colSums(Pm1, na.rm = T))
             #     lik.cond2[trimC[[s]][[i]]] <- exp(colSums(Pm2, na.rm = T))
-            
+
             lik.cond1[trimC[[s]][[i]]] <- exp(lik.cond1[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
             lik.cond2[trimC[[s]][[i]]] <- exp(lik.cond2[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
-            
-            
+
+
             lik.marg1[i] <- sum(lik.cond1 * pi.s)
             lik.marg2[i] <- sum(lik.cond2 * pi.s)
             lik.marg[i] <- lik.marg1[i] * (1 - psi.sex[s]) +
@@ -1465,9 +1465,9 @@ oSCR.fit <-
         return(list(preds = preds, ss.bits = ss.bits, lik.bits = lik.bits,
                     ssDF = ssDF, data = YY, traps = scrFrame$traps))
       }
-      
+
     }   # end likelihood
-    
+
     if(getStarts == FALSE){
       if (!predict){
         message("Fitting model: D", paste(model)[1], ", p0",

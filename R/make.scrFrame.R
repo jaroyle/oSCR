@@ -31,9 +31,9 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
       stop("number of sessions in indCovs does not match capphist")
     
     check.dim <- sapply(indCovs,nrow) 
-    if(check.dim!=caphist.dimensions[1,])
+    if(any(check.dim!=caphist.dimensions[1,]))
       stop("number of individuals in indCovs does not match caphist")
-    if(check.dim!=caphist.dimensions[1,])
+    if(any(check.dim!=caphist.dimensions[1,]))
       stop("number of individuals in indCovs does not match caphist")
   }
   
@@ -46,7 +46,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     stop("number of sessions in traps does not match caphist")
   
   check.dim <- sapply(traps,nrow) 
-  if(all(check.dim!=caphist.dimensions[2,]))
+  if(any(check.dim!=caphist.dimensions[2,]))
     stop("number of traps does not match caphist")
   
   #trapCovs
@@ -75,7 +75,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     if(length(trapOperation) != length(caphist))
       stop("number of sessions in trapOperation does not match capphist")
     check.dim <- sapply(trapOperation,nrow) 
-    if(all(check.dim!=caphist.dimensions[2,]))
+    if(any(check.dim!=caphist.dimensions[2,]))
       stop("number of traps does not match caphist")
   }
   

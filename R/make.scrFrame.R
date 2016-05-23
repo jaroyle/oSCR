@@ -18,9 +18,9 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     caphist[[i]] <- array(caphist[[i]], dim=caphist.dimensions[,i])
     all.zero <- apply(apply(caphist[[i]],c(1,3),sum),1,sum)
     if(any(all.zero==0))
-       stop("At least one individual has an all-zero encounter history")
+      stop("At least one individual has an all-zero encounter history")
   }
-
+  
   #indCovs
   if(!is.null(indCovs)){
     if(!is.list(indCovs))
@@ -46,7 +46,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     stop("number of sessions in traps does not match caphist")
   
   check.dim <- sapply(traps,nrow) 
-  if(any(check.dim!=caphist.dimensions[2,]))
+  if(!all(check.dim==caphist.dimensions[2,]))
     stop("number of traps does not match caphist")
   
   #trapCovs
@@ -60,8 +60,8 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     if(length(trapCovs) != length(caphist))
       stop("number of sessions in trapCovs does not match capphist")
     check.dim <- sapply(trapCovs,function(x)sapply(x,nrow))
-    for(i in 1:length(check.dim)){
-      if(!all(check.dim[[i]]==caphist.dimensions[2,i]))
+    for(i in 1:nrow(check.dim)){
+      if(!all(check.dim[i,]==caphist.dimensions[2,]))
         stop("number of traps does not match caphist")
     }
   }
@@ -75,7 +75,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     if(length(trapOperation) != length(caphist))
       stop("number of sessions in trapOperation does not match capphist")
     check.dim <- sapply(trapOperation,nrow) 
-    if(any(check.dim!=caphist.dimensions[2,]))
+    if(!all(check.dim==caphist.dimensions[2,]))
       stop("number of traps does not match caphist")
   }
   

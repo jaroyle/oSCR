@@ -13,7 +13,9 @@ predict.oSCR <-    function (scrFrame, scr.fit, ssDF, costDF = NULL)
     nsess<-length(out$preds)
 
     r<- list()
- for(s in 1:nsess){
+    total<-list()
+    
+    for(s in 1:nsess){
     nguys<- dim(out$preds[[s]])[1]
     Nhat<- sum(out$ss.bits[[s]][,"d.s"])
     library(raster)
@@ -25,13 +27,13 @@ cat("Nhat: ", sum(n0) + nguys  - 1, fill=TRUE)
 ##plot(rasterFromXYZ(cbind(out1$ssDF[[1]],out1$lik.cond)))
 out$preds[[s]][nguys,]<- n0
 # Does not include the "n0" weighting yet
-total<- apply(out$preds[[s]],2,sum)
+total[[s]]<- apply(out$preds[[s]],2,sum)
 # check
-cat("sum of predictions: ", sum(total) , fill=TRUE)
-r[[s]]<- rasterFromXYZ(cbind(out$ssDF[[s]][,c("X","Y")],total))
+cat("sum of predictions: ", sum(total[[s]]) , fill=TRUE)
+r[[s]]<- rasterFromXYZ(cbind(out$ssDF[[s]][,c("X","Y")],total[[s]]))
 
 }
 
 
-return(list(r=r, preds=out$preds, ssDF=out$ssDF))
+return(list(r=r, ssN=total, preds=out$preds, ssDF=out$ssDF))
 }

@@ -186,13 +186,18 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             stop("I cant find theses covariates in 'scrFrame$trapCovs'",
                 for (i in tCovMissing) print(i))
         }
-        mod2 <- update(model[[2]], ~. - sex - session - t - b -
-            1)
-        if ("session" %in% all.vars(mod2)) {
-            mod2 <- as.formula(paste0("~", paste(all.vars(mod2)[all.vars(mod2) !=
-                "session"], collapse = "+")))
-            mod2 <- update(mod2, ~. - 1)
-        }
+        #mod2 <- update(model[[2]], ~. - sex - session - t - b -1)
+        # remove the standard terms & possible interactions
+        mod2 <- update(model[[2]], ~. - sex - session - t - b - 1 -
+                        b:sex - sex:b - b:session - session:b - b:session:sex - 
+                        b:sex:session - sex:session:b - sex:b:session - 
+                        session:b:sex - session:sex:b)
+        
+        #if ("session" %in% all.vars(mod2)) {
+        #    mod2 <- as.formula(paste0("~", paste(all.vars(mod2)[all.vars(mod2) !=
+        #        "session"], collapse = "+")))
+        #    mod2 <- update(mod2, ~. - 1)
+        #}
         if (any(c("session") %in% allvars.T))
             tSession <- TRUE
         for (s in 1:ns) {

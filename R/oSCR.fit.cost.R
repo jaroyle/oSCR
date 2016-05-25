@@ -769,7 +769,9 @@ oSCR.fit.cost <-
           tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
                            direction = directions)
           trLayer <- geoCorrection(tr, scl = F)
-          D[[s]] <- as.matrix(commuteDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X","Y"))])))
+          allPts<-rbind(as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), 
+                        as.matrix(ssDF[[s]][, c("X","Y")]))
+          D[[s]] <- as.matrix(commuteDistance(trLayer,allPts))[1:nrow(scrFrame$traps[[s]]),(nrow(scrFrame$traps[[s]])+1):(nrow(scrFrame$traps[[s]])+nrow(ssDF[[s]]))]
         }
         if (smallslow) {
           if (distmet == "euc") {
@@ -1187,7 +1189,9 @@ oSCR.fit.cost <-
           tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
                            direction = directions)
           trLayer <- geoCorrection(tr, scl = F)
-          D[[s]] <- as.matrix(commuteDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X","Y"))])))
+          allPts<-rbind(as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), 
+                        as.matrix(ssDF[[s]][, c("X","Y")]))
+          D[[s]] <- as.matrix(commuteDistance(trLayer,allPts))[1:nrow(scrFrame$traps[[s]]),(nrow(scrFrame$traps[[s]])+1):(nrow(scrFrame$traps[[s]])+nrow(ssDF[[s]]))]
         }
         if (smallslow) {
           if (distmet == "euc") {

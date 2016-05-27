@@ -324,12 +324,12 @@ oSCR.fit.cost <-
       names.n0 <- NULL
     }
     if ((distmet %in% c("lcp","resist")) && length(allvars.dist) == 0) {
-      message("You specified 'ecological distance'  but provided no\ncost surface.\n    Euclidean distance will be used.")
+      message("You specified 'ecological distance'  but provided no\ncost surface.\n    
+              Euclidean distance will be used.")
     }
     if (length(allvars.dist) > 0) {
       ccovnms <- colnames(costDF[[1]])
-      cCovMissing <- allvars.dist[which(!allvars.dist %in%
-                                          ccovnms)]
+      cCovMissing <- allvars.dist[which(!allvars.dist %in% ccovnms)]
       if (length(cCovMissing) > 0) {
         stop("I cant find theses covariates in 'costDF'",
              for (i in cCovMissing) print(i))
@@ -742,9 +742,8 @@ oSCR.fit.cost <-
           Ys <- abind(Ys, zeros, along = 1)
         }
         if (distmet == "lcp") {
-          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
-          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
-                                                       2)], cost))
+          cost <- exp(dm.cost[[s]] %*% dist.beta)
+          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,2)], cost))
           if (is.null(PROJ)) {
             projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
           }
@@ -757,9 +756,8 @@ oSCR.fit.cost <-
           D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c("X","Y")]))
         }
         if (distmet == "resist") {
-          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
-          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
-                                                       2)], cost))
+          cost <- exp(dm.cost[[s]] %*% dist.beta)
+          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,2)], cost))
           if (is.null(PROJ)) {
             projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
           }
@@ -1162,7 +1160,7 @@ oSCR.fit.cost <-
         }
         sx <- c(scrFrame$indCovs[[s]]$sex + 1, NA)
         if (distmet == "lcp") {
-          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+          cost <- exp(dm.cost[[s]] %*% dist.beta)
           costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
                                                        2)], cost))
           if (is.null(PROJ)) {
@@ -1177,7 +1175,7 @@ oSCR.fit.cost <-
           D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][, c("X", "Y")]), as.matrix(ssDF[[s]][, c("X","Y")]))
         }
         if (distmet == "resist") {
-          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+          cost <- exp(dm.cost[[s]] %*% dist.beta)
           costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
                                                        2)], cost))
           if (is.null(PROJ)) {

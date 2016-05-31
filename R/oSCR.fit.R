@@ -130,8 +130,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     hiK <- max(nK)
     nG <- unlist(lapply(ssDF, nrow))
     nnn <- all(unlist(lapply(ssDF, function(x) {
-        "session" %in% names(x)
-    })))
+        "session" %in% names(x) })))
     areaS <- NULL
     if ("session" %in% all.vars(model[[1]]) & (!nnn)) {
         for (s in 1:ns) {
@@ -188,10 +187,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         #mod2 <- update(model[[2]], ~. - sex - session - t - b -1)
         # remove the standard terms & possible interactions
-        mod2 <- update(model[[2]], ~. - sex - session - t - b - 1 -
-                        b:sex - sex:b - b:session - session:b - b:session:sex - 
-                        b:sex:session - sex:session:b - sex:b:session - 
-                        session:b:sex - session:sex:b)
+        #mod2 <- update(model[[2]], ~. - sex - session - t - b - 1 -
+        mod2 <- update(model[[2]], ~. - sex - session - t - b -
+                       b:sex - sex:b - b:session - session:b - b:session:sex - 
+                       b:sex:session - sex:session:b - sex:b:session - 
+                       session:b:sex - session:sex:b)
         
         #if ("session" %in% all.vars(mod2)) {
         #    mod2 <- as.formula(paste0("~", paste(all.vars(mod2)[all.vars(mod2) !=
@@ -203,7 +203,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         for (s in 1:ns) {
             tmp.dm <- list()
             for (k in 1:nK[s]) {
-                tmp.dm[[k]] <- my.model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])
+                tmp.dm[[k]] <- my.model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
                 if (s == 1 && k == 1)
                   t.nms <- colnames(tmp.dm[[k]])
                 if (nrow(tmp.dm[[k]]) != nrow(scrFrame$trapCovs[[s]][[k]])) {
@@ -251,36 +251,33 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     if (DorN == "N") {
         if (length(dens.fx) > 0) {
             dIPP <- TRUE
-            mod1 <- update(model[[1]], ~. - sex - session - 1)
+            mod1 <- update(model[[1]], ~. - sex - session)
             for (s in 1:ns) {
-                dm.den[[s]] <- my.model.matrix(mod1, ssDF[[s]])
+                dm.den[[s]] <- my.model.matrix(mod1, ssDF[[s]])[,-1,drop=FALSE]
                 if (s == 1)
                   d.nms <- colnames(dm.den[[s]])
             }
-            if ("Session" %in% all.vars(model[[1]])) {
+            if("Session" %in% all.vars(model[[1]])) {
                 tmpDsess <- rep(1:ns, each = length(d.nms))
                 tmpDcovs <- rep(d.nms, ns)
                 names.beta.den <- paste("d.beta.", tmpDcovs,
                   ".sess", tmpDsess, sep = "")
                 pars.beta.den <- rnorm(length(names.beta.den))
                 names.n0 <- paste0("n0.sess", 1:ns)
-                pars.n0 <- log(unlist(lapply(scrFrame$caphist,
-                  nrow)))
+                pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
-            if ("session" %in% all.vars(model[[1]])) {
+            if("session" %in% all.vars(model[[1]])) {
                 names.beta.den <- paste0("d.beta.", d.nms, sep = "")
                 pars.beta.den <- rnorm(length(names.beta.den))
                 names.n0 <- paste("n0.sess", 1:ns)
-                pars.n0 <- log(unlist(lapply(scrFrame$caphist,
-                  nrow)))
+                pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
-            if (!("session" %in% all.vars(model[[1]])) & !("Session" %in%
+            if(!("session" %in% all.vars(model[[1]])) & !("Session" %in%
                 all.vars(model[[1]]))) {
                 names.beta.den <- paste0("d.beta.", d.nms, sep = "")
                 pars.beta.den <- rnorm(length(names.beta.den))
                 names.n0 <- paste0("n0.")
-                pars.n0 <- log(mean(unlist(lapply(scrFrame$caphist,
-                  nrow))))
+                pars.n0 <- log(mean(unlist(lapply(scrFrame$caphist,nrow))))
             }
         }
         else {
@@ -293,20 +290,17 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             if ("Session" %in% all.vars(model[[1]])) {
                 n0Session <- TRUE
                 names.n0 <- paste0("n0.sess", 1:ns)
-                pars.n0 <- log(unlist(lapply(scrFrame$caphist,
-                  nrow)))
+                pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if ("session" %in% all.vars(model[[1]])) {
                 n0Session <- TRUE
                 names.n0 <- paste0("n0.sess", 1:ns)
-                pars.n0 <- log(unlist(lapply(scrFrame$caphist,
-                  nrow)))
+                pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if (!("session" %in% all.vars(model[[1]])) & !("Session" %in%
                 all.vars(model[[1]]))) {
                 names.n0 <- paste0("n0.")
-                pars.n0 <- log(mean(unlist(lapply(scrFrame$caphist,
-                  nrow))))
+                pars.n0 <- log(mean(unlist(lapply(scrFrame$caphist,nrow))))
             }
         }
     }
@@ -823,16 +817,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
                    if (pBehave) {
-                    a0 <- alpha0[s, k, 1] * (1 - c(prevcap[[s]][i,
-                      , k])) + alpha0[s, k, 2] * c(prevcap[[s]][i,
-                      , k])
+                    a0 <- alpha0[s,k,1] * (1 - c(prevcap[[s]][i,,k])) + 
+                          alpha0[s,k,2] * c(prevcap[[s]][i,,k])
                   }
                   else {
                     a0 <- rep(alpha0[s, k, 1], nrow(D[[s]]))
                   }
                   if (trap.covs) {
-                    a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,
-                      ]))
+                    a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
                   }
                   if (encmod == "B")
                     probcap <- c(plogis(a0[trimR[[s]][[i]][[k]]])) *
@@ -1325,10 +1317,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                       a0.2 <- rep(alpha0[s, k, 2, 1], nrow(D[[s]]))
                     }
                     if (trap.covs) {
-                      a0.1 <- a0.1 + (dm.trap[[s]][[k]] %*% c(t.beta[s,
-                        ]))
-                      a0.2 <- a0.2 + (dm.trap[[s]][[k]] %*% c(t.beta[s,
-                        ]))
+                      a0.1 <- a0.1 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
+                      a0.2 <- a0.2 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
                     }
                     if (encmod == "B")
                       probcap <- c(plogis(a0.1[trimR[[s]][[i]][[k]]])) *

@@ -6,11 +6,11 @@
                     ssDF <- list()
                    for(i in 1:length(scrFrame$traps)){
                      trpls <- scrFrame$traps[[i]]
-                     bl <- apply(trpls,2,min)
-                     tr <- apply(trpls,2,max)
+                     bl <- apply(trpls[,c("X","Y")],2,min)
+                     tr <- apply(trpls[,c("X","Y")],2,max)
                      sxy <- expand.grid(seq(bl[1]-buffer,tr[1]+buffer,res),
                                         seq(bl[2]-buffer,tr[2]+buffer,res))
-                     dd <- apply(e2dist(sxy,trpls),1,min)
+                     dd <- apply(e2dist(sxy,trpls[,c("X","Y")]),1,min)
                      ssDF[[i]] <- sxy[dd<=buffer,]
                      colnames(ssDF[[i]]) <- c("X","Y")
                     if(cont.cov==T)

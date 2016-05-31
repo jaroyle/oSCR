@@ -33,13 +33,13 @@ sim.SCR.ms <- function(sessions=1, sex=F, sex.ratio=0.5, N = 100, K = 5,
      indCovs[[s]] <- data.frame(sex = rbinom(nrow(dat$Y),1,sex.ratio))
      ssDF[[s]] <- dat$ss; colnames(ssDF[[s]]) <- c("X","Y")
    }
-    sf <- list(caphist=caphist,
-               traps=traps,
-               indCovs=NULL,
-               trapCovs=NULL,
-               trapOperation=NULL,
-               type="scr",
-               nocc=K)
+   sf <- make.scrFrame(caphist, 
+                       traps, 
+                       indCovs=NULL,
+                       trapCovs=NULL, 
+                       trapOperation=NULL, 
+                       type="scr")
+
     if(sex==T) sf$indCovs <- indCovs
     class(sf) <- "scrFrame"
     sf <-sf

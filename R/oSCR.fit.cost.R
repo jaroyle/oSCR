@@ -757,8 +757,7 @@ oSCR.fit.cost <-
         }
         if (distmet == "resist") {
           cost <- exp(dm.cost[[s]] %*% dist.beta)
-          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
-                                                       2)], cost))
+          costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,2)], cost))
           if (is.null(PROJ)) {
             projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
           }

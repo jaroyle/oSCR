@@ -203,7 +203,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         for (s in 1:ns) {
             tmp.dm <- list()
             for (k in 1:nK[s]) {
-                tmp.dm[[k]] <- my.model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
+                tmp.dm[[k]] <- model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
+                print(head(tmp.dm[[k]]))
                 if (s == 1 && k == 1)
                   t.nms <- colnames(tmp.dm[[k]])
                 if (nrow(tmp.dm[[k]]) != nrow(scrFrame$trapCovs[[s]][[k]])) {
@@ -232,7 +233,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                   t.nms.nosess, sep = ""))
             }
             else {
-                names.beta.trap <- names.beta.trap1
+              names.beta.trap <- names.beta.trap1
             }
             pars.beta.trap <- rnorm(length(names.beta.trap))
         }
@@ -253,7 +254,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             dIPP <- TRUE
             mod1 <- update(model[[1]], ~. - sex - session)
             for (s in 1:ns) {
-                dm.den[[s]] <- my.model.matrix(mod1, ssDF[[s]])[,-1,drop=FALSE]
+                dm.den[[s]] <- model.matrix(mod1, ssDF[[s]])[,-1,drop=FALSE]
                 if (s == 1)
                   d.nms <- colnames(dm.den[[s]])
             }

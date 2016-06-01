@@ -204,7 +204,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             tmp.dm <- list()
             for (k in 1:nK[s]) {
                 tmp.dm[[k]] <- model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
-                print(head(tmp.dm[[k]]))
                 if (s == 1 && k == 1)
                   t.nms <- colnames(tmp.dm[[k]])
                 if (nrow(tmp.dm[[k]]) != nrow(scrFrame$trapCovs[[s]][[k]])) {

@@ -6,7 +6,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
     plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
     nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
-    hessian = T, print.level = 0, getStarts = FALSE) 
+    se = TRUE, print.level = 0, getStarts = FALSE) 
 {
     my.model.matrix <- function(form, data) {
         mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
@@ -14,6 +14,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             contrasts = FALSE)))
         return(mdm)
     }
+    hessian <- ifelse(se, TRUE, FALSE)
     max.dist <- NULL
     for (i in 1:length(scrFrame$caphist)) {
         for (j in 1:nrow(scrFrame$caphist[[i]])) {

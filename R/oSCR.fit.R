@@ -85,6 +85,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     names.dist <- NULL
     pars.dist <- NULL
     names.dist <- NULL
+    pars.sex <- NULL
+    names.sex <- NULL
     singleS <- NULL
     singleT <- NULL
     singleG <- NULL

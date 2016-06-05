@@ -1,10 +1,3 @@
-
-
-#modSel - a function for generating an ordered (by deltaAIC) model selection
-#         table from an 'oSCR.fitList'
-
-# x: an 'oSCR.fitList object
-
 modSel.oSCR <- function(x){
 
   if(class(x)=="oSCR.fitList"){
@@ -16,7 +9,10 @@ modSel.oSCR <- function(x){
                          AIC = unlist(lapply(x, function(y) y$AIC)))
 
     df.out$dAIC <- df.out$AIC - min(df.out$AIC)
+    df.out$weight <- exp(-0.5 * df.out$dAIC)
+    df.out$weight <- df.out$weight / sum(df.out$weight) 
     df.out2 <- df.out[order(df.out$dAIC),]
+    df.out2$CumWt <- cumsum(df.out2$weight)
     rownames(df.out2) <- NULL
     ms[["aic.tab"]] <- df.out2
 
@@ -34,12 +30,10 @@ modSel.oSCR <- function(x){
     rownames(coef.tab) <- NULL
     coef.out <- merge(coef.tab,df.out[,c("model","AIC")],by="model")
 
-    ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),]
+    ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
     class(ms) <- "oSCR.modSel"
     return(ms)
   }else{
     print("Object is not of class oSCR.fit or oSCR.fitList")
   }
 }
-
-

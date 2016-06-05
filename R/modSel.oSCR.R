@@ -34,7 +34,7 @@ modSel.oSCR <- function(x){
     rownames(coef.tab) <- NULL
     coef.out <- merge(coef.tab,df.out[,c("model","AIC")],by="model")
 
-    ms[["coef.tab"]] <- coef.out
+    ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),]
     class(ms) <- "oSCR.modSel"
     return(ms)
   }else{

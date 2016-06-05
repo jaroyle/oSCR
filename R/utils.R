@@ -81,17 +81,21 @@ print.oSCR.fitList <- function(x){
 }
 
 
+
+
+
+
 print.oSCR.modSel <- function(x){
   if(class(x) == "oSCR.modSel"){
 cat(" AIC model table:",fill=TRUE)
 cat("",fill=TRUE)
-print(cbind(model <- x[[1]][,1],round(x[[1]][,-1],2)))
+print(data.frame(model = x[[1]][,1],round(x[[1]][,-1],2)))
 cat("",fill=TRUE)
 cat("",fill=TRUE)
 cat(" Table of coefficients:",fill=TRUE)
 cat("",fill=TRUE)
-print(cbind(model <-x[[2]][,1],round(x[[2]][,-1],2)))
-}else{
+print(data.frame(model = x[[2]][,1],round(x[[2]][,-1],2)))
+  }else{
 print(x)
 }
 }

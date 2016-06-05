@@ -141,6 +141,19 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 levels = 1:ns)
         }
     }
+    ####################################################################
+    ## chris - attaempt to fix session:trapsCov
+    nnnn <- all(unlist(lapply(scrFrame$trapCovs[[1]][[1]], function(x) {
+      "session" %in% names(x) })))
+    if("session" %in% all.vars(model[[2]]) & (!nnnn)){
+      for(s in 1:ns){
+       for(m in 1:length(scrFrame$trapCovs[[s]])){  
+         scrFrame$trapCovs[[s]][[m]]$session <- factor(rep(s, nrow(scrFrame$trapCovs[[s]][[m]])),
+                                                  levels = 1:ns)
+       }
+      }  
+    }
+    ####################################################################
     allvars.D <- all.vars(model[[1]])
     dens.fx <- allvars.D[!allvars.D %in% c("D", "session")]
     allvars.T <- all.vars(model[[2]])

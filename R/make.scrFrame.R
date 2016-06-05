@@ -57,9 +57,10 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
       stop("trapCovs must be a list of dataframes")
     if(length(trapCovs) != length(caphist))
       stop("number of sessions in trapCovs does not match capphist")
-    check.dim <- sapply(trapCovs,function(x)sapply(x,nrow))
-    for(i in 1:ncol(check.dim)){
-      if(!all(check.dim[,i]==caphist.dimensions[2,i]))
+    #check.dim <- sapply(trapCovs,function(x)sapply(x,nrow))
+    check.dim <- lapply(trapCovs,function(x)sapply(x,nrow))
+    for(i in 1:length(check.dim)){
+      if(!all(check.dim[[i]]==caphist.dimensions[2,i]))
         stop("number of traps does not match caphist")
     }
   }

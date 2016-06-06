@@ -240,7 +240,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 attr(terms(model[[2]]), "term.labels"))]
             tmpTsess <- rep(1:ns, each = length(t.nms.sess))
             tmpTcovs <- rep(t.nms.sess, ns)
-            names.beta.trap1 <- paste("t.beta.", tmpTcovs, ".sess",
+            names.beta.trap1 <- paste("t.beta.", tmpTcovs, ".session",
                 tmpTsess, sep = "")
             if (length(t.nms) > length(t.nms.sess)) {
                 t.nms.nosess <- t.nms[!t.nms %in% t.nms.sess]
@@ -277,15 +277,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 tmpDsess <- rep(1:ns, each = length(d.nms))
                 tmpDcovs <- rep(d.nms, ns)
                 names.beta.den <- paste("d.beta.", tmpDcovs,
-                  ".sess", tmpDsess, sep = "")
+                  ".session", tmpDsess, sep = "")
                 pars.beta.den <- rnorm(length(names.beta.den))
-                names.n0 <- paste0("n0.sess", 1:ns)
+                names.n0 <- paste0("n0.session", 1:ns)
                 pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if("session" %in% all.vars(model[[1]])) {
                 names.beta.den <- paste0("d.beta.", d.nms, sep = "")
                 pars.beta.den <- rnorm(length(names.beta.den))
-                names.n0 <- paste("n0.sess", 1:ns)
+                names.n0 <- paste("n0.session", 1:ns)
                 pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if(!("session" %in% all.vars(model[[1]])) & !("Session" %in%
@@ -305,12 +305,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             if ("Session" %in% all.vars(model[[1]])) {
                 n0Session <- TRUE
-                names.n0 <- paste0("n0.sess", 1:ns)
+                names.n0 <- paste0("n0.session", 1:ns)
                 pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if ("session" %in% all.vars(model[[1]])) {
                 n0Session <- TRUE
-                names.n0 <- paste0("n0.sess", 1:ns)
+                names.n0 <- paste0("n0.session", 1:ns)
                 pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if (!("session" %in% all.vars(model[[1]])) & !("Session" %in%
@@ -327,9 +327,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         d.nms <- colnames(dm.den[[1]])
         names.beta.den <- paste("d.beta", d.nms, sep = ".")
-        chx <- grep("Intercept", names.beta.den)
+        chx <- grep(fixed=TRUE,"Intercept", names.beta.den)
         if (length(chx) > 0)
-            names.beta.den[chx] <- "d0."
+            names.beta.den[chx] <- "d0.(Intercept)"
         pars.d0 <- log(mean((unlist(lapply(scrFrame$caphist,
             nrow)))/unlist(lapply(ssDF, nrow))))
         pars.beta.den <- c(pars.d0, rep(0.1, length(names.beta.den) -
@@ -370,29 +370,29 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             anySex <- TRUE
         }
     }
-    tmp.p0.names <- "p0.int"
+    tmp.p0.names <- "p0.(Intercept)"
     if (sum(var.p0.1, var.p0.2, var.p0.3, var.p0.4) == 0) {
-        tmp.p0.names <- "p0.int"
+        tmp.p0.names <- "p0.(Intercept)"
         pDot <- TRUE
     }
     if (var.p0.1 & !var.p0.2) {
-        tmp.p0.names <- c("p0.int", "p0.male")
+        tmp.p0.names <- c("p0.(Intercept)", "p0.male")
         pJustsex <- TRUE
     }
     if (!var.p0.1 & var.p0.2) {
         if (ns > 1) {
-            tmp.p0.names <- c("p0.int", paste0("p0.sess", 2:ns))
+            tmp.p0.names <- c("p0.(Intercept)", paste0("p0.session", 2:ns))
             pJustsesh <- TRUE
         }
         else {
-            tmp.p0.names <- "p0.int"
+            tmp.p0.names <- "p0.(Intercept)"
             pDot <- TRUE
         }
     }
     if (var.p0.1 & var.p0.2) {
-        tmp.p0.names <- c("p0.int", "p0.male")
+        tmp.p0.names <- c("p0.(Intercept)", "p0.male")
         if (ns > 1) {
-            tmp.p0.names <- c(tmp.p0.names, paste0("p0.sess",
+            tmp.p0.names <- c(tmp.p0.names, paste0("p0.session",
                 2:ns))
             pJustsesh <- TRUE
         }
@@ -408,12 +408,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     if (var.p0.4) {
         if (ns > 1) {
-            tmp.p0.names <- c("p0.int", paste0("p0.f.sess", 2:ns),
-                paste0("p0.m.sess", 1:ns))
+            tmp.p0.names <- c("p0.(Intercept)", paste0("p0.f.session", 2:ns),
+                paste0("p0.m.session", 1:ns))
             pBothsexnsesh <- TRUE
         }
         else {
-            tmp.p0.names <- c("p0.int", "p0.male")
+            tmp.p0.names <- c("p0.(Intercept)", "p0.male")
             pJustsex <- TRUE
         }
     }
@@ -434,22 +434,22 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     if (var.b.3 & !var.b.4) {
         pars.p0 <- c(pars.p0, rep(0, ns))
-        names.p0 <- c(names.p0, paste0("p.behav.sess", 1:ns))
+        names.p0 <- c(names.p0, paste0("p.behav.session", 1:ns))
         bJustsesh <- TRUE
     }
     if (var.b.4) {
         pars.p0 <- c(pars.p0, rep(0, 2 * ns))
-        names.p0 <- c(names.p0, paste0("p.behav.f.sess", 1:ns),
-            paste0("p.behav.m.sess", 1:ns))
+        names.p0 <- c(names.p0, paste0("p.behav.f.session", 1:ns),
+            paste0("p.behav.m.session", 1:ns))
         bBothsexnsesh <- TRUE
     }
-    tmp.sig.names <- "sig.int"
+    tmp.sig.names <- "sig.(Intercept)"
     if (sum(var.sig.1, var.sig.2, var.sig.3) == 0) {
         aDot <- TRUE
     }
     if (var.sig.2 & !var.sig.3) {
         if (ns > 1) {
-            tmp.sig.names <- c(tmp.sig.names, paste0("sig.sess.",
+            tmp.sig.names <- c(tmp.sig.names, paste0("sig.session.",
                 2:ns))
             aJustsesh <- TRUE
         }
@@ -463,8 +463,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     if (var.sig.3) {
         if (ns > 1) {
-            tmp.sig.names <- c(tmp.sig.names, paste0("sig.f.sess",
-                2:ns), paste0("sig.m.sess", 1:ns))
+            tmp.sig.names <- c(tmp.sig.names, paste0("sig.f.session",
+                2:ns), paste0("sig.m.session", 1:ns))
             aBothsexnsesh <- TRUE
         }
         else {
@@ -626,31 +626,29 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
            }
        }
 
-
-
-    msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
+     msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
         hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         alpha0 <- array(0, dim = c(ns, hiK, 2))
-        tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]
+        tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
         if (pDot & !pTime) {
             alpha0[, , ] <- tmpP
         }
         if (pDot & pTime) {
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1] <- tmpP + tmpT
             }
         }
         if (pJustsesh & !pTime) {
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1] <- tmpP + tmpSS[s]
             }
         }
         if (pJustsesh & pTime) {
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1] <- tmpP + tmpSS[s] + tmpT
@@ -658,28 +656,28 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         BRmat <- array(0, c(ns, hiK, 1))
         if (bDot) {
-            BRmat[, , 1] <- pv[pn %in% names.p0[grep("p.behav",
+            BRmat[, , 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav",
                 names.p0)]]
         }
         if (bJustsesh) {
             for (k in 1:hiK) {
-                BRmat[, k, 1] <- pv[pn %in% names.p0[grep("p.behav.sess",
+                BRmat[, k, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session",
                   names.p0)]]
-                BRmat[, k, 1] <- pv[pn %in% names.p0[grep("p.behav.sess",
+                BRmat[, k, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session",
                   names.p0)]]
             }
         }
         alpha0[, , 2] <- alpha0[, , 1] + BRmat[, , 1]
         alphsig <- numeric(ns)
         if (aDot) {
-            tmpA <- pv[pn %in% names.sig[grep("sig.int", names.sig)]]
+            tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
             for (s in 1:ns) {
                 alphsig[s] <- tmpA
             }
         }
         if (aJustsesh) {
-            tmpA <- pv[pn %in% names.sig[grep("sig.int", names.sig)]]
-            tmpSS <- c(0, pv[pn %in% names.sig[grep("sig.sess",
+            tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
+            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
                 names.sig)]])
             for (s in 1:ns) {
                 alphsig[s] <- tmpA + tmpSS[s]
@@ -692,14 +690,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 "term.labels"))) {
                 for (s in 1:ns) {
                   if (length(t.nms) > length(t.nms.sess)) {
-                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(paste("sess",
+                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,paste("session",
                       s, sep = ""), names.beta.trap)], names.beta.trap[as.vector(unlist(sapply(t.nms.nosess,
                       function(x) {
-                        grep(x, names.beta.trap)
+                        grep(fixed=TRUE,x, names.beta.trap)
                       })))])]
                   }
                   else {
-                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(paste("sess",
+                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,paste("session",
                       s, sep = ""), names.beta.trap)])]
                   }
                 }
@@ -715,7 +713,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.beta <- matrix(NA, ns, length(d.nms))
                 if ("session" %in% all.vars(model[[1]])) {
                   for (s in 1:ns) {
-                    d.beta[s, ] <- pv[pn %in% names.beta.den[grep(paste("sess",
+                    d.beta[s, ] <- pv[pn %in% names.beta.den[grep(fixed=TRUE,paste("session",
                       s, sep = ""), names.beta.den)]]
                   }
                 }
@@ -935,34 +933,34 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den,
         dm.trap) {
         alpha0 <- array(0, c(ns, hiK, 2, 2))
-        tmpP <- pv[pn %in% names.p0[grep("p0.int", names.p0)]]
+        tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
         if (pDot & !pTime) {
             alpha0[, , , 1] <- tmpP
         }
         if (pTime) {
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpT
                 alpha0[s, , 2, 1] <- tmpP + tmpT
             }
         }
         if (pJustsex & !pTime & !pJustsesh & !pBothsexnsesh) {
-            tmpS <- pv[pn %in% names.p0[grep("p0.male", names.p0)]]
+            tmpS <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.male", names.p0)]]
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP
                 alpha0[s, , 2, 1] <- tmpP + tmpS
             }
         }
         if (pJustsex & pTime & !pJustsesh & !pBothsexnsesh) {
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
-            tmpS <- pv[pn %in% names.p0[grep("p0.male", names.p0)]]
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
+            tmpS <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.male", names.p0)]]
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpT
                 alpha0[s, , 2, 1] <- tmpP + tmpT + tmpS
             }
         }
         if (pJustsesh & !pTime & !pJustsex & !pBothsexnsesh) {
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpSS[s]
@@ -970,8 +968,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         if (pJustsesh & pTime & !pJustsex & !pBothsexnsesh) {
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpT + tmpSS[s]
@@ -979,8 +977,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         if (pJustsesh & pJustsex & !pTime & !pBothsexnsesh) {
-            tmpS <- pv[pn %in% names.p0[grep("p0.male", names.p0)]]
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpS <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.male", names.p0)]]
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpSS[s]
@@ -988,9 +986,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         if (pJustsesh & pJustsex & pTime & !pBothsexnsesh) {
-            tmpS <- pv[pn %in% names.p0[grep("p0.male", names.p0)]]
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpS <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.male", names.p0)]]
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpT + tmpSS[s]
@@ -999,9 +997,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         if (pBothsexnsesh & !pTime) {
-            tmpSSF <- c(0, pv[pn %in% names.p0[grep("p0.f.sess",
+            tmpSSF <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.f.session",
                 names.p0)]])
-            tmpSSM <- pv[pn %in% names.p0[grep("p0.m.sess", names.p0)]]
+            tmpSSM <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.m.session", names.p0)]]
             for (k in 1:hiK) {
                 alpha0[, k, 1, 1] <- tmpP + tmpSSF
                 alpha0[, k, 2, 1] <- tmpP + tmpSSM
@@ -1009,10 +1007,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         if (pBothsexnsesh & pTime) {
             stop("model with time varying parameters AND a sex-session interaction not implemented")
-            tmpSS <- c(0, pv[pn %in% names.p0[grep("p0.sess",
+            tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
-            tmpS <- pv[pn %in% names.p0[grep("p0.male", names.p0)]]
-            tmpT <- c(0, pv[pn %in% names.p0[grep("p0.t", names.p0)]])
+            tmpS <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.male", names.p0)]]
+            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
             for (s in 1:ns) {
                 alpha0[s, , 1, 1] <- tmpP + tmpT + tmpSS[s]
                 alpha0[s, , 2, 1] <- tmpP + tmpT + tmpSS[s] +
@@ -1021,45 +1019,45 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         BRmat <- array(0, c(ns, hiK, 2, 1))
         if (bDot) {
-            BRmat[, , , 1] <- pv[pn %in% names.p0[grep("p.behav",
+            BRmat[, , , 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav",
                 names.p0)]]
         }
         if (bJustsex) {
-            BRmat[, , 1, 1] <- pv[pn %in% names.p0[grep("p.behav.f",
+            BRmat[, , 1, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.f",
                 names.p0)]]
-            BRmat[, , 2, 1] <- pv[pn %in% names.p0[grep("p.behav.m",
+            BRmat[, , 2, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.m",
                 names.p0)]]
         }
         if (bJustsesh) {
             for (k in 1:hiK) {
-                BRmat[, k, 1, 1] <- pv[pn %in% names.p0[grep("p.behav.sess",
+                BRmat[, k, 1, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session",
                   names.p0)]]
-                BRmat[, k, 2, 1] <- pv[pn %in% names.p0[grep("p.behav.sess",
+                BRmat[, k, 2, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session",
                   names.p0)]]
             }
         }
         if (bBothsexnsesh) {
             for (k in 1:hiK) {
-                BRmat[, k, 1, 1] <- pv[pn %in% names.p0[grep("p.behav.f.sess",
+                BRmat[, k, 1, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.f.session",
                   names.p0)]]
-                BRmat[, k, 2, 1] <- pv[pn %in% names.p0[grep("p.behav.m.sess",
+                BRmat[, k, 2, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.m.session",
                   names.p0)]]
             }
         }
         alpha0[, , 1, 2] <- alpha0[, , 1, 1] + BRmat[, , 1, 1]
         alpha0[, , 2, 2] <- alpha0[, , 2, 1] + BRmat[, , 2, 1]
         alphsig <- matrix(0, ns, 2)
-        tmpA <- pv[pn %in% names.sig[grep("sig.int", names.sig)]]
+        tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
         if (aDot) {
             alphsig[, ] <- tmpA
         }
         if (aJustsex & !aJustsesh) {
-            tmpSex <- pv[pn %in% names.sig[grep("sig.male", names.sig)]]
+            tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
             alphsig[, 1] <- tmpA
             alphsig[, 2] <- tmpA + tmpSex
         }
         if (aJustsesh & !aJustsex) {
-            tmpSS <- c(0, pv[pn %in% names.sig[grep("sig.sess",
+            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
                 names.sig)]])
             for (s in 1:ns) {
                 alphsig[s, 1] <- tmpA + tmpSS[s]
@@ -1067,18 +1065,18 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         if (aJustsesh & aJustsex) {
-            tmpSS <- c(0, pv[pn %in% names.sig[grep("sig.sess",
+            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
                 names.sig)]])
-            tmpSex <- pv[pn %in% names.sig[grep("sig.male", names.sig)]]
+            tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
             for (s in 1:ns) {
                 alphsig[s, 1] <- tmpA + tmpSS[s]
                 alphsig[s, 2] <- tmpA + tmpSS[s] + tmpSex
             }
         }
         if (aBothsexnsesh) {
-            tmpSF <- c(0, pv[pn %in% names.sig[grep("sig.f.sess",
+            tmpSF <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.f.session",
                 names.sig)]])
-            tmpSM <- pv[pn %in% names.sig[grep("sig.m.sess",
+            tmpSM <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.m.session",
                 names.sig)]]
             alphsig[, 1] <- tmpA + tmpSF
             alphsig[, 2] <- tmpA + tmpSM
@@ -1090,14 +1088,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 "term.labels"))) {
                 for (s in 1:ns) {
                   if (length(t.nms) > length(t.nms.sess)) {
-                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(paste("sess",
+                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,paste("session",
                       s, sep = ""), names.beta.trap)], names.beta.trap[as.vector(unlist(sapply(t.nms.nosess,
                       function(x) {
-                        grep(x, names.beta.trap)
+                        grep(fixed=TRUE,x, names.beta.trap)
                       })))])]
                   }
                   else {
-                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(paste("sess",
+                    t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,paste("session",
                       s, sep = ""), names.beta.trap)])]
                   }
                 }
@@ -1113,7 +1111,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.beta <- matrix(NA, ns, length(d.nms))
                 if ("session" %in% all.vars(model[[1]])) {
                   for (s in 1:ns) {
-                    d.beta[s, ] <- pv[pn %in% names.beta.den[grep(paste("sess",
+                    d.beta[s, ] <- pv[pn %in% names.beta.den[grep(fixed=TRUE,paste("session",
                       s, sep = ""), names.beta.den)]]
                   }
                 }
@@ -1135,9 +1133,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         if (!n0Session)
             n0 <- rep(exp(pv[pn %in% names.n0]), ns)
         if (sexmod == "constant")
-            psi.sex <- rep(plogis(pv[grep("psi", pn)]), ns)
+            psi.sex <- rep(plogis(pv[grep(fixed=TRUE,"psi", pn)]), ns)
         if (sexmod == "session")
-            psi.sex <- plogis(pv[grep("psi", pn)])
+            psi.sex <- plogis(pv[grep(fixed=TRUE,"psi", pn)])
         outLik <- 0
         if (predict) {
             preds <- list()
@@ -1507,31 +1505,31 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             links <- rep(NA, length(pn))
             pars <- myfit$estimate
             if (encmod == "B") {
-                links[grep("p0.int", pn)] <- "(logit)"
+                links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(logit)"
             }
             else {
-                links[grep("p0.int", pn)] <- "(log)"
+                links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(log)"
             }
-            links[grep("sig.int", pn)] <- "(log)"
-            links[grep("n0.", pn)] <- "(log)"
-            links[grep("d0.", pn)] <- "(log)"
-            links[grep("psi", pn)] <- "(logit)"
-            links[grep("beta", pn)] <- "(Identity)"
+            links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
+            links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"
+            links[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- "(log)"
+            links[grep(fixed=TRUE,"psi", pn)] <- "(logit)"
+            links[grep(fixed=TRUE,"beta", pn)] <- "(Identity)"
             trans.mle <- rep(0, length(pv))
             if (encmod == "B") {
-                trans.mle[grep("p0.int", pn)] <- plogis(pars[grep("p0.int", pn)])
+                trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- plogis(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
             }
             else {
-                trans.mle[grep("p0.int", pn)] <- exp(pars[grep("p0.int", pn)])
+                trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
             }
-            trans.mle[grep("sig.int", pn)] <- exp(pars[grep("sig.int", pn)])
-            trans.mle[grep("n0.", pn)] <- exp(pars[grep("n0.", pn)])
-            trans.mle[grep("d0.", pn)] <- exp(pars[grep("d0.", pn)])
-            trans.mle[grep("psi", pn)] <- plogis(pars[grep("psi", pn)])
-            trans.mle[grep("beta", pn)] <- pars[grep("beta", pn)]
+            trans.mle[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"sig.(Intercept)", pn)])
+            trans.mle[grep(fixed=TRUE,"n0.", pn)] <- exp(pars[grep(fixed=TRUE,"n0.", pn)])
+            trans.mle[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"d0.(Intercept)", pn)])
+            trans.mle[grep(fixed=TRUE,"psi", pn)] <- plogis(pars[grep(fixed=TRUE,"psi", pn)])
+            trans.mle[grep(fixed=TRUE,"beta", pn)] <- pars[grep(fixed=TRUE,"beta", pn)]
             if (pBehave) {
-                links[grep("pBehav", pn)] <- "(Identity)"
-                trans.mle[grep("pBehav", pn)] <- pars[grep("pBehav", pn)]
+                links[grep(fixed=TRUE,"pBehav", pn)] <- "(Identity)"
+                trans.mle[grep(fixed=TRUE,"pBehav", pn)] <- pars[grep(fixed=TRUE,"pBehav", pn)]
             }
             std.err <- rep(rep(NA, length(pv)))
             trans.se <- rep(NA, length(pv))
@@ -1545,7 +1543,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 se.tr = trans.se)
             VcV <- NULL
             if (DorN == "N") {
-                ED <- (exp(pars[grep("n0.", pn)]) + unlist(lapply(scrFrame$caphist,
+                ED <- (exp(pars[grep(fixed=TRUE,"n0.", pn)]) + unlist(lapply(scrFrame$caphist,
                   nrow)))/areaS
             }
             else {

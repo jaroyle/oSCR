@@ -8,3 +8,7 @@ auxiliary telemetry data
 flesh out the help files
 
 make oSCR faster!
+ - efficient trimming of the state space for all-zero ind (requires irregular matrix indexing)
+
+Update the mander workflow and add as a vignette.
+

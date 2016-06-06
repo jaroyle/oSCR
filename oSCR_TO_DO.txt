@@ -4,3 +4,7 @@ new set of likelihood functions for when there is no temporal
 variation in p
 
 auxiliary telemetry data
+
+flesh out the help files
+
+make oSCR faster!

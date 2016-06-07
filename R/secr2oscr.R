@@ -1,12 +1,12 @@
 secr2oscr <-
-function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, 
-    sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE, 
-    remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/") 
+function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
+    sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE,
+    remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
 {
     if (!is.null(sex.col) & is.null(sex.nacode)) {
         ux <- length(unique(edf[, sex.col]))
         if (ux > 2) {
-            cat("error: more than 2 sex codes, no sex.nacode specified", 
+            cat("error: more than 2 sex codes, no sex.nacode specified",
                 fill = TRUE)
             return(NULL)
         }
@@ -15,7 +15,7 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
         edf[edf[, sex.col] %in% sex.nacode, sex.col] <- NA
         ux <- length(unique(edf[, sex.col][!is.na(edf[, sex.col])]))
         if (ux > 2) {
-            cat("error: more than 2 sex codes, no sex.nacode specified", 
+            cat("error: more than 2 sex codes, no sex.nacode specified",
                 fill = TRUE)
             return(NULL)
         }
@@ -42,7 +42,7 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
     if (!is.null(sex.col)) {
         Xsex <- edf[, sex.col]
         if (!is.numeric(Xsex)) {
-            Xsex <- as.numeric(as.factor(as.character(Xsex))) - 
+            Xsex <- as.numeric(as.factor(as.character(Xsex))) -
                 1
         }
         out <- cbind(out, sex = Xsex)
@@ -55,7 +55,8 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
     usex <- list()
     for (s in 1:nsess) {
         xx <- out[out[, "session"] == s, ]
-        nind <- max(xx[, "individual"])
+        #nind <- max(xx[, "individual"])
+         nind <- max(out[, "individual"])
         if (is.null(K[s])) {
             Ks <- max(xx[, "occasion"])
         }
@@ -70,22 +71,22 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
         }
         y3d <- array(0, c(nind, ntrapss, Ks))
         for (obs in 1:nrow(xx)) {
-            y3d[xx[obs, "individual"], xx[obs, "trap"], xx[obs, 
-                "occasion"]] <- y3d[xx[obs, "individual"], xx[obs, 
+            y3d[xx[obs, "individual"], xx[obs, "trap"], xx[obs,
+                "occasion"]] <- y3d[xx[obs, "individual"], xx[obs,
                 "trap"], xx[obs, "occasion"]] + 1
         }
         caphist[[s]] <- y3d
         nn[[s]] <- apply(y3d, c(1), sum)
-        if (remove.zeros) 
+        if (remove.zeros)
             caphist[[s]] <- caphist[[s]][nn[[s]] > 0, , ]
-        if (remove.extracaps) 
+        if (remove.extracaps)
             caphist[[s]][caphist[[s]] > 1] <- 1
         nn[[s]] <- apply(caphist[[s]], c(1), sum)
-        if (any(nn[[s]] == 0)) 
-            cat("Some individuals in session", s, " have 0 captures", 
+        if (any(nn[[s]] == 0))
+            cat("Some individuals in session", s, " have 0 captures",
                 fill = TRUE)
-        if (max(caphist[[s]] > 1)) 
-            cat("Some individuals in session", s, " captured > 1 time in a trap/occasion", 
+        if (max(caphist[[s]] > 1))
+            cat("Some individuals in session", s, " captured > 1 time in a trap/occasion",
                 fill = TRUE)
         if(!is.null(sex.col)) usex[[s]] <- xx[!duplicated(xx[, c("individual", "sex")]),             c("individual", "sex")]
     }
@@ -99,17 +100,17 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
     trapopp <- NULL
     trapcovs <- NULL
     if (!is.null(tdf)) {
-        if (is.list(tdf)) 
+        if (is.list(tdf))
             ntdf <- length(tdf)
-        if (!is.list(tdf)) 
+        if (!is.list(tdf))
             ntdf <- 1
         if (ntdf != nsess) {
             if (length(K)>1 & var(K) != 0) {
-                cat("Error: variable trap operation period indicated but not provided", 
+                cat("Error: variable trap operation period indicated but not provided",
                   fill = TRUE)
                 return(NULL)
             }
-            cat("Warning: # tdf files not equal to number of sessions. Assuming trap coords constant across sessions", 
+            cat("Warning: # tdf files not equal to number of sessions. Assuming trap coords constant across sessions",
                 fill = TRUE)
             tdfx <- list()
             for (s in 1:nsess) {
@@ -124,7 +125,7 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
             trapcovs <- list(NULL)
             for (s in 1:length(tdf)) {
                 allnames <- tdf[[s]][, 1]
-                if (any(is.na(match(trap.names[out[, 1] == s], 
+                if (any(is.na(match(trap.names[out[, 1] == s],
                   allnames)))) {
                   cat("some trap names in EDF not in TDF", fill = TRUE)
                   return(NULL)
@@ -136,10 +137,10 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
                 if (is.trapcovs) {
                   xx.check <- (1:ncol(xx))[xx[1, ] == tdf.sep]
                   tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
-                  trapcovs[[s]] <- as.matrix(xx[, (xx.check + 
+                  trapcovs[[s]] <- as.matrix(xx[, (xx.check +
                     1):ncol(xx)])
                   colnames(trapcovs[[s]]) <- tc.nams
-                  trapopp[[s]] <- as.matrix(xx[, 1:(xx.check - 
+                  trapopp[[s]] <- as.matrix(xx[, 1:(xx.check -
                     1)])
                   all.tcnames <- c(all.tcnames, tc.nams)
                 }
@@ -166,7 +167,7 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
                 tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
                 trapcovs[[1]] <- as.matrix(xx[, (xx.check + 1):ncol(xx)])
                 colnames(trapcovs[[1]]) <- tc.nams
-                trapopp[[1]] <- as.matrix(xx[, 1:(xx.check - 
+                trapopp[[1]] <- as.matrix(xx[, 1:(xx.check -
                   1)])
                 all.tcnames <- c(all.tcnames, tc.nams)
             }
@@ -180,9 +181,15 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
             }
         }
     }
-    if(!is.null(sex.col)) sex.oscr = list(data.frame(sex = usex[[1]][, 2]), data.frame(sex = usex[[2]][,         2]))
-    else  sex.oscr = NULL
-    
-    list(edf = out, y3d = caphist, sex = sex.oscr, traplocs = traplocs, 
+
+     if (!is.null(sex.col)) {
+        sex.oscr<- list()
+        for(s in 1:nsess){
+        sex.oscr[[s]] <- data.frame(sex = usex[[s]][, 2])
+      }
+    }
+        else sex.oscr = NULL
+
+    list(edf = out, y3d = caphist, sex = sex.oscr, traplocs = traplocs,
         trapopp = trapopp, trapcovs = trapcovs)
 }

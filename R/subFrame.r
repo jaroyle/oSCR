@@ -1,7 +1,3 @@
-
-################################################################################
-## A function that sub sets an scrFrame object
-
  subFrame <- function(scrFrame,subs){
    
    caphist <- scrFrame$caphist[subs]
@@ -26,8 +22,9 @@
    
    type <- scrFrame$type
    
-   #mean maximum distance moved
+   #mean maximum distance moved - mmdm
    max.dist <- NULL
+   
    for (i in 1:length(caphist)) {
      for (j in 1:nrow(caphist[[i]])) {
        where <- apply(caphist[[i]][j, , ], 1, sum) > 0

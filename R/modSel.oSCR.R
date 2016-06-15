@@ -36,6 +36,7 @@ modSel.oSCR <- function(x){
       print("Standard errors will not be computed: model was likely fit with 'se=FALSE'")
 
       ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
+      ms[["se"]] <- FALSE
       class(ms) <- "oSCR.modSel"
       return(ms)
     
@@ -53,7 +54,9 @@ modSel.oSCR <- function(x){
     rownames(se.tab) <- NULL
     se.out <- merge(se.tab,df.out[,c("model","AIC")],by="model")
     
+    ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
     ms[["se.tab"]] <- se.out[order(se.out$AIC),-ncol(se.out)]
+    ms[["se"]] <- TRUE
     class(ms) <- "oSCR.modSel"
     return(ms)
     }

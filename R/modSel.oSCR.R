@@ -32,23 +32,25 @@ modSel.oSCR <- function(x){
     
     #se table
     
-    if(any(sapply(x,function(mod) is.null(mod$rawOutput$hessian)))){
+    if(any(sapply(x,function(xx) is.null(xx$rawOutput$hessian)))){
       print("Standard errors will not be computed: model was likely fit with 'se=FALSE'")
 
       ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
       class(ms) <- "oSCR.modSel"
       return(ms)
+    
     }else{
       se.df <- NULL
       for(i in 1:length(x)){
-        tmp.df$se <- sqrt(diag(solve(x[[i]]$rawOutput$hessian)))
+        tmp.df <- data.frame(se=sqrt(diag(solve(x[[i]]$rawOutput$hessian))),
+                             param=x[[i]]$coef.mle$param)
         tmp.df$model <- names(x)[i]
         se.df <- rbind(se.df,tmp.df)
       }
     se.tab <- data.frame(tapply(se.df$se,list(se.df$model,se.df$param),unique))
-    coef.tab$model <- rownames(se.tab)
-    coef.tab <- coef.tab[,c("model",setdiff(colnames(se.tab),"model"))]
-    rownames(coef.tab) <- NULL
+    se.tab$model <- rownames(se.tab)
+    se.tab <- se.tab[,c("model",setdiff(colnames(se.tab),"model"))]
+    rownames(se.tab) <- NULL
     se.out <- merge(se.tab,df.out[,c("model","AIC")],by="model")
     
     ms[["se.tab"]] <- se.out[order(se.out$AIC),-ncol(se.out)]

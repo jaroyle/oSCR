@@ -1,7 +1,7 @@
  subFrame <- function(scrFrame,subs){
    
    caphist <- scrFrame$caphist[subs]
-   traps <- scrFrame$traps
+   traps <- scrFrame$traps[subs]
    if(!is.null(scrFrame$indCovs)){
      indCovs <- scrFrame$indCovs[subs]
    }else{

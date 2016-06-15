@@ -29,11 +29,34 @@ modSel.oSCR <- function(x){
     coef.tab <- coef.tab[,c("model",setdiff(colnames(coef.tab),"model"))]
     rownames(coef.tab) <- NULL
     coef.out <- merge(coef.tab,df.out[,c("model","AIC")],by="model")
+    
+    #se table
+    
+    if(any(sapply(x,function(mod) is.null(mod$rawOutput$hessian)))){
+      print("Standard errors will not be computed: model was likely fit with 'se=FALSE'")
 
-    ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
+      ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
+      class(ms) <- "oSCR.modSel"
+      return(ms)
+    }else{
+      se.df <- NULL
+      for(i in 1:length(x)){
+        tmp.df$se <- sqrt(diag(solve(x[[i]]$rawOutput$hessian)))
+        tmp.df$model <- names(x)[i]
+        se.df <- rbind(se.df,tmp.df)
+      }
+    se.tab <- data.frame(tapply(se.df$se,list(se.df$model,se.df$param),unique))
+    coef.tab$model <- rownames(se.tab)
+    coef.tab <- coef.tab[,c("model",setdiff(colnames(se.tab),"model"))]
+    rownames(coef.tab) <- NULL
+    se.out <- merge(se.tab,df.out[,c("model","AIC")],by="model")
+    
+    ms[["se.tab"]] <- se.out[order(se.out$AIC),-ncol(se.out)]
     class(ms) <- "oSCR.modSel"
     return(ms)
-  }else{
-    print("Object is not of class oSCR.fit or oSCR.fitList")
+    }
+  }
+  if(class(x)!="oSCR.fitList"){
+      print("Object is not of class oSCR.fit or oSCR.fitList")
   }
 }

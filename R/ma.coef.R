@@ -23,20 +23,21 @@ ma.coef <- function(ms){
     rescale.wt <- wts[rmv]/sum(wts[rmv])  
     ma.beta[i] <- sum(ests[rmv,i] * rescale.wt)
     if(ms$se){
-      ma.se[i] <- wts[i]*sum(sqrt(vars[rmv,i]^2 + (ests[rmv,i]-ma.beta[i])^2))
+      ma.se[i] <- sum(rescale.wt * sqrt(vars[rmv,i]^2 + (ests[rmv,i]-ma.beta[i])^2))
     }else{
       ma.se[i] <- NA
     }
   }
   ma.coef <- data.frame(colnames(ests),
-                        ma.beta,
-                        ma.se,
-                        ma.beta.shrink,
-                        ma.se.shrink,
-                        "RVI" = vi)
+                        cbind(ma.beta,
+                              ma.se,
+                              ma.beta.shrink,
+                              ma.se.shrink,
+                              vi))
   rownames(ma.coef) <- NULL
   colnames(ma.coef) <- c("Parameter", "Estimate", paste("Std. Error",sep=""), 
                          "Estimate*", paste("Std. Error*",sep=""), "RVI")
+  class(ma.coef) <- c("ma.coef")
   return(ma.coef)
 }
 

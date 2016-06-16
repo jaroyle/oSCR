@@ -67,17 +67,15 @@ function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
 ## currently does just the same as modSel
 
 print.oSCR.fitList <- function(x){
-  if(class(x) == "oSCR.fitList"){
 
     df.out <- data.frame(model = names(x),
-                         logL = unlist(lapply(x, function(y) y$rawOutput$minimum)),
+                         logL = round(unlist(lapply(x, function(y) y$rawOutput$minimum)),2),
                          K = unlist(lapply(x, function(y) length(y$rawOutput$estimate))),
-                         AIC = unlist(lapply(x, function(y) y$AIC)))
+                         AIC = round(unlist(lapply(x, function(y) y$AIC)),2))
 
-    df.out$dAIC <- df.out$AIC - min(df.out$AIC)
+    df.out$dAIC <- round(df.out$AIC - min(df.out$AIC),2)
     rownames(df.out) <- NULL
-  }else{print(x)}
-  print(df.out,digits=2)
+    print(df.out)
 }
 
 
@@ -89,12 +87,16 @@ print.oSCR.modSel <- function(x){
   if(class(x) == "oSCR.modSel"){
 cat(" AIC model table:",fill=TRUE)
 cat("",fill=TRUE)
-print(data.frame(model = x[[1]][,1],round(x[[1]][,-1],2)))
+tmp.df1 <- data.frame(model = x[[1]][,1],round(x[[1]][,-1],2))
+colnames(tmp.df1) <- colnames(x$aic.tab)
+print(tmp.df1)
 cat("",fill=TRUE)
 cat("",fill=TRUE)
 cat(" Table of coefficients:",fill=TRUE)
 cat("",fill=TRUE)
-print(data.frame(model = x[[2]][,1],round(x[[2]][,-1],2)))
+tmp.df2 <- data.frame(model = x[[2]][,1],round(x[[2]][,-1],2))
+colnames(tmp.df2) <- colnames(x$coef.tab)
+print(tmp.df2)
   }else{
 print(x)
 }

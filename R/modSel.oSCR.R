@@ -29,6 +29,7 @@ modSel.oSCR <- function(x){
     coef.tab <- coef.tab[,c("model",setdiff(colnames(coef.tab),"model"))]
     rownames(coef.tab) <- NULL
     coef.out <- merge(coef.tab,df.out[,c("model","AIC")],by="model")
+    colnames(coef.out) <- c("model",levels(unlist(sapply(x,function(xx)xx$coef.mle$param))),"AIC")
     
     #se table
     
@@ -53,6 +54,7 @@ modSel.oSCR <- function(x){
     se.tab <- se.tab[,c("model",setdiff(colnames(se.tab),"model"))]
     rownames(se.tab) <- NULL
     se.out <- merge(se.tab,df.out[,c("model","AIC")],by="model")
+    colnames(se.out) <- c("model",levels(unlist(sapply(x,function(xx)xx$coef.mle$param))),"AIC")
     
     ms[["coef.tab"]] <- coef.out[order(coef.out$AIC),-ncol(coef.out)]
     ms[["se.tab"]] <- se.out[order(se.out$AIC),-ncol(se.out)]

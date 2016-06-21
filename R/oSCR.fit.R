@@ -1,12 +1,12 @@
 oSCR.fit <-
 function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, 
-          ssDF = NULL, costDF = NULL, distmet = c("euc", "user", 
-    "ecol")[1], sexmod = c("constant", "session")[1], encmod = c("B", 
-    "P")[1], DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
-    trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
-    plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
-    nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
-    se = TRUE, print.level = 0, getStarts = FALSE) 
+          ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1], 
+          sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
+          DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
+          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
+          plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
+          nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
+          se = TRUE, print.level = 0, getStarts = FALSE) 
 {
     my.model.matrix <- function(form, data) {
         mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
@@ -42,7 +42,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     if (!inherits(scrFrame, "scrFrame")) {
         stop("Data must be of class 'scrFrame'")
     }
-    if (encmod == "B" & max(unlist(lapply(scrFrame$caphist, max))) > 
+    if (encmod %in% c("B","CLOG") & max(unlist(lapply(scrFrame$caphist, max))) > 
         1) {
         stop("Data in caphist must be Binary")
     }
@@ -65,8 +65,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         stop("Starting values required to predict (hint: use estimated MLEs)")
     }
     maxY <- unlist(lapply(scrFrame$caphist, max))
-    if (any(maxY > 1) & encmod == "B") 
-        stop("caphist must be binary when using the Binomial encounter model")
+    if (any(maxY > 1) & encmod %in% c("B","CLOG")) 
+        stop("caphist must be binary when using the Binomial/Cloglog encounter model")
     if (all(maxY == 1) & encmod == "P") 
         stop("caphist looks binary but Poisson encounter model is selected")
     pars.p0 <- NULL
@@ -843,7 +843,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                   if (encmod == "B")
                     probcap <- c(plogis(a0[trimR[[s]][[i]][[k]]])) *
                       Kern[trimR[[s]][[i]][[k]], trimC[[s]][[i]] ]
-                  if (encmod == "P")
+                  if (encmod %in% c("P","CLOG"))
                     probcap <- c(exp(a0[trimR[[s]][[i]][[k]]])) *
                       Kern[trimR[[s]][[i]][[k]], trimC[[s]][[i]]]
                   if (!multicatch) {
@@ -856,6 +856,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                       probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,
                         trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
                         probcap[1:length(probcap)], log = TRUE))
+                    }
+                    if (encmod == "CLOG") {
+                      probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
+                        trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
+                        1, 1-exp(-probcap[1:length(probcap)]), log = TRUE))
                     }
                   }
                   else {
@@ -1252,7 +1257,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                       probcap <- c(plogis(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^2)
-                    if (encmod == "P")
+                    if (encmod %in% c("P","CLOG"))
                       probcap <- c(exp(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^2)
@@ -1266,6 +1271,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                         probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,
                           trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
                           probcap[1:length(probcap)], log = TRUE))
+                      }
+                      if (encmod == "CLOG") {
+                        probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
+                          trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
+                          1, 1-exp(-probcap[1:length(probcap)]), log = TRUE))
                       }
                     }
                     else {
@@ -1338,7 +1348,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                       probcap <- c(plogis(a0.1[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 1] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^2)
-                    if (encmod == "P")
+                    if (encmod %in% c("P","CLOG"))
                       probcap <- c(exp(a0.1[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 1] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^2)
@@ -1352,6 +1362,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                         probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,
                           trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
                           probcap[1:length(probcap)], log = TRUE))
+                      }
+                      if (encmod == "CLOG") {
+                        probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
+                          trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
+                          1, 1-exp(-probcap[1:length(probcap)]), log = TRUE))
                       }
                     }
                     else {
@@ -1382,7 +1397,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                       probcap <- c(plogis(a0.2[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 2] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^2)
-                    if (encmod == "P")
+                    if (encmod %in% c("P","CLOG"))
                       probcap <- c(exp(a0.2[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 2] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^2)
@@ -1396,6 +1411,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                         probcap[1:length(probcap)] <- c(dpois(rep(Ys[i,
                           trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
                           probcap[1:length(probcap)], log = TRUE))
+                      }
+                      if (encmod == "CLOG") {
+                        probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
+                          trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
+                          1, 1-exp(-probcap[1:length(probcap)]), log = TRUE))
                       }
                     }
                     else {

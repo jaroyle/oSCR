@@ -6,7 +6,7 @@ plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
     plot(ss.xy, pch=16, cex=0.5, col="grey", asp = TRUE,axes=FALSE)
     if(!is.null(scrFrame)){
       sf.xy <- scrFrame$traps[[i]][,c("X","Y")]  
-      points(sf.xy, pch=15, col=4)
+      points(sf.xy, pch=15, cex=0.7, col=4)
     }
   }}    
   if(collapse){
@@ -20,6 +20,6 @@ plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
   }
   plot(ss.xy, pch=16, cex=0.5, col="grey", asp = TRUE, axes=FALSE)
   if(!is.null(scrFrame))
-     points(sf.xy, pch=15, col=4)
+     points(sf.xy, pch=15, cex=0.7, col=4)
   }   
 }  

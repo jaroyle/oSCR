@@ -22,5 +22,4 @@ plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
   if(!is.null(scrFrame))
      points(sf.xy, pch=15, col=4)
   }   
-  box(bty="o")
 }  

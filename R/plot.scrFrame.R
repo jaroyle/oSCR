@@ -1,5 +1,5 @@
 plot.scrFrame<-function(scrFrame, ask=TRUE){
-  
+  op <- par()
   all.ind.xy <- list()
   mean.loc <- list()
   mu.x <- list()
@@ -37,4 +37,5 @@ plot.scrFrame<-function(scrFrame, ask=TRUE){
     points(scrFrame$traps[[s]][,c("X","Y")], pch="+",cex=1)
     points(mu.x[[s]],mu.y[[s]],pch=16,cex=1.5,col=clr)
   }  
+  par(op)
 }

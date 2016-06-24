@@ -1,4 +1,5 @@
 plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
+  op <- par()
   par(oma=c(0,0,0,0),mar=c(0,0,0,0))
   if(!collapse){
   for(i in 1:length(ssDF)){
@@ -22,4 +23,5 @@ plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
   if(!is.null(scrFrame))
      points(sf.xy, pch=15, cex=0.7, col=4)
   }   
+  par(op)
 }  

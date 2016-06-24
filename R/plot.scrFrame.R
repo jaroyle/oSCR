@@ -1,5 +1,5 @@
 plot.scrFrame<-function(scrFrame, ask=TRUE){
-  op <- par()
+  op <- par(no.readonly=TRUE)
   all.ind.xy <- list()
   mean.loc <- list()
   mu.x <- list()

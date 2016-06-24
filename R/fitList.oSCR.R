@@ -23,10 +23,10 @@ fitList.oSCR <- function(x, rename=F, drop=NULL){
     n3 <- gsub(" ","",n3)
     n3 <- ifelse(n3 %in% "NULL",".",n3)
     n4 <- paste(lapply(x,function(z) z$call$model[5]))
-    n4 <- ifelse(n4 %in% "NULL",".",n4)
     n4 <- gsub("\\(","",n4)
     n4 <- gsub("\\)","",n4)
     n4 <- gsub(" ","",n4)
+    n4 <- ifelse(n4 %in% "NULL",".",n4)
     
     fl.names <- paste("D(",n1,") ","p(",n2,") ",
                       "sig(",n3,") ","asu(",n4,")", sep="")

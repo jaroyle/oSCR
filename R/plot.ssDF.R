@@ -1,5 +1,5 @@
 plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
-  par(oma=c(0,0,0,0),mar=c(1,1,1,1))
+  par(oma=c(0,0,0,0),mar=c(0,0,0,0))
   if(!collapse){
   for(i in 1:length(ssDF)){
     ss.xy <- ssDF[[i]][,c("X","Y")]

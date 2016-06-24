@@ -4,7 +4,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
           DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
           trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
-          plotit = F, mycex = 0.5, tester = F, pl = 0, nlmgradtol = 1e-06, 
+          plotit = F, mycex = 1, tester = F, pl = 0, nlmgradtol = 1e-06, 
           nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
           se = TRUE, print.level = 0, getStarts = FALSE) 
 {
@@ -802,23 +802,19 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             Kern <- exp(-alphsig[s] * D[[s]]^2)
             for (i in 1:nrow(Ys)) {
-                if (plotit) {
-                  plot(ssDF[[s]][, c("X", "Y")], pch = 16, col = "grey",
-                    cex = 0.5, asp = 1, main = paste("Session:",
-                      s, " Individual: ", i, " traps: ", sum(pp),
-                      sep = " "))
-                  points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")],
-                    pch = 16, col = 2, cex = mycex)
-                  points(ssDF[[s]][trimC[[s]][[i]], ], pch = 16,
-                         col = 2, cex = mycex)
-                  # this is dumb, I'm just plotting k=1 here because I changed trimR size
-                  points(scrFrame$traps[[s]][trimR[[s]][[i]][[1]],
-                    c("X", "Y")], pch = 3, col = 4, cex = mycex,
-                    lwd = mycex)
-                  points(scrFrame$traps[[s]][pp, c("X")], scrFrame$traps[[s]][pp,
-                    c("Y")], pch = 16, col = 3, cex = 1.5)
-                }
-
+              if (plotit) {
+                pp <- sum(trimR[[s]][[i]][[k]])
+                plot(ssDF[[s]][, c("X", "Y")], pch = 16, col = "grey", cex = 0.5, asp = 1,
+                     main = paste("Session:", s, " Individual: ", i, " traps: ", sum(pp), sep = " "))
+                points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")], pch = 16, col = 2, cex = mycex)
+                points(scrFrame$traps[[s]][,c("X", "Y")], pch = 15, col = "grey", cex = 1)
+                points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")], 
+                       scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")], 
+                       pch = 15, col = 1, cex = 1)
+                pp <- apply(Ys[i,,],1,sum)>0
+                points(scrFrame$traps[[s]][pp,c("X", "Y")], pch = 15, col = 3, cex = mycex)
+              }
+              
 
                  lik.cond <- numeric(nG[s])
 #               if (multicatch)
@@ -1210,20 +1206,16 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             for (i in 1:nrow(Ys)) {
                 if (plotit) {
-                  plot(ssDF[[s]][, c("X", "Y")], pch = 16, col = "grey",
-                    cex = 0.5, asp = 1, main = paste("Session:",
-                      s, " Individual: ", i, " traps: ", sum(pp),
-                      sep = " "))
-                  points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")],
-                    pch = 16, col = 2, cex = mycex)
-                  points(ssDF[[s]][trimC[[s]][[i]], ], pch = 16,
-                         col = 2, cex = mycex)
-                  # again, this is dumb: I just plot the k=1 value here
-                  points(scrFrame$traps[[s]][trimR[[s]][[i]][[1]],
-                    c("X", "Y")], pch = 3, col = 4, cex = mycex,
-                    lwd = mycex)
-                  points(scrFrame$traps[[s]][pp, c("X")], scrFrame$traps[[s]][pp,
-                    c("Y")], pch = 16, col = 3, cex = 1.5)
+                  pp <- sum(trimR[[s]][[i]][[k]])
+                  plot(ssDF[[s]][, c("X", "Y")], pch = 16, col = "grey", cex = 0.5, asp = 1,
+                       main = paste("Session:", s, " Individual: ", i, " traps: ", sum(pp), sep = " "))
+                  points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")], pch = 16, col = 2, cex = mycex)
+                  points(scrFrame$traps[[s]][,c("X", "Y")], pch = 15, col = "grey", cex = 1)
+                  points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")], 
+                         scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")], 
+                         pch = 15, col = 1, cex = 1)
+                  pp <- apply(Ys[i,,],1,sum)>0
+                  points(scrFrame$traps[[s]][pp,c("X", "Y")], pch = 15, col = 3, cex = mycex)
                 }
                 if (!is.na(sx[i])) {
 

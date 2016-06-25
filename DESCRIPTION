@@ -1,8 +1,8 @@
 Package: oSCR
 Type: Package
 Title: What the package does (short line)
-Version: 0.14
-Date: 2016-06-06
+Version: 0.20
+Date: 2016-06-24
 Author: Chris Sutherland, Andy Royle, probably others
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)

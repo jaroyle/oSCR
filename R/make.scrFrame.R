@@ -38,8 +38,8 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
   #traps
   if(!is.list(traps))
     stop("traps must be a list")
-  if(any(!sapply(traps,is.data.frame)))
-    stop("traps must be a list of dataframes")
+  #if(any(!sapply(traps,is.data.frame)))
+  #  stop("traps must be a list of dataframes")
   if(length(traps)!=length(caphist))
     stop("number of sessions in traps does not match caphist")
   
@@ -69,8 +69,8 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
   if(!is.null(trapOperation)){
     if(!is.list(trapOperation))
       stop("trapOperation must be a list")
-    if(any(!sapply(trapOperation,is.data.frame)))
-      stop("trapOperation must be a list of dataframes")
+    #if(any(!sapply(trapOperation,is.data.frame)))
+    #  stop("trapOperation must be a list of dataframes")
     if(length(trapOperation) != length(caphist))
       stop("number of sessions in trapOperation does not match capphist")
     check.dim <- sapply(trapOperation,nrow) 

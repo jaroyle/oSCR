@@ -5,7 +5,9 @@
 oSCR.fit%%  ~~function to do ... ~~
 }
 \description{
-  This does likelihood analysis of sex-structured multi-session SCR
+  This does likelihood analysis of the multi-session sex-structured
+  (MSSS)
+  SCR
   models using either Euclidean or non-Euclidean (least-cost path)
   models.
 }
@@ -114,7 +116,8 @@ covariate values.
 }
 }
 \details{
-  This does likelihood analysis of sex-structured multi-session SCR
+  This does likelihood analysis of the multi-session sex-structured
+  (MSSS) SCR 
   models using either Euclidean or non-Euclidean (least-cost path)
   models.
   
@@ -130,17 +133,21 @@ covariate values.
 \references{
   Borchers and Efford 2008;
   
-  Royle et al. 2013;
+Fuller, A.K., Sutherland, C.S., Royle, J.A. and Hare, M.P.,
+2016. Estimating population density and connectivity of American mink
+using spatial capture-recapture. Ecological Applications, 26(4),
+pp.1125-1135.
+
+Royle, J.A., Sutherland, C., Fuller, A.K. and Sun, C.C., 2015. Likelihood analysis of spatial capture-recapture models for stratified or class structured populations. Ecosphere, 6(2), pp.1-11.
   
-  Royle et al. 2014; 
-  
-  Sutherland et al 2015;
-  
-  Fuller et al. 2015;
+Sutherland, C., Fuller, A.K. and Royle, J.A., 2015. Modelling
+  non‐Euclidean movement and landscape connectivity in highly structured
+  ecological networks. Methods in Ecology and Evolution, 6(2),
+  pp.169-177.
   
 }
 \author{
-  Chris Sutherland and Andy Royle 
+  Chris Sutherland, Andy Royle, Dan Linden
 }
 \note{
 %%  ~~further notes~~

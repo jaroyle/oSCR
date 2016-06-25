@@ -37,70 +37,57 @@ of oil exploration activities. Biological Conservation 143:917-925.
 }
 \examples{
 
+ 
+
 
 library(oSCR)
 data(ocelot)
 
-# Create the oSCR data file
-a<-secr2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
+# Convert the data format
+data<-secr2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
              tdf=list(tdf1,tdf2),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 
 
-# process the trap covariate info. This should be done internally but isn't yet.
-dist1=rep(0,23)
-dist2=as.vector(a$trapcovs[[2]])/1000
-dist1<- matrix(dist1,nrow=23,ncol=44,byrow=FALSE)
-dist2<- matrix(dist2, nrow=23,ncol=96, byrow=FALSE)
-# oSCR wont work if there's only one covariate...so I pad this here with a dummy covariate
-# "list of lists" format
-tc<-  list(dist=list(dist1, dist2) , dist2=list(dist1,dist2) )
-tc<- make.trapCovs(tc)
+# Process the trap covariate info. This should be done internally but isn't yet.
+# There is one covariate "distance to disturbance" which is not defined for session = 1
+# therefore I set it to 0 here so that the linear predictor evaluates to 0 (i.e., no adjustment to p).
 
+dist1 =  rep(0,23)
+dist2 =  as.vector(data$trapcovs[[2]])/1000   # Convert to km
+dist1 <- matrix(dist1, nrow=23,ncol=44,byrow=FALSE)
+dist2 <- matrix(dist2, nrow=23,ncol=96, byrow=FALSE)
+ 
+# Example of 1 covariate
+tc <-  list(dist=list(dist1, dist2) )
+tc <-  make.trapCovs(tc)
 
-#Examples
-#data(rbs)
-#caphist <- rbs$scrFrame$caphist
-#traps <- rbs$scrFrame$traps
-#trapCovs <- rbs$scrFrame$trapCovs
-#sf <- make.scrFrame(caphist = caphist, traps = traps, trapCovs = trapCovs, type = "scr")
-
-
-
-
-
-scrFrame  <- list(caphist=a$y3d, indCovs=NULL, 
-                   type="scr", traps=a$traplocs,trapCovs=tc,
-                   trapOperation=a$trapopp )
+# Make the SCRframe
+scrFrame  <- list(caphist=data$y3d, indCovs=NULL, 
+                   type="scr", traps=data$traplocs,trapCovs=tc ,
+                   trapOperation=data$trapopp )
 class(scrFrame) <- "scrFrame"
 
 # make a state-space
+ssDF <- make.ssDF(scrFrame, buffer=2000, res = 600)
 
- ssDF <- make.ssDF(scrFrame, buffer=2000, res = 600)
+# Make a descriptive plot of everything
+plot(ssDF[[1]], pch=20)
+points(data$traplocs[[1]],pch=3,col="red",lwd=2)
+spiderplot(data$y3d[[2]],data$traplocs[[1]],add=TRUE)
 
-##  slowish 
+# Fit a basic model
 out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame, ssDF=ssDF,plotit=FALSE , trimS=2000)
-# doesn't work  
-
-## No trim.... really slow!
-out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1), ssDF=ssDF,plotit=FALSE )
-# works
-
-## Good starts, improves run-time (can make a huge difference in complex models)
-out1c <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1), start.vals=c(-3.4, 6.4, -0.58),
-                 ssDF=ssDF,plotit=FALSE, trimS=2000 )
 
 ## default vals for some models are especially bad. Could be geographic scaling issue.
-out1d <- oSCR.fit(model=list(D~1,p0~dist,sig~1), scrFrame,start.vals=c(-3.5, 6.4, 0, -1.5), ssDF=ssDF, plotit=FALSE, trimS=2000  )
+out2 <- oSCR.fit(model=list(D~1,p0~dist,sig~1), scrFrame,start.vals=c(-3.5, 6.4, 0, -1.5), ssDF=ssDF, plotit=FALSE, trimS=2000  )
 
-out1e <- oSCR.fit(scrFrame,model=list(D~session,p0~1,sig~1),start.vals=c(-3.5, 6.4, -1.5, -1.5), ssDF=ssDF,plotit=FALSE , trimS=2000)
-
-
+out3 <- oSCR.fit(scrFrame,model=list(D~session,p0~1,sig~1),start.vals=c(-3.5, 6.4, -1.5, -1.5), ssDF=ssDF,plotit=FALSE , trimS=2000)
 
 ## Summarize output
 ## Make a density map
 
-pred<- predict.oSCR(scrFrame,out1e,ssDF)
+pred<- predict.oSCR(scrFrame,out3,ssDF)
 
 # Plot total density map
 par(mfrow=c(1,2))
@@ -111,11 +98,15 @@ plot(pred$r[[2]])
 par(mfrow=c(1,1))
 rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][1,]))
 plot(rs)
-#  library(scrbook)
-# spatial.plot(pred$ssDF[[1]][,1:2],pred$preds[[1]][8,],cx=3)
+
+# Compute distances from each point to seismic lines
+# points should be traps or state-space grid points. 
+library(rgeos)
+ldist <- apply(gDistance(SpatialPoints(as.matrix(pts)),
+                         seismic_lines,byid=T),2,min)
 
 
 
-## maybe str(ocelot) ; plot(ocelot) ...
+
 }
 \keyword{datasets}

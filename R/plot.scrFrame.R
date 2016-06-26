@@ -1,4 +1,4 @@
-plot.scrFrame<-function(scrFrame, ask=TRUE){
+plot.scrFrame<-function(scrFrame, ax=TRUE){
   op <- par(no.readonly=TRUE)
   all.ind.xy <- list()
   mean.loc <- list()
@@ -25,8 +25,10 @@ plot.scrFrame<-function(scrFrame, ask=TRUE){
   }
   par(oma=c(0,0,0,0))
   for(s in 1:length(scrFrame$caphist)){
-    plot(scrFrame$traps[[s]][,c("X","Y")], asp=1, type="n",las=1)
+    plot(scrFrame$traps[[s]][,c("X","Y")], asp=1, type="n", las=1, 
+         axes = ax, xlab = "", ylab = "")
     clr <- sample(colors(),nrow(tmp.ch))
+    box(bty="o")
     for(i in 1:nrow(tmp.ch)){
       to.x <- all.ind.xy[[s]]$x[all.ind.xy[[s]]$ind %in% i]
       to.y <- all.ind.xy[[s]]$y[all.ind.xy[[s]]$ind %in% i]

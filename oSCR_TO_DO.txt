@@ -13,3 +13,7 @@ make oSCR faster!
 Update the mander workflow and add as a vignette.
 
 Farm out design matrix creation
+
+Hack predict.oSCR to compute ESA (make a summary method perhaps)
+
+

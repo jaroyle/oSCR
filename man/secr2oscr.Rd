@@ -16,7 +16,11 @@ secr2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NU
   \item{edf}{
 NOT A LIST.
 Encounter data file having basic information about session, individual, occasion,
-trap and (optional) sex.   
+trap and (optional) sex.
+Note: if the session column indicates multiple sessions then the result
+will be to produce a list of appropriate length. e.g., if session has
+values (1,2) then the output lists will all be of length 2. If you have
+session indicating "sex" you probably don't want this to happen. 
 }
   \item{sess.col}{
 Column index (integer) of session info

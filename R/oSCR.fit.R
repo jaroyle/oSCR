@@ -250,11 +250,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             else {
               names.beta.trap <- names.beta.trap1
             }
-            pars.beta.trap <- rnorm(length(names.beta.trap))
+            pars.beta.trap <- rep(0,length(names.beta.trap))
         }
         else {
             names.beta.trap <- paste("t.beta.", t.nms, sep = "")
-            pars.beta.trap <- rnorm(length(names.beta.trap))
+            pars.beta.trap <- rep(0,length(names.beta.trap))
         }
     }
     if (length(dens.fx) > 0) {
@@ -278,20 +278,20 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 tmpDcovs <- rep(d.nms, ns)
                 names.beta.den <- paste("d.beta.", tmpDcovs,
                   ".session", tmpDsess, sep = "")
-                pars.beta.den <- rnorm(length(names.beta.den))
+                pars.beta.den <- rep(0,length(names.beta.den))
                 names.n0 <- paste0("n0.session", 1:ns)
                 pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if("session" %in% all.vars(model[[1]])) {
                 names.beta.den <- paste0("d.beta.", d.nms, sep = "")
-                pars.beta.den <- rnorm(length(names.beta.den))
+                pars.beta.den <- rep(0,length(names.beta.den))
                 names.n0 <- paste("n0.session", 1:ns)
                 pars.n0 <- log(unlist(lapply(scrFrame$caphist,nrow)))
             }
             if(!("session" %in% all.vars(model[[1]])) & !("Session" %in%
                 all.vars(model[[1]]))) {
                 names.beta.den <- paste0("d.beta.", d.nms, sep = "")
-                pars.beta.den <- rnorm(length(names.beta.den))
+                pars.beta.den <- rep(0,length(names.beta.den))
                 names.n0 <- paste0("n0.")
                 pars.n0 <- log(mean(unlist(lapply(scrFrame$caphist,nrow))))
             }

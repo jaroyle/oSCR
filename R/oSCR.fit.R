@@ -116,8 +116,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     bJustsex <- FALSE
     bJustsesh <- FALSE
     bBothsexnsesh <- FALSE
+    warnings <- list()
     if (length(model) == 3) {
         model[[4]] <- formula(~1)
+    }
+    if (length(all.vars(model[[4]])) & distmet=="euc"){
+      stop("asu model specified but no 'dismet'. Use distmet=ecol.)")
     }
     for (i in 1:4) {
         model[[i]] <- update.formula(model[[i]], NULL ~ .)
@@ -1547,7 +1551,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             trans.se <- rep(NA, length(pv))
             if("hessian" %in% names(myfit)) {
               if(sum(myfit$hessian) != 0){
+                #Need a check for this error and return mles and a warning
+                #Error in solve.default(myfit$hessian) : 
+                #Lapack routine dgesv: system is exactly singular: U[1,1] = 0
                 std.err <- sqrt(diag(solve(myfit$hessian)))
+              }else{
+                warning("Something went wrong! Try better starting values.")
               }
             }
             outStats <- data.frame(parameters = pn, link = links,

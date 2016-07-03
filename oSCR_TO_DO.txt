@@ -16,4 +16,10 @@ Farm out design matrix creation
 
 Hack predict.oSCR to compute ESA (make a summary method perhaps)
 
+print warning/messages for oSCR.fit objectects:
+   1. density is per pixel
+   2. Nhat = 
+   3. if dist=ecol note that trimS or the buffer might have to change
+        [should be in help file too]
+
 

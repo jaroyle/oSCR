@@ -1,5 +1,32 @@
 
 
+# process telemetry data into raster cell frequencies and also compute
+# "sbar" -- individual activity center estimates
+telemetry.processor<- function(ssDF, teldata){
+library(FNN)
+nsess<- length(teldata)
+sbar<- list()
+dlst<- list()
+nfreq<- list()
+for(s in 1:nsess){
+s.grid <- as.vector(get.knnx(ssDF[[s]][,c("X","Y")],teldata[[s]][,c("X","Y")],1)$nn.index)
+sbar[[s]]<- aggregate(teldata[[s]][,2:3],list(teldata[[s]][,1]),mean)
+#  Group.1    X_UTM   Y_UTM
+#1   CU803 310627.1 4680376
+#2   CU818 279953.5 4699489
+#3   CU905 277557.5 4690543
+  tmp<-table(s.grid, teldata[[s]][,1])
+ tmp2<- matrix(0,nrow=nrow(ssDF[[s]]), ncol=nrow(sbar[[s]]) )
+ tmp2[as.numeric(rownames(tmp)),]<- tmp
+nfreq[[s]]<- tmp2
+dlst[[s]]<-t( e2dist(sbar[[s]][,2:3], ssDF[[s]][,c("X","Y")])  )
+#lambda<- exp(-(1/(2*sigma*sigma))*d*d)
+
+}
+
+list("dlst"=dlst, "nfreq" = nfreq,  "sbar"=sbar)
+
+}
 
 
 # Distance between traps and activity centers
@@ -12,7 +39,7 @@ e2dist <- function (x, y)
 }
 
 image.scale <-
-function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks", 
+function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
     "ranges"))
 {
     # sort out the location
@@ -23,7 +50,7 @@ function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
     if (missing(x))
         x <- mx + 1.05*dx/2	# default x to right of image
     else if (is.list(x)) {
-        if (length(x$x) == 2) 
+        if (length(x$x) == 2)
           size <- c(diff(x$x), -diff(x$y)/n)
         y <- x$y[1]
         x <- x$x[1]
@@ -39,7 +66,7 @@ function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
         y <- my + n*size[2]/2
     # draw the image scale
     i <- seq(along = col)
-    rect(x, y - i * size[2], x + size[1], y - (i - 1) * size[2], 
+    rect(x, y - i * size[2], x + size[1], y - (i - 1) * size[2],
         col = rev(col), xpd = TRUE)
     # sort out the labels
     rng <- range(z, na.rm = TRUE)
@@ -53,7 +80,7 @@ function (z, col, x, y = NULL, size = NULL, digits = 2, labels = c("breaks",
         ypts <- y - (i - 0.5) * size[2]
     }
     text(x = x + 1.2 * size[1], y = ypts, labels = bks, adj =
-        ifelse(size[1]>0, 0, 1), xpd = TRUE) 
+        ifelse(size[1]>0, 0, 1), xpd = TRUE)
 }
 
 

@@ -447,8 +447,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
   if(var.sig.3){
    if(ns > 1){
      tmp.sig.names <- c(tmp.sig.names,
-                        paste0("sig.f.session",:ns),
-                        paste0("sig.m.session", 1:ns))
+                        paste0("sig.f.session",1:ns),
+                        paste0("sig.m.session",1:ns))
      aBothsexnsesh <- TRUE
    }else{
      aJustsex <- TRUE

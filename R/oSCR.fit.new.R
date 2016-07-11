@@ -122,7 +122,7 @@ oSCR.fit.new <-
     if(length(model) == 3)
       model[[4]] <- formula(~1)
     
-    if((length(all.vars(model[[4]]))>0) & distmet=="euc")
+    if((length(labels(terms(model[[4]])))>0) & distmet=="euc")
       stop("non-euclidean 'distmet' must be selected when asu model is specified.")
     
     for(i in 1:4){
@@ -556,7 +556,7 @@ oSCR.fit.new <-
                                                   ssDF[[s]][, c("X","Y")])), 2, min, na.rm = T) <= trimS
           }else{
             pp <- rep(T, ncol(Ys))
-            timC[[s]][[i]] <- apply(rbind(rep(trimS + 2, nG[s]),
+            trimC[[s]][[i]] <- apply(rbind(rep(trimS + 2, nG[s]),
                                           e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X", "Y")]), sum(pp), 2),
                                                  ssDF[[s]][, c("X","Y")])), 2, min, na.rm = T) <= trimS
             for(k in 1:nK[s]){
@@ -1306,8 +1306,10 @@ oSCR.fit.new <-
         #    outStats <- data.frame(parameters = pn, link = links,
         #                mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,
         #                se.tr = trans.se)
-        outStats <- matrix(cbind(pn,myfit$estimate,std.err,myfit$estimate/std.err,
-                                 2*pnorm(myfit$estimate/std.err)))
+        outStats <- cbind(myfit$estimate, 
+                          std.err,
+                          myfit$estimate/std.err,
+                          2*(1 - pnorm(abs(myfit$estimate/std.err))))
         rownames(outStats) <- pn
         colnames(outStats) <-c("Estimate","SE","z","P(>|z|)")
         VcV <- NULL

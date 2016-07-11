@@ -1,18 +1,37 @@
-print.oSCR.fit <-
-function(x, burn=NULL, ...) {
-mod <- x$call[["model"]]
-tmpFit <- x$outStats
-for(i in c(3,4,5)){
- tmpFit[,i] <- round(x$outStats[,i],3)
-}
-cat(" Model: ", paste(mod)[-1],fill=TRUE)
-cat(" Run time: ", x$proctime," minutes",fill=TRUE)
-cat(" ",fill=TRUE)
-cat("-------------------------------------------------",fill=TRUE)
-cat(" Summary table of model parameters:","\n")
-
-print(tmpFit,...)
-cat("-------------------------------------------------",fill=TRUE)
-cat(" AIC: ", x$AIC,fill=TRUE)
-
+print.oSCR.fit <- function(x, burn=NULL, ...){
+  if("parameters" %in% names(x$outStats)){
+    if("model" %in% names(m2$call)){
+      mod <- x$call[["model"]]
+    }else{
+      mod <- list(D~1,p0~1,sig~1,asu~1)
+    }
+    tmpFit <- cbind(x$outStats[,3],
+                    x$outStats[,4],
+                    x$outStats[,3]/x$outStats[,4],
+                    2*(1 - pnorm(abs(x$outStats[,3]/x$outStats[,4]))))
+    rownames(tmpFit) <- x$outStats[,1]
+    colnames(tmpFit) <-c("Estimate","SE","z","P(>|z|)")
+    cat(" Model: ", paste(mod)[-1],fill=TRUE)
+    cat(" Run time: ", x$proctime," minutes",fill=TRUE)
+    cat(" AIC: ", x$AIC,fill=TRUE)
+    cat(" ",fill=TRUE)
+    cat("Summary table:","\n")
+    print(round(tmpFit,3))
+    cat("*Density is per pixel density")
+    
+  }else{
+    if("model" %in% names(m2$call)){
+      mod <- x$call[["model"]]
+    }else{
+      mod <- list(D~1,p0~1,sig~1,asu~1)
+    }
+    tmpFit <- x$outStats
+    cat("Model: ", paste(mod)[-1],fill=TRUE)
+    cat("Run time: ", x$proctime," minutes",fill=TRUE)
+    cat("AIC: ", x$AIC,fill=TRUE)
+    cat(" ",fill=TRUE)
+    cat("Summary table:","\n")
+    print(round(tmpFit,3))
+    cat("*Density is per pixel density")
+  }
 }

@@ -1,6 +1,6 @@
 print.oSCR.fit <- function(x, burn=NULL, ...){
   if("parameters" %in% names(x$outStats)){
-    if("model" %in% names(m2$call)){
+    if("model" %in% names(x$call)){
       mod <- x$call[["model"]]
     }else{
       mod <- list(D~1,p0~1,sig~1,asu~1)
@@ -20,7 +20,7 @@ print.oSCR.fit <- function(x, burn=NULL, ...){
     cat("*Density is per pixel density")
     
   }else{
-    if("model" %in% names(m2$call)){
+    if("model" %in% names(x$call)){
       mod <- x$call[["model"]]
     }else{
       mod <- list(D~1,p0~1,sig~1,asu~1)

@@ -758,7 +758,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 Ys <- abind(Ys, zeros, along = 1)
             }
             if (distmet == "ecol") {
-                cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+                cost <- exp(dm.cost[[s]] %*% dist.beta)
                 costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
                   2)], cost))
                 if (is.null(PROJ)) {
@@ -1162,7 +1162,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             sx <- c(scrFrame$indCovs[[s]]$sex + 1, NA)
             if (distmet == "ecol") {
-                cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+                cost <- exp(dm.cost[[s]] %*% dist.beta)
                 costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
                   2)], cost))
                 if (is.null(PROJ)) {

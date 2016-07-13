@@ -28,6 +28,7 @@ oSCR.fit.new <-
     ptm <- proc.time()
     starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
     cl <- match.call(expand.dots = TRUE)
+    model.call <- model
     if(!require(abind))
       stop("need to install package 'abind'")
     
@@ -334,11 +335,15 @@ oSCR.fit.new <-
       }
     }
     
-    mod4 <- update(model[[4]], ~. - sex - session - 1)
+    mod4 <- update(model[[4]], ~. - sex - session)
     if(distmet == "ecol"){
       for(s in 1:ns){
-        dm.cost[[s]] <- my.model.matrix(mod4, costDF[[s]])
-        names.dist <- paste("c.beta.", allvars.dist, sep = "")
+        dm.cost[[s]] <- model.matrix(mod4, costDF[[s]])
+        if("(Intercept)" %in% colnames(dm.cost[[s]])){
+          names.dist <- c("c0.(Intercept)",paste("c.beta.", allvars.dist, sep = ""))
+        }else{
+          names.dist <- paste("c.beta.", allvars.dist, sep = "")
+        }
         pars.dist <- rep(0, length(names.dist))
       }
     }
@@ -557,8 +562,8 @@ oSCR.fit.new <-
           }else{
             pp <- rep(T, ncol(Ys))
             trimC[[s]][[i]] <- apply(rbind(rep(trimS + 2, nG[s]),
-                                          e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X", "Y")]), sum(pp), 2),
-                                                 ssDF[[s]][, c("X","Y")])), 2, min, na.rm = T) <= trimS
+                                           e2dist(matrix(unlist(scrFrame$traps[[s]][pp,c("X", "Y")]), sum(pp), 2),
+                                                  ssDF[[s]][, c("X","Y")])), 2, min, na.rm = T) <= trimS
             for(k in 1:nK[s]){
               if(!is.null(scrFrame$trapOperation)){
                 trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
@@ -636,10 +641,10 @@ oSCR.fit.new <-
         if(any(paste0("session:", t.nms)%in%attr(terms(model[[2]]),"term.labels"))){
           for(s in 1:ns){
             if(length(t.nms) > length(t.nms.sess)){
-              t.beta[s, ] <- pv[pn %in%
-                                  c(names.beta.trap[grep(fixed=TRUE,paste("session",s, sep = ""),
-                                                         names.beta.trap)], names.beta.trap[as.vector(unlist(sapply(t.nms.nosess,
-                                                                                                                    function(x){grep(fixed=TRUE,x, names.beta.trap)})))])]
+              t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,
+                                                               paste("session",s, sep = ""), names.beta.trap)],
+                                          names.beta.trap[as.vector(unlist(sapply(t.nms.nosess,
+                                                                                  function(x){grep(fixed=TRUE,x, names.beta.trap)})))])]
             }else{
               t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,
                                                                paste("session", s, sep = ""), names.beta.trap)])]
@@ -663,6 +668,7 @@ oSCR.fit.new <-
       }else{
         d.beta <- pv[pn %in% names.beta.den]
       }
+      
       if(distmet == "ecol"){
         dist.beta <- pv[pn %in% names.dist]
       }
@@ -690,7 +696,7 @@ oSCR.fit.new <-
           Ys <- abind(Ys, zeros, along = 1)
         }
         if(distmet == "ecol"){
-          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+          cost <- exp(dm.cost[[s]] %*% dist.beta)
           costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,2)], cost))
           if(is.null(PROJ)){
             projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
@@ -961,8 +967,8 @@ oSCR.fit.new <-
           for(s in 1:ns){
             if(length(t.nms) > length(t.nms.sess)){
               t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE, paste("session",
-                                                                                 s, sep = ""), names.beta.trap)], names.beta.trap[as.vector(unlist(
-                                                                                   sapply(t.nms.nosess, function(x){grep(fixed=TRUE,x, names.beta.trap)})))])]
+                                                                                 s, sep = ""), names.beta.trap)], names.beta.trap[as.vector(unlist(sapply(
+                                                                                   t.nms.nosess, function(x){grep(fixed=TRUE,x, names.beta.trap)})))])]
             }else{
               t.beta[s, ] <- pv[pn %in% c(names.beta.trap[grep(fixed=TRUE,
                                                                paste("session",s, sep = ""), names.beta.trap)])]
@@ -1016,7 +1022,7 @@ oSCR.fit.new <-
         }
         sx <- c(scrFrame$indCovs[[s]]$sex + 1, NA)
         if(distmet == "ecol"){
-          cost <- exp(dm.cost[[s]] %*% exp(dist.beta))
+          cost <- exp(dm.cost[[s]] %*% dist.beta)
           costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,2)], cost))
           if(is.null(PROJ)){
             projection(costR) <- "+proj=utm +zone=12 +datum=WGS84"
@@ -1024,11 +1030,11 @@ oSCR.fit.new <-
             projection(costR) <- PROJ
           }
           trFn <- function(x) (1/(mean(x)))
-          tr <- transition(costR, transitionFunction = trFn, direction = directions)
+          tr <- transition(costR, transitionFunction = trFn,direction = directions)
           trLayer <- geoCorrection(tr, scl = F)
           D[[s]] <- costDistance(trLayer,
                                  as.matrix(scrFrame$traps[[s]][,c("X", "Y")]),
-                                 as.matrix(ssDF[[s]][, c("X","Y")]))
+                                 as.matrix(ssDF[[s]][, c(c("X","Y"))]))
         }
         if(smallslow){
           if(distmet == "euc"){
@@ -1271,62 +1277,65 @@ oSCR.fit.new <-
         }else{
           links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(log)"
         }
-        links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
-        links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"
-        links[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- "(log)"
-        links[grep(fixed=TRUE,"psi", pn)] <- "(logit)"
-        links[grep(fixed=TRUE,"beta", pn)] <- "(Identity)"
-        trans.mle <- rep(0, length(pv))
-        if(encmod == "B"){
-          trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- plogis(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
-        }else{
-          trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
-        }
-        trans.mle[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"sig.(Intercept)", pn)])
-        trans.mle[grep(fixed=TRUE,"n0.", pn)] <- exp(pars[grep(fixed=TRUE,"n0.", pn)])
-        trans.mle[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"d0.(Intercept)", pn)])
-        trans.mle[grep(fixed=TRUE,"psi", pn)] <- plogis(pars[grep(fixed=TRUE,"psi", pn)])
-        trans.mle[grep(fixed=TRUE,"beta", pn)] <- pars[grep(fixed=TRUE,"beta", pn)]
-        if(pBehave){
-          links[grep(fixed=TRUE,"pBehav", pn)] <- "(Identity)"
-          trans.mle[grep(fixed=TRUE,"pBehav", pn)] <- pars[grep(fixed=TRUE,"pBehav", pn)]
-        }
-        std.err <- rep(rep(NA, length(pv)))
-        trans.se <- rep(NA, length(pv))
-        if("hessian" %in% names(myfit)){
-          if(sum(myfit$hessian) != 0){
-            #Need a check for this error and return mles and a warning
-            #Error in solve.default(myfit$hessian) :
-            #Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-            std.err <- sqrt(diag(solve(myfit$hessian)))
-          }else{
-            warning("Something went wrong! Try better starting values.")
-          }}
-        
-        #    outStats <- data.frame(parameters = pn, link = links,
-        #                mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,
-        #                se.tr = trans.se)
-        outStats <- cbind(myfit$estimate, 
-                          std.err,
-                          myfit$estimate/std.err,
-                          2*(1 - pnorm(abs(myfit$estimate/std.err))))
-        rownames(outStats) <- pn
-        colnames(outStats) <-c("Estimate","SE","z","P(>|z|)")
-        VcV <- NULL
-        if(DorN == "N"){
-          ED <- (exp(pars[grep(fixed=TRUE,"n0.", pn)]) +
-                   unlist(lapply(scrFrame$caphist,nrow)))/areaS
-        }else{
-          ED <- NULL
-        }
-        endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
-        output <- list(call=cl, rawOutput=myfit, outStats=outStats,
-                       coef.mle=data.frame(param=pn, mle=myfit$estimate),Area=areaS,
-                       ED=ED, nObs=unlist(lapply(scrFrame$caphist,nrow)),mmdm=mmdm,
-                       nll=myfit$minimum, AIC=2*myfit$minimum+2*length(myfit$estimate),
-                       started=starttime, ended=endtime, proctime=(proc.time()-ptm)[3]/60)
-        class(output) <- "oSCR.fit"
-        return(output)
+        if("c0.(Intercept)" %in% pn)
+          links[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- "(Identity)")
+
+links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
+links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"
+links[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- "(log)"
+links[grep(fixed=TRUE,"psi", pn)] <- "(logit)"
+links[grep(fixed=TRUE,"beta", pn)] <- "(Identity)"
+trans.mle <- rep(0, length(pv))
+if(encmod == "B"){
+  trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- plogis(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
+}else{
+  trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
+}
+trans.mle[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"sig.(Intercept)", pn)])
+trans.mle[grep(fixed=TRUE,"n0.", pn)] <- exp(pars[grep(fixed=TRUE,"n0.", pn)])
+trans.mle[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"d0.(Intercept)", pn)])
+trans.mle[grep(fixed=TRUE,"psi", pn)] <- plogis(pars[grep(fixed=TRUE,"psi", pn)])
+trans.mle[grep(fixed=TRUE,"beta", pn)] <- pars[grep(fixed=TRUE,"beta", pn)]
+if(pBehave){
+  links[grep(fixed=TRUE,"pBehav", pn)] <- "(Identity)"
+  trans.mle[grep(fixed=TRUE,"pBehav", pn)] <- pars[grep(fixed=TRUE,"pBehav", pn)]
+}
+std.err <- rep(rep(NA, length(pv)))
+trans.se <- rep(NA, length(pv))
+if("hessian" %in% names(myfit)){
+  if(sum(myfit$hessian) != 0){
+    #Need a check for this error and return mles and a warning
+    #Error in solve.default(myfit$hessian) :
+    #Lapack routine dgesv: system is exactly singular: U[1,1] = 0
+    std.err <- sqrt(diag(solve(myfit$hessian)))
+  }else{
+    warning("Something went wrong! Try better starting values.")
+  }}
+
+#    outStats <- data.frame(parameters = pn, link = links,
+#                mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,
+#                se.tr = trans.se)
+outStats <- cbind(myfit$estimate,
+                  std.err,
+                  myfit$estimate/std.err,
+                  2*(1 - pnorm(abs(myfit$estimate/std.err))))
+rownames(outStats) <- pn
+colnames(outStats) <-c("Estimate","SE","z","P(>|z|)")
+VcV <- NULL
+if(DorN == "N"){
+  ED <- (exp(pars[grep(fixed=TRUE,"n0.", pn)]) +
+           unlist(lapply(scrFrame$caphist,nrow)))/areaS
+}else{
+  ED <- NULL
+}
+endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
+output <- list(call=cl, model=model.call, rawOutput=myfit, outStats=outStats,
+               coef.mle=data.frame(param=pn, mle=myfit$estimate),Area=areaS,
+               ED=ED, nObs=unlist(lapply(scrFrame$caphist,nrow)),mmdm=mmdm,
+               nll=myfit$minimum, AIC=2*myfit$minimum+2*length(myfit$estimate),
+               started=starttime, ended=endtime, proctime=(proc.time()-ptm)[3]/60)
+class(output) <- "oSCR.fit"
+return(output)
       }
       if(predict){
         message("Predicting form model: D", paste(model)[1], ", p0", paste(model)[2],

@@ -1278,7 +1278,7 @@ oSCR.fit.new <-
           links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(log)"
         }
         if("c0.(Intercept)" %in% pn)
-          links[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- "(Identity)")
+          links[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- "(Identity)"
 
 links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
 links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"

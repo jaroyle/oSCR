@@ -11,6 +11,7 @@ print.oSCR.fit <- function(x, burn=NULL, ...){
                     2*(1 - pnorm(abs(x$outStats[,3]/x$outStats[,4]))))
     ord <- c(grep("p0.",x$outStats$parameters),
              grep("t.beta",x$outStats$parameters),
+             grep("p.behave.",x$outStats$parameters),
              grep("sig.",x$outStats$parameters),
              grep("d0.",x$outStats$parameters),
              grep("d.beta",x$outStats$parameters),

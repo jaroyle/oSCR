@@ -6,7 +6,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
           plotit = F, mycex = 1, tester = F, pl = 0, nlmgradtol = 1e-06, 
           nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
-          se = TRUE, print.level = 0, getStarts = FALSE) 
+          se = TRUE, print.level = 0, getStarts = FALSE, theta = 2) 
 {
     my.model.matrix <- function(form, data) {
         mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
@@ -69,6 +69,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         stop("caphist must be binary when using the Binomial/Cloglog encounter model")
     if (all(maxY == 1) & encmod == "P") 
         stop("caphist looks binary but Poisson encounter model is selected")
+    if (theta >2 | theta <1)
+        warning("theta should be between 1 (exponential) and 2 (half-normal) 
+             for power model distance function")
     pars.p0 <- NULL
     names.p0 <- NULL
     pars.sig <- NULL
@@ -81,8 +84,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     names.n0 <- NULL
     pars.beta.den <- NULL
     names.beta.den <- NULL
-    pars.dist <- NULL
-    names.dist <- NULL
     pars.dist <- NULL
     names.dist <- NULL
     pars.sex <- NULL
@@ -804,7 +805,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.s <- exp(dm.den[[s]] %*% d.beta)
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
-            Kern <- exp(-alphsig[s] * D[[s]]^2)
+            Kern <- exp(-alphsig[s] * D[[s]]^theta)
             for (i in 1:nrow(Ys)) {
               if (plotit) {
                 pp <- sum(trimR[[s]][[i]][[k]])
@@ -1252,11 +1253,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     if (encmod == "B")
                       probcap <- c(plogis(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
-                          trimC[[s]][[i]]]^2)
+                          trimC[[s]][[i]]]^theta)
                     if (encmod %in% c("P","CLOG"))
                       probcap <- c(exp(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
-                          trimC[[s]][[i]]]^2)
+                          trimC[[s]][[i]]]^theta)
                     if (!multicatch) {
                       if (encmod == "B") {
                         probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
@@ -1343,11 +1344,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     if (encmod == "B")
                       probcap <- c(plogis(a0.1[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 1] * D[[s]][trimR[[s]][[i]][[k]],
-                          trimC[[s]][[i]]]^2)
+                          trimC[[s]][[i]]]^theta)
                     if (encmod %in% c("P","CLOG"))
                       probcap <- c(exp(a0.1[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 1] * D[[s]][trimR[[s]][[i]][[k]],
-                          trimC[[s]][[i]]]^2)
+                          trimC[[s]][[i]]]^theta)
                     if (!multicatch) {
                       if (encmod == "B") {
                         probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
@@ -1392,11 +1393,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     if (encmod == "B")
                       probcap <- c(plogis(a0.2[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 2] * D[[s]][trimR[[s]][[i]][[k]],
-                          trimC[[s]][[i]]]^2)
+                          trimC[[s]][[i]]]^theta)
                     if (encmod %in% c("P","CLOG"))
                       probcap <- c(exp(a0.2[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, 2] * D[[s]][trimR[[s]][[i]][[k]],
-                          trimC[[s]][[i]]]^2)
+                          trimC[[s]][[i]]]^theta)
                     if (!multicatch) {
                       if (encmod == "B") {
                         probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,

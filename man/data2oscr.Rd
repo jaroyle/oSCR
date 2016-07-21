@@ -1,15 +1,16 @@
-\name{secr2oscr}
-\alias{secr2oscr}
+\name{data2oscr}
+\alias{data2oscr}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Convert secr data file(s) to oSCR data objects
+Convert standard SCR data file(s) to oSCR data objects
 }
 \description{
-This will take input files for the R package 'secr' and convert them to list objects
+This will take input files similar to those used
+for the R package 'secr' and convert them to list objects
 used by oSCR. 
 }
 \usage{
-secr2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE, remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
+data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE, remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -111,12 +112,12 @@ library(oSCR)
 data(ocelot)
 
 # This fails because one TDF is given and the data imply DIFFERENT # occasions
-a<-secr2oscr(rbind(edf1,edf2),sex.col=5,   ntraps=c(23,23), 
+a<-data2oscr(rbind(edf1,edf2),sex.col=5,   ntraps=c(23,23), 
              tdf=list(tdf1),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 
 # This works. Always best to input K and ntraps!
-a<-secr2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
+a<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
              tdf=list(tdf1,tdf2),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 

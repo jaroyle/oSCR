@@ -44,7 +44,7 @@ library(oSCR)
 data(ocelot)
 
 # Convert the data format
-data<-secr2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
+data<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
              tdf=list(tdf1,tdf2),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 

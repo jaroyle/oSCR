@@ -189,8 +189,11 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
      if (!is.null(sex.col)) {
         sex.oscr<- list()
         for(s in 1:nsess){
-        sex.oscr[[s]] <- data.frame(sex = usex[[s]][, 2])
-      }
+            sex.tmp<- usex[[s]][,2]
+            if(is.factor(sex.tmp)) sex.tmp<- as.numeric(sex)
+            if(!is.factor(sex.tmp)) sex.tmp<- as.numeric(as.factor(sex))
+        sex.oscr[[s]] <- data.frame(sex = sex.tmp)
+  }
     }
     else sex.oscr = NULL
     

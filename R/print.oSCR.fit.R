@@ -11,12 +11,13 @@ print.oSCR.fit <- function(x, burn=NULL, ...){
                     2*(1 - pnorm(abs(x$outStats[,3]/x$outStats[,4]))))
     ord <- c(grep("p0.",x$outStats$parameters),
              grep("t.beta",x$outStats$parameters),
-             grep("p.behav.",x$outStats$parameters),
+             grep("p.behav",x$outStats$parameters),
              grep("sig.",x$outStats$parameters),
              grep("d0.",x$outStats$parameters),
              grep("d.beta",x$outStats$parameters),
              grep("c0.",x$outStats$parameters),
-             grep("c.beta",x$outStats$parameters))
+             grep("c.beta",x$outStats$parameters),
+             grep("psi",x$outStats$parameters))
     rownames(tmpFit) <- x$outStats[,1]
     colnames(tmpFit) <-c("Estimate","SE","z","P(>|z|)")
     cat(" Model: ", paste(mod)[-1],fill=TRUE)

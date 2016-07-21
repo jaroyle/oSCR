@@ -190,8 +190,8 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
         sex.oscr<- list()
         for(s in 1:nsess){
             sex.tmp<- usex[[s]][,2]
-            if(is.factor(sex.tmp)) sex.tmp<- as.numeric(sex)
-            if(!is.factor(sex.tmp)) sex.tmp<- as.numeric(as.factor(sex))
+            if(is.factor(sex.tmp)) sex.tmp<- as.numeric(sex) -1
+            if(!is.factor(sex.tmp)) sex.tmp<- as.numeric(as.factor(sex)) -1
         sex.oscr[[s]] <- data.frame(sex = sex.tmp)
   }
     }

@@ -46,9 +46,9 @@ Chris Sutherland}
 }
 \examples{
 data(rbs)
-caphist <- rbs$scrFrame$caphist
-traps <- rbs$scrFrame$traps
-trapCovs <- rbs$scrFrame$trapCovs
+caphist <- rbs.sf$caphist
+traps <- rbs.sf$traps
+trapCovs <- rbs.sf$trapCovs
 
 sf <- make.scrFrame(caphist = caphist, traps = traps, trapCovs = trapCovs, type = "scr")
 sf

@@ -33,6 +33,16 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     check.dim <- sapply(indCovs,nrow) 
     if(any(check.dim!=caphist.dimensions[1,]))
       stop("number of individuals in indCovs does not match caphist")
+    if(!("rmv" %in% indCovs[[1]])){
+      for(i in 1:length(indCovs)){
+        indCovs[[i]]$removed <- dim(caphist[[i]])[3]
+      }
+    }
+  }else{
+    indCovs <- list()
+    for(i in 1:length(indCovs)){
+      indCovs[[i]] <- data.frame(removed = rep(dim(caphist[[i]])[3],dim(caphist[[i]])[1]))
+    }
   }
   
   #traps

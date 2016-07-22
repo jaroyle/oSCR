@@ -806,6 +806,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
+            
             for (i in 1:nrow(Ys)) {
               if (plotit) {
                 pp <- sum(trimR[[s]][[i]][[k]])
@@ -828,10 +829,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
 
            for (k in 1:nK[s]) {
+            dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
 
-
-
-                   if (pBehave) {
+                   if (pBehave) {    
                     a0 <- alpha0[s,k,1] * (1 - c(prevcap[[s]][i,,k])) + 
                           alpha0[s,k,2] * c(prevcap[[s]][i,,k])
                   }
@@ -842,12 +842,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
                   }
                   if (encmod == "B")
-                    probcap <- c(plogis(a0[trimR[[s]][[i]][[k]]])) *
+                    probcap <- c(dead * plogis(a0[trimR[[s]][[i]][[k]]])) *
                       Kern[trimR[[s]][[i]][[k]], trimC[[s]][[i]] ]
                   if (encmod %in% c("P","CLOG"))
-                    probcap <- c(exp(a0[trimR[[s]][[i]][[k]]])) *
+                    probcap <- c(dead * exp(a0[trimR[[s]][[i]][[k]]])) *
                       Kern[trimR[[s]][[i]][[k]], trimC[[s]][[i]]]
-                  if (!multicatch) {
+                  if (!multicatch){
                     if (encmod == "B") {
                       probcap[1:length(probcap)] <- c(dbinom(rep(Ys[i,
                         trimR[[s]][[i]][[k]], k], sum(trimC[[s]][[i]])),
@@ -1234,7 +1234,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
                     for (k in 1:nK[s]) {
-
+                      dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+                      
 
 
 
@@ -1251,11 +1252,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                         ]))
                     }
                     if (encmod == "B")
-                      probcap <- c(plogis(a0[trimR[[s]][[i]][[k]]])) *
+                      probcap <- c(dead*plogis(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^theta)
                     if (encmod %in% c("P","CLOG"))
-                      probcap <- c(exp(a0[trimR[[s]][[i]][[k]]])) *
+                      probcap <- c(dead*exp(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
                           trimC[[s]][[i]]]^theta)
                     if (!multicatch) {

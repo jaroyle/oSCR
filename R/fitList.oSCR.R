@@ -1,4 +1,4 @@
-fitList.oSCR <- function(x, rename=F, drop=NULL){
+fitList.oSCR <- function(x, rename=F, names = NULL, drop=NULL){
   
   if(rename==FALSE & is.null(names(x)))
     fl.names <- 1:length(x)

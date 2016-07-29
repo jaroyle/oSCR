@@ -24,3 +24,34 @@ print warning/messages for oSCR.fit objectects:
 
 
 allow for sessions with no captures......
+
+
+
+telemetyr
+telemetry data plan:
+
+1. add rsfDF to make.scrFrame.  This object can have different
+resolution than state-space. 
+
+If this is provided then:
+
+ 1a. every covariate in rsfDF gets auto-matically converted to a
+ trapCov using "rsf2traps" or similar
+ 
+ 1b. currently telemetry.processor() can convert rsfDF covariates to
+ cell frequencies needed to compute the likelihood. This function
+ should be called within the make.scrFrame call. 
+
+2. there are TWO options for modeling RSF covariates:
+
+ 2.1:  we could have an RSF=TRUE option which, if TRUE, will use any
+ covariate in the rsfDF as a covariate on the telemetry data.  This
+ seems straightforward.....??
+
+ should produce a warning message or someting to make sure user knows
+ that only covariates in rsfDF are used.
+
+ 2.2: we could add a whole new formula to the function call.  This
+ seems more difficult. 
+
+3. The likelihood bit of the telemetry data is easy enough to add.

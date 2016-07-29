@@ -12,7 +12,11 @@ plot.scrFrame<-function(scrFrame, ax=TRUE){
     tmp.tr <- scrFrame$traps[[s]]
     
     for(i in 1:nrow(tmp.ch)){
-      pick <- apply(tmp.ch[i,,,drop=TRUE]>0,1,sum)  
+      if(dim(tmp.ch)[3]>1){
+        pick <- apply(tmp.ch[i, , ], 1, sum) > 0
+      }else{
+        pick <- tmp.ch[i, , ] > 0
+      }
       s.ind.xy <- rbind(s.ind.xy, tmp.tr[rep(1:nrow(tmp.tr),pick),c("X","Y")])
       s.ind <- c(s.ind,rep(i,sum(pick)))
       

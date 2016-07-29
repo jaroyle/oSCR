@@ -18,9 +18,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     max.dist <- NULL
     for (i in 1:length(scrFrame$caphist)) {
         for (j in 1:nrow(scrFrame$caphist[[i]])) {
-            where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 
-                0
-            if (sum(where) > 1) 
+          if(dim(scrFrame$caphist[[i]])[3]>1){
+            where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 0
+          }else{
+            where <- scrFrame$caphist[[i]][j, , ] > 0
+          }
+          if (sum(where) > 1) 
                 max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where, 
                   c("X", "Y")]), na.rm = T))
         }
@@ -572,9 +575,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }
             }
             else {
-                if (i < nrow(Ys)) {
-                  pp <- apply(Ys[i, , ], 1, sum) > 0
-
+                if(i < nrow(Ys)){
+                  if(dim(Ys)[3]>1){
+                    pp <- apply(Ys[i, , ], 1, sum) > 0
+                  }else{
+                    pp <- Ys[i, ,1] > 0
+                  }
                   for(k in 1:nK[s]){
                       if (!is.null(scrFrame$trapOperation)) {
 

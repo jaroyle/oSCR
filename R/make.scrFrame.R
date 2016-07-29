@@ -91,8 +91,12 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
   #mean maximum distance moved
   max.dist <- NULL
   for (i in 1:length(caphist)) {
-    for (j in 1:nrow(caphist[[i]])) {
-      where <- apply(caphist[[i]][j, , ], 1, sum) > 0
+    for (j in 1:nrow(caphist[[i]])){
+      if(dim(caphist[[i]])[3]>1){
+        where <- apply(caphist[[i]][j, , ], 1, sum) > 0
+      }else{
+        where <- caphist[[i]][j, , ] > 0
+      }
       if (sum(where) > 1)
         max.dist <- c(max.dist, max(0, dist(traps[[i]][where, c("X", "Y")]), na.rm = T))
     }

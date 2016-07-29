@@ -13,7 +13,11 @@ print.scrFrame <- function(scrFrame){
     ave.caps[i] <- mean(apply(apply(scrFrame$caphist[[i]],c(1,3),sum),1,sum))
     ave.spat.caps[i] <- mean(apply(apply(scrFrame$caphist[[i]],c(1,2),sum)>0,1,sum))
     for (j in 1:nrow(scrFrame$caphist[[i]])) {
-      where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 0
+      if(dim(scrFrame$caphist[[i]])[3]>1){
+        where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 0
+      }else{
+        where <- scrFrame$caphist[[i]][j, , ] > 0
+      }
       if (sum(where) > 1)
         max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where, c("X", "Y")]), na.rm = T))
     }
@@ -29,12 +33,20 @@ print.scrFrame <- function(scrFrame){
     
   dimnames(caphist.dimensions) <- dn
   
-  cat("",fill=TRUE)
-  print(round(caphist.dimensions[1:3,]))
-  cat("",fill=TRUE)
-  print(round(caphist.dimensions[4:6,],2))
+  if(length(scrFrame$caphist)>1){
+    cd <- as.data.frame(caphist.dimensions)
+    cat("",fill=TRUE)
+    print(round(cd[1:3,]))
+    cat("",fill=TRUE)
+    print(round(cd[4:6,],2))
   
-
-  cat("",fill=TRUE)
-  cat("Pooled MMDM: ",round(scrFrame$mmdm,2),fill=TRUE)
+    cat("",fill=TRUE)
+    cat("Pooled MMDM: ",round(scrFrame$mmdm,2),fill=TRUE)
+  }else{
+    cd <- as.data.frame(caphist.dimensions)
+    cat("",fill=TRUE)
+    print(round(t(t(cd[1:3,,drop=FALSE]))))
+    cat("",fill=TRUE)
+    print(round(cd[4:6,,drop=FALSE],2))
+  }
 }

@@ -40,7 +40,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     }
   }else{
     indCovs <- list()
-    for(i in 1:length(indCovs)){
+    for(i in 1:length(caphist)){
       indCovs[[i]] <- data.frame(removed = rep(dim(caphist[[i]])[3],dim(caphist[[i]])[1]))
     }
   }

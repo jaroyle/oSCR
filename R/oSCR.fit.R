@@ -835,7 +835,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
 
            for (k in 1:nK[s]) {
-            dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+            if(i < nrow(Ys){
+              dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+            }else{
+              dead <- 1
+            }
 
                    if (pBehave) {    
                     a0 <- alpha0[s,k,1] * (1 - c(prevcap[[s]][i,,k])) + 
@@ -1240,7 +1244,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
                     for (k in 1:nK[s]) {
-                      dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+                      if(i < nrow(Ys){
+                        dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+                      }else{
+                        dead <- 1
+                      }
+                      
                       
 
 

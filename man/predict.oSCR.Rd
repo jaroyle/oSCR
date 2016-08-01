@@ -34,11 +34,15 @@ predictions are required %%     ~~Describe \code{costDF} here~~
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+  \item{r}{ raster format of density predictions (sum of posterior
+    probabilities
+  for all activity centers including n+1 ) }
+  \item{ssN}{ E(N) for each state-space pixel.  }
+  \item{preds}{ Estimated posterior distribution
+    of individual activity center locations }
+  \item{ssDF}{ the ssDF used}
+  \item{pbar}{probability of capture for each pixel }
+      
 }
 \references{
 %% ~put references to the literature/web site here ~
@@ -61,7 +65,7 @@ library(oSCR)
 data(ocelot)
 
 # Convert the data format
-data<-secr2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
+data<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
              tdf=list(tdf1,tdf2),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 

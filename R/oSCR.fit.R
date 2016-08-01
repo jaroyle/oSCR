@@ -1,16 +1,16 @@
 oSCR.fit <-
-function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, 
-          ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1], 
+function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
+          ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1],
           sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
-          DorN = c("D", "N")[1], directions = 8, Dmat = NULL, 
-          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1, 
-          plotit = F, mycex = 1, tester = F, pl = 0, nlmgradtol = 1e-06, 
-          nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE, 
-          se = TRUE, print.level = 0, getStarts = FALSE, theta = 2) 
+          DorN = c("D", "N")[1], directions = 8, Dmat = NULL,
+          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1,
+          plotit = F, mycex = 1, tester = F, pl = 0, nlmgradtol = 1e-06,
+          nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE,
+          se = TRUE, print.level = 0, getStarts = FALSE, theta = 2)
 {
     my.model.matrix <- function(form, data) {
-        mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[, 
-            sapply(data.frame(data), is.factor)]), contrasts, 
+        mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[,
+            sapply(data.frame(data), is.factor)]), contrasts,
             contrasts = FALSE)))
         return(mdm)
     }
@@ -23,8 +23,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           }else{
             where <- scrFrame$caphist[[i]][j, , ] > 0
           }
-          if (sum(where) > 1) 
-                max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where, 
+          if (sum(where) > 1)
+                max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where,
                   c("X", "Y")]), na.rm = T))
         }
     }
@@ -32,20 +32,20 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     ptm <- proc.time()
     starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
     cl <- match.call(expand.dots = TRUE)
-    if (!require(abind)) 
+    if (!require(abind))
         stop("need to install package 'abind'")
-    if (!require(Formula)) 
+    if (!require(Formula))
         stop("need to load package 'Formula'")
     if (distmet == "ecol") {
-        if (!require(raster)) 
+        if (!require(raster))
             stop("need to install package 'raster'")
-        if (!require(gdistance)) 
+        if (!require(gdistance))
             stop("need to install package 'gdistance'")
     }
     if (!inherits(scrFrame, "scrFrame")) {
         stop("Data must be of class 'scrFrame'")
     }
-    if (encmod %in% c("B","CLOG") & max(unlist(lapply(scrFrame$caphist, max))) > 
+    if (encmod %in% c("B","CLOG") & max(unlist(lapply(scrFrame$caphist, max))) >
         1) {
         stop("Data in caphist must be Binary")
     }
@@ -54,13 +54,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             message("Projection not provided, using default: '+proj=utm +zone=12 +datum=WGS84'")
         }
     }
-    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist)) 
+    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist))
         stop("A 'state space' object must be provided for EACH session.")
     if (multicatch) {
         for (s in 1:length(scrFrame$caphist)) {
-            captures <- apply(scrFrame$caphist[[s]], c(1, 3), 
+            captures <- apply(scrFrame$caphist[[s]], c(1, 3),
                 sum)
-            if (any(captures > 1)) 
+            if (any(captures > 1))
                 stop("error: multicatch system cannot have > 1 capture.")
         }
     }
@@ -68,12 +68,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         stop("Starting values required to predict (hint: use estimated MLEs)")
     }
     maxY <- unlist(lapply(scrFrame$caphist, max))
-    if (any(maxY > 1) & encmod %in% c("B","CLOG")) 
+    if (any(maxY > 1) & encmod %in% c("B","CLOG"))
         stop("caphist must be binary when using the Binomial/Cloglog encounter model")
-    if (all(maxY == 1) & encmod == "P") 
+    if (all(maxY == 1) & encmod == "P")
         stop("caphist looks binary but Poisson encounter model is selected")
     if (theta >2 | theta <1)
-        warning("theta should be between 1 (exponential) and 2 (half-normal) 
+        warning("theta should be between 1 (exponential) and 2 (half-normal)
              for power model distance function")
     pars.p0 <- NULL
     names.p0 <- NULL
@@ -155,11 +155,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
       "session" %in% names(x) })))
     if("session" %in% all.vars(model[[2]]) & (!nnnn)){
       for(s in 1:ns){
-       for(m in 1:length(scrFrame$trapCovs[[s]])){  
+       for(m in 1:length(scrFrame$trapCovs[[s]])){
          scrFrame$trapCovs[[s]][[m]]$session <- factor(rep(s, nrow(scrFrame$trapCovs[[s]][[m]])),
                                                   levels = 1:ns)
        }
-      }  
+      }
     }
     ####################################################################
     allvars.D <- all.vars(model[[1]])
@@ -213,10 +213,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         # remove the standard terms & possible interactions
         #mod2 <- update(model[[2]], ~. - sex - session - t - b - 1 -
         mod2 <- update(model[[2]], ~. - sex - session - t - b -
-                       b:sex - sex:b - b:session - session:b - b:session:sex - 
-                       b:sex:session - sex:session:b - sex:b:session - 
+                       b:sex - sex:b - b:session - session:b - b:session:sex -
+                       b:sex:session - sex:session:b - sex:b:session -
                        session:b:sex - session:sex:b)
-        
+
         #if ("session" %in% all.vars(mod2)) {
         #    mod2 <- as.formula(paste0("~", paste(all.vars(mod2)[all.vars(mod2) !=
         #        "session"], collapse = "+")))
@@ -812,7 +812,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
-            
+
             for (i in 1:nrow(Ys)) {
               if (plotit) {
                 pp <- sum(trimR[[s]][[i]][[k]])
@@ -820,13 +820,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                      main = paste("Session:", s, " Individual: ", i, " traps: ", sum(pp), sep = " "))
                 points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")], pch = 16, col = 2, cex = mycex)
                 points(scrFrame$traps[[s]][,c("X", "Y")], pch = 15, col = "grey", cex = 1)
-                points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")], 
-                       scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")], 
+                points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")],
+                       scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")],
                        pch = 15, col = 1, cex = 1)
                 pp <- apply(Ys[i,,],1,sum)>0
                 points(scrFrame$traps[[s]][pp,c("X", "Y")], pch = 15, col = 3, cex = mycex)
               }
-              
+
 
                  lik.cond <- numeric(nG[s])
 #               if (multicatch)
@@ -835,14 +835,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
 
            for (k in 1:nK[s]) {
-            if(i < nrow(Ys){
+            if(i < nrow(Ys)){
               dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
             }else{
               dead <- 1
             }
 
-                   if (pBehave) {    
-                    a0 <- alpha0[s,k,1] * (1 - c(prevcap[[s]][i,,k])) + 
+                   if (pBehave) {
+                    a0 <- alpha0[s,k,1] * (1 - c(prevcap[[s]][i,,k])) +
                           alpha0[s,k,2] * c(prevcap[[s]][i,,k])
                   }
                   else {
@@ -1226,8 +1226,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                        main = paste("Session:", s, " Individual: ", i, " traps: ", sum(pp), sep = " "))
                   points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")], pch = 16, col = 2, cex = mycex)
                   points(scrFrame$traps[[s]][,c("X", "Y")], pch = 15, col = "grey", cex = 1)
-                  points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")], 
-                         scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")], 
+                  points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")],
+                         scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")],
                          pch = 15, col = 1, cex = 1)
                   pp <- apply(Ys[i,,],1,sum)>0
                   points(scrFrame$traps[[s]][pp,c("X", "Y")], pch = 15, col = 3, cex = mycex)
@@ -1244,13 +1244,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
                     for (k in 1:nK[s]) {
-                      if(i < nrow(Ys){
+                      if(i < nrow(Ys)){
                         dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
                       }else{
                         dead <- 1
                       }
-                      
-                      
+
+
 
 
 
@@ -1569,7 +1569,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             if("hessian" %in% names(myfit)) {
               if(sum(myfit$hessian) != 0){
                 #Need a check for this error and return mles and a warning
-                #Error in solve.default(myfit$hessian) : 
+                #Error in solve.default(myfit$hessian) :
                 #Lapack routine dgesv: system is exactly singular: U[1,1] = 0
                 std.err <- sqrt(diag(solve(myfit$hessian)))
               }else{

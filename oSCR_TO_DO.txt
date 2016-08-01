@@ -51,6 +51,11 @@ If this is provided then:
  should produce a warning message or someting to make sure user knows
  that only covariates in rsfDF are used.
 
+ XXXXX Dan: I still think option 2.1 is best.  Then when RSF=TRUE, you check that names in rsfDF are terms in the p0 model.
+
+
+
+
  2.2: we could add a whole new formula to the function call.  This
  seems more difficult. 
 

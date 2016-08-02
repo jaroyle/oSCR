@@ -7,7 +7,7 @@ Makes a spider plot of some SCR data.
 Makes a spider plot and computes some summaries of individual captures.
 }
 \usage{
-spiderplot(y3d,traplocs)
+spiderplot(y3d,traplocs, add=FALSE)
 }
 \arguments{
   \item{y3d}{
@@ -16,6 +16,10 @@ spiderplot(y3d,traplocs)
   \item{traplocs}{
    ntraps x 2 matrix of trap coordinates.
 }
+\item{add=FALSE}{
+ logical, if TRUE will add to current plot device.
+ }
+ 
 }
 \value{
  Makes a spider plot. Returns a list with 

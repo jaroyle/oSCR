@@ -61,64 +61,90 @@ Andy Royle
 }
 \examples{
 
-library(oSCR)
-data(ocelot)
 
-# Convert the data format
-data<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
-             tdf=list(tdf1,tdf2),   
-             remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
+###
 
+# Load the beardata (also in oSCR now)
+library("oSCR")
+data(beardata)
+nind<-dim(beardata$bearArray)[1]
+K<-dim(beardata$bearArray)[3]
+ntraps<-dim(beardata$bearArray)[2]
+traplocs<- as.matrix(beardata$trapmat)
+par(mfrow=c(1,1))
+temp <- spiderplot(beardata$bearArray,beardata$trapmat)
 
-# Process the trap covariate info. This should be done internally but isn't yet.
-# There is one covariate "distance to disturbance" which is not defined for session = 1
-# therefore I set it to 0 here so that the linear predictor evaluates to 0 (i.e., no adjustment to p).
-
-dist1 =  rep(0,23)
-dist2 =  as.vector(data$trapcovs[[2]])/1000   # Convert to km
-dist1 <- matrix(dist1, nrow=23,ncol=44,byrow=FALSE)
-dist2 <- matrix(dist2, nrow=23,ncol=96, byrow=FALSE)
  
-# Example of 1 covariate
-tc <-  list(dist=list(dist1, dist2) )
-tc <-  make.trapCovs(tc)
-
-# Make the SCRframe
-scrFrame  <- list(caphist=data$y3d, indCovs=NULL, 
-                   type="scr", traps=data$traplocs,trapCovs=tc ,
-                   trapOperation=data$trapopp )
-class(scrFrame) <- "scrFrame"
-
-# make a state-space
-ssDF <- make.ssDF(scrFrame, buffer=2000, res = 600)
-
-# Make a descriptive plot of everything
-plot(ssDF[[1]], pch=20)
-points(data$traplocs[[1]],pch=3,col="red",lwd=2)
-spiderplot(data$y3d[[2]],data$traplocs[[1]],add=TRUE)
-
 # Fit a basic model
-out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame, ssDF=ssDF,plotit=FALSE , trimS=2000)
+# Obtain posterior distributions of each individual
+# Obtain a total density map
+ 
 
-## default vals for some models are especially bad. Could be geographic scaling issue.
-out2 <- oSCR.fit(model=list(D~1,p0~dist,sig~1), scrFrame,start.vals=c(-3.5, 6.4, 0, -1.5), ssDF=ssDF, plotit=FALSE, trimS=2000  )
+tdf<- cbind(1:38, beardata$trapmat, matrix(1, nrow=38, ncol=8))
+edf<- beardata$flat
+edf[,1]<- 1  # change all sessions to 1 , *important* !
+data<- data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL,
+ tdf = list(tdf), K = c(8), ntraps = c(38), remove.zeros = TRUE, remove.extracaps = TRUE, sex.nacode = NULL, tdf.sep = "/")
+# Make the SCRframe
+ scrFrame  <- make.scrFrame(caphist=data$y3d,  traps=data$traplocs,trapCovs=NULL ,
+                   trapOperation=data$trapopp )
+sf <- data$scrFrame
 
-out3 <- oSCR.fit(scrFrame,model=list(D~session,p0~1,sig~1),start.vals=c(-3.5, 6.4, -1.5, -1.5), ssDF=ssDF,plotit=FALSE , trimS=2000)
+# make a state-space. Units are strange, maybe "5 km"
+ssDF <- make.ssDF(sf, buffer=3, res = 0.5)
+dev.off()
+plot(ssDF)
+points(sf$traps[[1]],pch=3, lwd=2,col="red")
 
-## Summarize output
-## Make a density map
+# Basic model SCR0
+out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF,plotit=FALSE , trimS=8)
 
-pred<- predict.oSCR(scrFrame,out3,ssDF)
+# Note: density intercept is log(per pixel) so total N = exp(intercept)*[# statespace points]
+Nhat<- exp(out1$outStats[3,3])*nrow(ssDF[[1]])
 
-# Plot total density map
-par(mfrow=c(1,2))
-plot(pred$r[[1]])
-plot(pred$r[[2]])
+# Obtain the predictions of density and activity center posteriors
+pred<- predict.oSCR(sf, out1 ,ssDF)
+
+#### predict.oSCR is just a wrapper. If you want you can get the raw materials here:
+#### a<- oSCR.fit(scrFrame=scrFrame,ssDF=ssDF,start.vals=out1$rawOutput$estimate,predict=TRUE)
+####
+
+  
 
 # Plot posterior of s for a specific individual
 par(mfrow=c(1,1))
-rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][1,]))
+for(i in 1:47){
+ rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][i,]))
+ plot(rs)
+ points(tdf[,2:3],pch=20)
+ # Add the traps of captur
+ caps<- data$y3d[[1]][i,,]
+ caps<- apply(caps, 1, sum) # total captures per trap
+ points(tdf[caps>0, 2:3], pch=as.character(caps[caps>0]), col="red",lwd=2)
+ browser()
+}
+ 
+# posterior of s for an uncaptured individual
+rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][48,]))
 plot(rs)
+points(tdf[,2:3],pch=20)
+ 
+# Number of uncaptured individuals
+n0<- sum(pred$preds[[1]][48,])
+ 
+(Nhat<-  sum(pred$ssN[[1]],na.rm=TRUE)) 
+# [1] 57.49587
+  
+# Plot total density map. Same as ssN except in "raster" format (with some missing values)
+par(mfrow=c(1,1))
+plot(pred$r[[1]])   # pred is a list, one for each session, $r is a raster 
+points(tdf[,2:3],pch=20)
+title("Realized density")
+null <- spiderplot(beardata$bearArray,beardata$trapmat, add=TRUE)
+
+# Conditional probability of capture (ESA is area-weighted sum of this)
+par(mar=c(3,3,3,6))
+ plot(pred$pbar[[1]])
 
 
 

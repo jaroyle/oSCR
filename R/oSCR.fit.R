@@ -8,7 +8,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE,
           se = TRUE, print.level = 0, getStarts = FALSE, theta = 2)
 {
-    my.model.matrix <- function(form, data) {
+  ptm <- proc.time()
+  starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
+  my.model.matrix <- function(form, data) {
         mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[,
             sapply(data.frame(data), is.factor)]), contrasts,
             contrasts = FALSE)))
@@ -29,8 +31,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
     }
     mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
-    ptm <- proc.time()
-    starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
+    mdm <- mean(max.dist[max.dist > 0], na.rm = T)
+    if(trimS < (0.6*mdm))
+      warning("The trimS value is smaller than half the max observed 
+               distance moved and is probably too small.")
+    
     cl <- match.call(expand.dots = TRUE)
     if (!require(abind))
         stop("need to install package 'abind'")
@@ -149,8 +154,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 levels = 1:ns)
         }
     }
-    ####################################################################
-    ## chris - attaempt to fix session:trapsCov
     nnnn <- all(unlist(lapply(scrFrame$trapCovs[[1]][[1]], function(x) {
       "session" %in% names(x) })))
     if("session" %in% all.vars(model[[2]]) & (!nnnn)){
@@ -161,7 +164,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
        }
       }
     }
-    ####################################################################
     allvars.D <- all.vars(model[[1]])
     dens.fx <- allvars.D[!allvars.D %in% c("D", "session")]
     allvars.T <- all.vars(model[[2]])
@@ -188,7 +190,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         attr(terms(model[[2]]), "term.labels"))
     pBehave <- any(c(var.b.1, var.b.2, var.b.3, var.b.4))
     for (s in 1:ns) {
-        if (!is.null(trimS)) {
+        if (!is.null(trimS)){
             pixels.prior <- rep(T, nG[s])
             pixels.post <- apply(e2dist(scrFrame$traps[[s]][,
                 c("X", "Y")], ssDF[[s]][, c("X", "Y")]), 2, min) <=
@@ -209,19 +211,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             stop("I cant find theses covariates in 'scrFrame$trapCovs'",
                 for (i in tCovMissing) print(i))
         }
-        #mod2 <- update(model[[2]], ~. - sex - session - t - b -1)
-        # remove the standard terms & possible interactions
-        #mod2 <- update(model[[2]], ~. - sex - session - t - b - 1 -
         mod2 <- update(model[[2]], ~. - sex - session - t - b -
                        b:sex - sex:b - b:session - session:b - b:session:sex -
                        b:sex:session - sex:session:b - sex:b:session -
                        session:b:sex - session:sex:b)
 
-        #if ("session" %in% all.vars(mod2)) {
-        #    mod2 <- as.formula(paste0("~", paste(all.vars(mod2)[all.vars(mod2) !=
-        #        "session"], collapse = "+")))
-        #    mod2 <- update(mod2, ~. - 1)
-        #}
         if (any(c("session") %in% allvars.T))
             tSession <- TRUE
         for (s in 1:ns) {
@@ -427,7 +421,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     names.p0 <- tmp.p0.names
     pars.p0 <- rep(0, length(names.p0))
-    pars.p0[1] <- -1.5
+    
+    st.p0 <- qlogis(0.1*(sum(sapply(scrFrame$caphist,sum))/
+             sum(sapply(scrFrame$caphist,
+                        function(x) prod(dim(x)[c(1,3)])))))
+    pars.p0[1] <- st.p0
     if (any(var.p0.1, var.p0.1, var.sig.1) && !anySex)
         stop("Sex defined in a model but no sex data provided.")
     if (var.b.1 & !var.b.2 & !var.b.3 & !var.b.4) {

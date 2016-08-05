@@ -1578,12 +1578,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,
                 se.tr = trans.se)
             VcV <- NULL
-            if (DorN == "N") {
-                ED <- (exp(pars[grep(fixed=TRUE,"n0.", pn)]) + unlist(lapply(scrFrame$caphist,
-                  nrow)))/areaS
-            }
-            else {
-                ED <- NULL
+            if(DorN == "N") {
+            ## write some code to return per session density 
+              
+            }else{
+            ## write some code to return per session abundance 
+            
             }
             endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
             output <- list(call = cl, rawOutput = myfit, outStats = outStats,

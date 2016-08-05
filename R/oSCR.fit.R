@@ -548,14 +548,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
         Ys <- YY[[s]]
-        if (!multicatch) {
-            zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-            Ys <- abind(Ys, zeros, along = 1)
-        }
-        if (multicatch) {
-            zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-            Ys <- abind(Ys, zeros, along = 1)
-        }
+        zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
+        Ys <- abind(Ys, zeros, along = 1)
 
         trimR[[s]] <- list()
         trimC[[s]] <- list()
@@ -665,15 +659,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         BRmat <- array(0, c(ns, hiK, 1))
         if (bDot) {
-            BRmat[, , 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav",
-                names.p0)]]
+            BRmat[, , 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav", names.p0)]]
         }
         if (bJustsesh) {
             for (k in 1:hiK) {
-                BRmat[, k, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session",
-                  names.p0)]]
-                BRmat[, k, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session",
-                  names.p0)]]
+                BRmat[, k, 1] <- pv[pn %in% names.p0[grep(fixed=TRUE,"p.behav.session", names.p0)]]
             }
         }
         alpha0[, , 2] <- alpha0[, , 1] + BRmat[, , 1]

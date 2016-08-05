@@ -625,17 +625,17 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
               }
             }
 
-                            if (multicatch) {
-                for(k in 1:nK[s]){
+           if (multicatch) {
+              for(k in 1:nK[s]){
                 trimR[[s]][[i]][[k]] <- rep(T, length(trimR[[s]][[i]][[k]]))
                   nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]] )
               }
-              }
-                                          nC[[s]][[i]]<- sum(trimC[[s]][[i]])
+           }
+           nC[[s]][[i]]<- sum(trimC[[s]][[i]])
            }
        }
 
-     msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
+    msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
         hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         alpha0 <- array(0, dim = c(ns, hiK, 2))
         tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]

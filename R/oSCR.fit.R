@@ -744,14 +744,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
-            if (!multicatch) {
-                zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-                Ys <- abind(Ys, zeros, along = 1)
-            }
-            if (multicatch) {
-                zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-                Ys <- abind(Ys, zeros, along = 1)
-            }
+
+            zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
+            Ys <- abind(Ys, zeros, along = 1)
+
             if (distmet == "ecol") {
                 cost <- exp(dm.cost[[s]] %*% dist.beta)
                 costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
@@ -1151,14 +1147,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
-            if (!multicatch) {
-                zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-                Ys <- abind(Ys, zeros, along = 1)
-            }
-            if (multicatch) {
-                zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-                Ys <- abind(Ys, zeros, along = 1)
-            }
+
+            zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
+            Ys <- abind(Ys, zeros, along = 1)
+
             sx <- c(scrFrame$indCovs[[s]]$sex + 1, NA)
             if (distmet == "ecol") {
                 cost <- exp(dm.cost[[s]] %*% dist.beta)
@@ -1568,12 +1560,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,
                 se.tr = trans.se)
             VcV <- NULL
-            if (DorN == "N") {
-                ED <- (exp(pars[grep(fixed=TRUE,"n0.", pn)]) + unlist(lapply(scrFrame$caphist,
-                  nrow)))/areaS
-            }
-            else {
-                ED <- NULL
+            if(DorN == "N") {
+            ## write some code to return per session density 
+              
+            }else{
+            ## write some code to return per session abundance 
+            
             }
             endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
             output <- list(call = cl, rawOutput = myfit, outStats = outStats,

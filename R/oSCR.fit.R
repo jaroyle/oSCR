@@ -1594,7 +1594,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
             output <- list(call = cl, rawOutput = myfit, outStats = outStats,
                 coef.mle = data.frame(param = pn, mle = myfit$estimate),
-                Area = areaS, ED = ED, nObs = unlist(lapply(scrFrame$caphist,
+                Area = areaS, nObs = unlist(lapply(scrFrame$caphist,
                   nrow)), mmdm = mmdm, nll = myfit$minimum, AIC = 2 *
                   myfit$minimum + 2 * length(myfit$estimate),
                 started = starttime, ended = endtime, proctime = (proc.time() -

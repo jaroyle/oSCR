@@ -32,9 +32,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
     mdm <- mean(max.dist[max.dist > 0], na.rm = T)
-    if(trimS < (0.6*mdm))
-      warning("The trimS value is smaller than half the max observed 
-               distance moved and is probably too small.")
+    #if(trimS < (0.6*mdm))
+    #  warning("The trimS value is smaller than half the max observed 
+    #           distance moved and is probably too small.")
     
     cl <- match.call(expand.dots = TRUE)
     if (!require(abind))
@@ -833,12 +833,18 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
 
            for (k in 1:nK[s]) {
-            if(i < nrow(Ys)){
-              dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
-            }else{
+            
+            if(!("removed" %in% names(scrFrame$indCovs[[s]]))){
               dead <- 1
+            }else{
+              if(i < nrow(Ys)){
+                dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+              }else{
+                dead <- 1
+              }
             }
-
+            
+ 
                    if (pBehave) {
                     a0 <- alpha0[s,k,1] * (1 - c(prevcap[[s]][i,,k])) +
                           alpha0[s,k,2] * c(prevcap[[s]][i,,k])

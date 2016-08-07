@@ -1232,12 +1232,17 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
                     for (k in 1:nK[s]) {
-                      if(i < nrow(Ys)){
-                        dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
-                      }else{
+                      if(!("removed" %in% names(scrFrame$indCovs[[s]]))){
                         dead <- 1
+                      }else{
+                        if(i < nrow(Ys)){
+                          dead <- ifelse(k > scrFrame$indCovs[[s]]$removed[i],0,1)
+                        }else{
+                          dead <- 1
+                        }
                       }
-
+                      
+                      
 
 
 

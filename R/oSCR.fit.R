@@ -32,7 +32,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
     mdm <- mean(max.dist[max.dist > 0], na.rm = T)
-    #if(trimS < (0.6*mdm))
+    
+    #ADD A CHECK FOR WHETHER TRIMS IS TOO SMALL
+    #if((!is.null(trimS)) & (trimS < (0.6*mdm)))
     #  warning("The trimS value is smaller than half the max observed 
     #           distance moved and is probably too small.")
     

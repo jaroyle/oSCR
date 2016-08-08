@@ -26,8 +26,9 @@ print.oSCR.fit <- function(x, burn=NULL, ...){
     cat(" ",fill=TRUE)
     cat("Summary table:","\n")
     print(round(tmpFit[ord,],3))
-    cat("*Density is per pixel density","\n")
-    
+    cat("*Density intercept is log(individuals per pixel)","\n")
+    cat("  Nhat(state-space) = exp(d0.)*nrow(ssDF)", fill=TRUE)
+    cat("  (caution is warranted when model contains density covariates)",fill=TRUE)  
   }else{
     if("model" %in% names(x$call)){
       mod <- x$call[["model"]]

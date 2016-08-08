@@ -6,7 +6,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1,
           plotit = F, mycex = 1, tester = F, pl = 0, nlmgradtol = 1e-06,
           nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE,
-          se = TRUE, print.level = 0, getStarts = FALSE, theta = 2)
+          se = TRUE, print.level = 0, getStarts = FALSE, theta = 2, RSF = FALSE, YYtel = NULL)
 {
   ptm <- proc.time()
   starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
@@ -100,11 +100,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     singleT <- NULL
     singleG <- NULL
     D <- list()
-    YY <- list()
+    #YY <- list()
     dm.den <- list()
     tmp.dm <- list()
     dm.trap <- list()
     dm.cost <- list()
+    dm.rsf <- list()
     posterior <- list()
     dHPP <- FALSE
     dIPP <- FALSE
@@ -235,6 +236,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }
             }
             dm.trap[[s]] <- tmp.dm
+            
+            if (RSF){
+              dm.rsf[[s]] <- my.model.matrix(mod2, scrFrame$rsfDF[[s]])
+            }
+            
         }
         if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),
             "term.labels"))) {
@@ -485,6 +491,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     if (scrFrame$type == "secr") {
         YY <- "secr2scr"
+    }
+    if (!is.null(scrFrame$telemetry)) {
+        YYtel <- scrFrame$telemetry$fixdata
     }
     if (anySex) {
         if (sexmod == "constant") {
@@ -1144,6 +1153,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         for (s in 1:length(YY)) {
             Ys <- YY[[s]]
+            if (!is.null(YYtel)){ #check if telemetry exists
+              Ytels <- YYtel[[s]]
+              sxtel <- scrFrame$telemetry$indCovs[[s]]$sex + 1
+              lik.marg.tel <- rep(NA, nrow(Ytels))
+            } 
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
@@ -1152,6 +1166,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             Ys <- abind(Ys, zeros, along = 1)
 
             sx <- c(scrFrame$indCovs[[s]]$sex + 1, NA)
+            
             if (distmet == "ecol") {
                 cost <- exp(dm.cost[[s]] %*% dist.beta)
                 costR <- rasterFromXYZ(cbind(costDF[[s]][, c(1,
@@ -1175,6 +1190,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                   D[[s]] <- e2dist(scrFrame$traps[[s]][, c("X",
                     "Y")], ssDF[[s]][, c("X", "Y")])
                 }
+            }
+            if (RSF){
+              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
             lik.marg <- lik.marg1 <- lik.marg2 <- rep(NA, nrow(Ys))
             if (!is.null(trimS)) {
@@ -1455,6 +1473,24 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                   }
                 }
             }
+            
+            if(!is.null(YYtel)){
+              if(RSF){
+                rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
+              } else {
+                rsf.lam0 <- 0
+              }
+              for (i in 1:nrow(Ytels)){
+                
+                probs <- exp(rsf.lam0 - alphsig[s, sx[i]] * Drsf[[s]]^theta)
+                denom <- rowSums(probs)
+                probs <- probs/denom
+                
+                lik.marg.tel[i] <- sum( exp(Ytels[i,] %*% log(probs)) * pi.s )
+                              
+              }
+            }
+
             if (!predict) {
                 if (DorN == "N") {
                   nv <- c(rep(1, length(lik.marg) - 1), n0[s])
@@ -1470,8 +1506,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     pixels) * atheta
                   part2 <- sum(nv[1:nind] * log(lik.marg[1:nind]))
               }
-                ll <- -1 * (part1 + part2)
-                outLik <- outLik + ll
+              if(!is.null(YYtel)){
+                part3 <- sum(log(lik.marg.tel))
+              } else {
+                part3 <- 0
+              }
+              
+              ll <- -1 * (part1 + part2 + part3)
+              outLik <- outLik + ll
             }
             if (predict) {
                 lik.bits[[s]] <- cbind(lik.mar = lik.marg)

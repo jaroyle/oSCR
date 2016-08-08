@@ -1,5 +1,5 @@
 make.scrFrame <- function(caphist, traps, indCovs=NULL, 
-                          trapCovs=NULL, trapOperation=NULL, type="scr"){
+                          trapCovs=NULL, trapOperation=NULL, telemetry=NULL, type="scr"){
   
   #must have caphist and traps
   if(any(is.null(caphist),is.null(traps)))
@@ -103,6 +103,10 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
   }
   mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
   
+  #telemetry
+  if(!is.null(telemetry)){
+    warning("better know what you're doing!")
+  }    
   
   scrFrame <- list("caphist" = caphist,
                    "traps" = traps,
@@ -111,7 +115,8 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
                    "trapOperation" = trapOperation,
                    "occasions" = caphist.dimensions[3,],
                    "type" = type,
-                   "mmdm" = mmdm)
+                   "mmdm" = mmdm,
+                   "telemetry" = telemetry)
   
   class(scrFrame) <- "scrFrame"  
   return(scrFrame)

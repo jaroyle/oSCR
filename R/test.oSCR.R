@@ -1,23 +1,46 @@
-test.oSCR <- function(){
+test.oSCR <- function(test=c(1,2,3)[1]){
   data(test)
 
-  message("Testing oSCR.fit() on the redbacked salamander data (no sex).")
-  data(rbs)
-  rbs.test <- oSCR.fit(scrFrame=rbs.sf,ssDF=rbs.ss)
+  if(test %in% c(1,3)){
+    message("Testing oSCR.fit() on the redbacked salamander data (no sex).")
+
+    cat("\n")
   
-  cat("Output table should look like this:")
-  rbs.known
+    data(rbs)
+    rbs1.sf <- subFrame(rbs.sf,2)
+    rbs1.ss <- make.ssDF(rbs1.sf,res=0.5,buffer=3)
+    rbs.test <- oSCR.fit(scrFrame=rbs1.sf,ssDF=rbs1.ss)
   
-  cat("Current output table looks like this:")
-  rbs.test
+    cat("Output table should look like this:\n")
   
-  message("Testing oSCR.fit() on the ocelot data (has sex).")
-  data(ocelot)
-  ocelot.test <- oSCR.fit(scrFrame=ocelot.sf,ssDF=ocelot.ss)
+    print(rbs.known)
+
+    cat("\n")
   
-  cat("Output table should look like this:")
-  ocelot.known
+    cat("Current output table looks like this:\n")
   
-  cat("Current output table looks like this:")
-  ocelot.test
+    print(rbs.test)
+
+    cat("\n")
+  }
+  if(test %in% c(2,3)){
+    message("Testing oSCR.fit() on the ocelot data (has sex).")
+
+    cat("\n")
+  
+    data(ocelot)
+    ocelot.test <- oSCR.fit(scrFrame=ocelot.sf,ssDF=ocelot.ss)
+  
+    cat("Output table should look like this:\n")
+
+    cat("\n")
+  
+    print(ocelot.known)
+  
+    cat("\n")
+  
+    cat("Current output table looks like this:\n")
+  
+    print(ocelot.test)
+  }
 }

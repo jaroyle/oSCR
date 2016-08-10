@@ -42,27 +42,14 @@ comes from gardner et al. 2010...
 }
 \examples{
 
+
 # Here is a comparison of oSCR and secr
 data(beardata)
  
 library("secr")
 library("scrbook")
 data("beardata")
- 
-#oSCR data
-y3d <- beardata$bearArray
-traps.df <-data.frame(X=beardata$trapmat[,1],Y=beardata$trapmat[,2])
-sex.df <- data.frame(sex=beardata$sex-1)
-bear.sf <- list(caphist=list(y3d),
-                traps = list(traps.df),
-                indCovs = list(sex.df),
-                trapCovs = NULL,
-                type="scr")
-class(bear.sf) <- "scrFrame"
- 
-bear.ss <- make.ssDF(bear.sf, buffer=20, res=2)
- 
- 
+  
 #secr data
 secr.traps <- as.matrix(cbind(c(1:dim(beardata$trapmat)[1]), beardata$trapmat * 1000))
 colnames(secr.traps) <- c("trapID", "x", "y")
@@ -129,6 +116,7 @@ o.bear.0 = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1, sig ~ 1), ssDF=bear.ss)
  
 s.bear.Sex = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ h2, sigma ~ 1), hcov= "sex", mask = secr.mask)
 o.bear.Sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex, sig ~ 1), ssDF=bear.ss)
+
 
 ## maybe str(beardata) ; plot(beardata) ...
 }

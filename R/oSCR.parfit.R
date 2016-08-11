@@ -7,7 +7,8 @@ ss<- data$ss
 cs<- data$cs
  
 wrapperX<- function(model.number, mods, sf, ss, cs=NULL){
-  mod <- list(mods[[1]][[model.number]], #density
+ 
+    mod <- list(mods[[1]][[model.number]], #density
               mods[[2]][[model.number]], #detection
               mods[[3]][[model.number]], #sigma
               mods[[4]][[model.number]]) #asu
@@ -31,10 +32,10 @@ save("out",file="models.RData")
 
 tmp<- list()
 for(i in 1:length(out)){
-tmp[[i]]<- out[[i]]
+    tmp[[i]]<- out[[i]]
+    tmp[[i]]$call$model <- list("list",paste(mods[i,1]),paste(mods[i,2]),paste(mods[i,3]),paste(mods[i,4]))
 }
-names(tmp)<- 1:length(tmp)
-out<- fitList.oSCR(tmp )
+out<- fitList.oSCR(tmp,rename=TRUE )
 return(out)
 
 }

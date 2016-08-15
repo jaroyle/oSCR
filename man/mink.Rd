@@ -12,6 +12,15 @@ The mink data is the data analyzed by Fuller \emph{et al.} (2016) in their \emph
  chr "mink"
 }
 \details{
+  mink.sf = scrFrame
+
+  mink.cs = cost surface DF
+
+  mink.ss = state-space object
+
+  Mecol = ecological distance model fit object (see Examples)
+
+  Meuc = Euclidean distance model fit object (see Examples)
 %%  ~~ If necessary, more details than the __description__ above ~~
 }
 \source{
@@ -42,7 +51,7 @@ Fuller AK, Sutherland CS, Royle JA, Hare MP. \emph{Estimating population density
                     scrFrame= mink.sf, ssDF = mink.ss, costDF = mink.cs,
                     trimS=2, distmet = "ecol")
 
-  (fl <- fitList(list(mEuc,mEcol),rename=T))
+  (fl <- fitList.oSCR(list(mEuc,mEcol),rename=T))
   (ms <- modSel.oSCR(fl))
   ms$aic
   ms$coef

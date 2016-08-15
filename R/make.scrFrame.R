@@ -127,7 +127,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
       if(any(check.dim!=fixfreq.dimensions[1,]))
         stop("number of individuals in telemetry$indCovs does not match telemetry$fixfreq")
     }
-    
+  }
     
   
   scrFrame <- list("caphist" = caphist,

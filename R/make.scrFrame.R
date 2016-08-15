@@ -28,7 +28,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     if(any(!sapply(indCovs,is.data.frame)))
       stop("indCovs must be a list of dataframes")
     if(length(indCovs) != length(caphist))
-      stop("number of sessions in indCovs does not match capphist")
+      stop("number of sessions in indCovs does not match caphist")
     
     check.dim <- sapply(indCovs,nrow) 
     if(any(check.dim!=caphist.dimensions[1,]))
@@ -66,7 +66,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     if(any(!unlist(sapply(trapCovs,function(x)sapply(x,is.data.frame)))))
       stop("trapCovs must be a list of dataframes")
     if(length(trapCovs) != length(caphist))
-      stop("number of sessions in trapCovs does not match capphist")
+      stop("number of sessions in trapCovs does not match caphist")
     #check.dim <- sapply(trapCovs,function(x)sapply(x,nrow))
     check.dim <- lapply(trapCovs,function(x)sapply(x,nrow))
     for(i in 1:length(check.dim)){
@@ -82,7 +82,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
     #if(any(!sapply(trapOperation,is.data.frame)))
     #  stop("trapOperation must be a list of dataframes")
     if(length(trapOperation) != length(caphist))
-      stop("number of sessions in trapOperation does not match capphist")
+      stop("number of sessions in trapOperation does not match caphist")
     check.dim <- sapply(trapOperation,nrow) 
     if(!all(check.dim==caphist.dimensions[2,]))
       stop("number of traps does not match caphist")
@@ -105,8 +105,30 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
   
   #telemetry
   if(!is.null(telemetry)){
-    warning("better know what you're doing!")
-  }    
+
+    #fixfreq
+    if(!is.list(telemetry$fixfreq))
+      stop("telemetry$fixfreq must be a list")
+    fixfreq.dimensions <- sapply(telemetry$fixfreq,dim)
+    
+    if(nrow(fixfreq.dimensions)==2)
+      fixfreq.dimensions <- rbind(fixfreq.dimensions,1)
+    
+    #indCovs for telemetry
+    if(!is.null(telemetry$indCovs)){
+      if(!is.list(telemetry$indCovs))
+        stop("telemetry$indCovs must be a list")
+      if(any(!sapply(telemetry$indCovs,is.data.frame)))
+        stop("telemetry$indCovs must be a list of dataframes")
+      if(length(telemetry$indCovs) != length(telemetry$fixfreq))
+        stop("number of sessions in telemetry$indCovs does not match telemetry$fixfreq")
+      
+      check.dim <- sapply(telemetry$indCovs,nrow) 
+      if(any(check.dim!=fixfreq.dimensions[1,]))
+        stop("number of individuals in telemetry$indCovs does not match telemetry$fixfreq")
+    }
+    
+    
   
   scrFrame <- list("caphist" = caphist,
                    "traps" = traps,

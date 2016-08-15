@@ -1,6 +1,6 @@
 oSCR.fit <-
 function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
-          ssDF = NULL, costDF = NULL, distmet = c("euc", "user", "ecol")[1],
+          ssDF = NULL, costDF = NULL, rsfDF = NULL, distmet = c("euc", "user", "ecol")[1],
           sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
           DorN = c("D", "N")[1], directions = 8, Dmat = NULL,
           trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1,
@@ -211,7 +211,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         tcovnms <- colnames(scrFrame$trapCovs[[1]][[1]])
         tCovMissing <- trap.fx[which(!trap.fx %in% tcovnms)]
         if (length(tCovMissing) > 0) {
-            stop("I cant find theses covariates in 'scrFrame$trapCovs'",
+            stop("I cant find these covariates in 'scrFrame$trapCovs'",
                 for (i in tCovMissing) print(i))
         }
         mod2 <- update(model[[2]], ~. - sex - session - t - b -
@@ -240,7 +240,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             dm.trap[[s]] <- tmp.dm
             
             if (RSF){
-              dm.rsf[[s]] <- my.model.matrix(mod2, scrFrame$rsfDF[[s]])
+              dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])
             }
             
         }
@@ -495,7 +495,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         YY <- "secr2scr"
     }
     if (!is.null(scrFrame$telemetry)) {
-        YYtel <- scrFrame$telemetry$fixdata
+        YYtel <- scrFrame$telemetry$fixfreq
+        if (is.null(rsfDF)){
+          rsfDF <- ssDF
+        }
+        if (nrow(YYtel[[1]]) != nrow(rsfDF[[1]])){
+          
+        }
     }
     if (anySex) {
         if (sexmod == "constant") {
@@ -1495,7 +1501,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
               }
               for (i in 1:nrow(Ytels)){
                 
-                probs <- exp(rsf.lam0 - alphsig[s, sx[i]] * Drsf[[s]]^theta)
+                probs <- exp(rsf.lam0 - alphsig[s, sxtel[i]] * Drsf[[s]]^theta)
                 denom <- rowSums(probs)
                 probs <- probs/denom
                 

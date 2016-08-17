@@ -122,10 +122,12 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
         stop("telemetry$indCovs must be a list of dataframes")
       if(length(telemetry$indCovs) != length(telemetry$fixfreq))
         stop("number of sessions in telemetry$indCovs does not match telemetry$fixfreq")
-      
+
       check.dim <- sapply(telemetry$indCovs,nrow) 
       if(any(check.dim!=fixfreq.dimensions[1,]))
         stop("number of individuals in telemetry$indCovs does not match telemetry$fixfreq")
+      if(any(!names(indCovs[[1]]) %in% c(names(telemetry$indCovs[[1]]),"removed")))
+        stop("indCovs do not match between capture and telemetry data")
     }
   }
     

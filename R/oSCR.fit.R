@@ -102,6 +102,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     singleT <- NULL
     singleG <- NULL
     D <- list()
+    Drsf <- list()
     #YY <- list()
     dm.den <- list()
     tmp.dm <- list()
@@ -238,9 +239,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }
             }
             dm.trap[[s]] <- tmp.dm
-            
+
             if (RSF){
-              dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])
+              dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])[,-1,drop=FALSE]
             }
             
         }
@@ -499,8 +500,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         if (is.null(rsfDF)){
           rsfDF <- ssDF
         }
-        if (nrow(YYtel[[1]]) != nrow(rsfDF[[1]])){
-          
+        if (ncol(YYtel[[1]]) != nrow(rsfDF[[1]])){
+          stop("Grid cells for telemetry fixes do not match rsfDF")
         }
     }
     if (anySex) {
@@ -1494,8 +1495,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             
             if(!is.null(YYtel)){
+
               if(RSF){
                 rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
+                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
               } else {
                 rsf.lam0 <- 0
               }
@@ -1505,7 +1508,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 denom <- rowSums(probs)
                 probs <- probs/denom
                 
-                lik.marg.tel[i] <- sum( exp(Ytels[i,] %*% log(probs)) * pi.s )
+                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                               
               }
             }

@@ -102,6 +102,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     singleT <- NULL
     singleG <- NULL
     D <- list()
+    Drsf <- list()
     #YY <- list()
     dm.den <- list()
     tmp.dm <- list()
@@ -143,6 +144,23 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         dHPP <- TRUE
         ssDF <- make.ssDF(scrFrame, buffer, res)
     }
+  
+    if (RSF) {
+      if (is.null(rsfDF)){
+        stop("Cannot fit RSF without rsfDF!")
+      }
+    }
+  
+    if (!is.null(scrFrame$telemetry)) {
+      if (is.null(rsfDF)){
+        rsfDF <- ssDF
+      }
+      YYtel <- scrFrame$telemetry$fixfreq
+      if (ncol(YYtel[[1]]) != nrow(rsfDF[[1]])){
+        stop("Grid cells for telemetry fixes do not match rsfDF")
+      }
+    }
+
     ns <- length(scrFrame$caphist)
     nt <- length(scrFrame$traps)
     nK <- unlist(lapply(scrFrame$caphist, function(x) dim(x)[3]))
@@ -238,9 +256,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }
             }
             dm.trap[[s]] <- tmp.dm
-            
+
             if (RSF){
-              dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])
+              dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])[,-1,drop=FALSE]
             }
             
         }
@@ -493,15 +511,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
     if (scrFrame$type == "secr") {
         YY <- "secr2scr"
-    }
-    if (!is.null(scrFrame$telemetry)) {
-        YYtel <- scrFrame$telemetry$fixfreq
-        if (is.null(rsfDF)){
-          rsfDF <- ssDF
-        }
-        if (nrow(YYtel[[1]]) != nrow(rsfDF[[1]])){
-          
-        }
     }
     if (anySex) {
         if (sexmod == "constant") {
@@ -1205,7 +1214,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     "Y")], ssDF[[s]][, c("X", "Y")])
                 }
             }
-            if (RSF){
+            if (!is.null(scrFrame$telemetry)){
               Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
             lik.marg <- lik.marg1 <- lik.marg2 <- rep(NA, nrow(Ys))
@@ -1494,8 +1503,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             
             if(!is.null(YYtel)){
+
               if(RSF){
                 rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
+                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
               } else {
                 rsf.lam0 <- 0
               }
@@ -1505,7 +1516,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 denom <- rowSums(probs)
                 probs <- probs/denom
                 
-                lik.marg.tel[i] <- sum( exp(Ytels[i,] %*% log(probs)) * pi.s )
+                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                               
               }
             }

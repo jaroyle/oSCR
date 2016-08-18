@@ -152,6 +152,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
   
     if (!is.null(scrFrame$telemetry)) {
+      
       if (is.null(rsfDF)){
         rsfDF <- ssDF
       }

@@ -1520,9 +1520,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
               }
               for (i in 1:nrow(Ytels)){
                 
-                probs <- exp(rsf.lam0 - alphsig[s, sxtel[i]] * Drsf[[s]]^theta)
+                probs <- t(exp(rsf.lam0 - alphsig[s, sxtel[i]] * Drsf[[s]]^theta))
                 denom <- rowSums(probs)
-                probs <- probs/denom
+                probs <- t(probs/denom)
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                               

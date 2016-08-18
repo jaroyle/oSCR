@@ -259,6 +259,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             dm.trap[[s]] <- tmp.dm
 
             if (RSF){
+            
+            if (any(!tcovnms %in% names(rsfDF[[s]]))){
+              rsfMissing <- tcovnms[which(!tcovnms %in% names(rsfDF[[s]]))]
+              for (miss in 1:length(rsfMissing)){
+                rsfDF[[s]][,rsfMissing[miss]] <- 0
+              }
+            }
               dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])[,-1,drop=FALSE]
             }
             

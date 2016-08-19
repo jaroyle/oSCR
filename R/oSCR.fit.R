@@ -39,6 +39,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     #           distance moved and is probably too small.")
     
     cl <- match.call(expand.dots = TRUE)
+    model.call <- model
+    
     if (!require(abind))
         stop("need to install package 'abind'")
     if (!require(Formula))
@@ -1648,13 +1650,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             
             }
             endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
-            output <- list(call = cl, rawOutput = myfit, outStats = outStats,
-                coef.mle = data.frame(param = pn, mle = myfit$estimate),
-                Area = areaS, nObs = unlist(lapply(scrFrame$caphist,
-                  nrow)), mmdm = mmdm, nll = myfit$minimum, AIC = 2 *
-                  myfit$minimum + 2 * length(myfit$estimate),
-                started = starttime, ended = endtime, proctime = (proc.time() -
-                  ptm)[3]/60)
+            output <- list(call = cl, model=model.call,rawOutput = myfit, 
+                outStats = outStats,coef.mle = data.frame(param = pn, mle = myfit$estimate),
+                Area = areaS, nObs = unlist(lapply(scrFrame$caphist,nrow)), mmdm = mmdm, 
+                nll = myfit$minimum, AIC = 2 * myfit$minimum + 2 * length(myfit$estimate),
+                started = starttime, ended = endtime, proctime = (proc.time() - ptm)[3]/60)
             class(output) <- "oSCR.fit"
             return(output)
         }

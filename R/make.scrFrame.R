@@ -153,6 +153,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
               newtrapCovs <- data.frame(rsfDF[[s]][trap.grid,miss.rsfCovs])
               names(newtrapCovs) <- miss.rsfCovs
               trapCovs[[s]][[k]] <- data.frame(trapCovs[[s]][[k]],newtrapCovs)
+              
             }
           }
         }

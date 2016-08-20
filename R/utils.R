@@ -12,7 +12,7 @@ telemetry.processor <- function(ssDF, teldata){
     tmp<-table(s.grid, teldata[[s]][,1])
     tmp2<- matrix(0,nrow=nrow(ssDF[[s]]), ncol=nrow(sbar[[s]]) )
     tmp2[as.numeric(rownames(tmp)),]<- tmp
-    nfreq[[s]]<- tmp2
+    nfreq[[s]]<- t(tmp2)
     dlst[[s]]<-t( e2dist(sbar[[s]][,2:3], ssDF[[s]][,c("X","Y")])  )
     #lambda<- exp(-(1/(2*sigma*sigma))*d*d)
   }

@@ -8,4 +8,4 @@ Authors@R: c(person("Chris", "Sutherland", email = "csuthy@gmail.com",role = c("
              person("Dan", "Linden", email = "danlinden@gmail.com", role = "aut"))
 Description: oSCR is an R Package for fitting maximum likelihood multi-session sex-structured spatial capture-recapture models for inference about spatial ecological processes
 License: What license is it under?
-
+Imports: abind, doParallel, gdistance, Formula, FNN, raster

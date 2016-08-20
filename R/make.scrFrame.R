@@ -129,7 +129,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
       if(any(!names(indCovs[[1]]) %in% c(names(telemetry$indCovs[[1]]),"removed")))
         stop("indCovs do not match between capture and telemetry data")
     }
-    
+  }
     if(!is.null(rsfDF)){
       library(FNN)
       rsfCovs <- names(rsfDF[[1]][,-c(1:2),drop=F])
@@ -159,7 +159,6 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
         }
       }
     }
-  }
     
   
   scrFrame <- list("caphist" = caphist,

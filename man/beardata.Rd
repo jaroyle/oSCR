@@ -19,9 +19,9 @@ comes from gardner et al. 2010...
 
   ..$ V2: num [1:38] 4886 4881 4879 4884 4881 ...
 
-  $ bearArray: num [1:47, 1:38, 1:8] 0 0 0 0 0 0 0 0 0 0 ...
+  $ y3d: num [1:47, 1:38, 1:8] 0 0 0 0 0 0 0 0 0 0 ...
 
-  $ flat     : num [1:151, 1:4] 1 1 1 1 1 1 1 1 1 1 ...
+  $ edf     : num [1:151, 1:4] 1 1 1 1 1 1 1 1 1 1 ...
 
   ..- attr(*, "dimnames")=List of 2
 
@@ -55,7 +55,7 @@ secr.traps <- as.matrix(cbind(c(1:dim(beardata$trapmat)[1]), beardata$trapmat * 
 colnames(secr.traps) <- c("trapID", "x", "y")
 traps1 <- as.data.frame(secr.traps[, 1:3])
 trapfile1 <- read.traps(data = traps1, detector = "proximity")
-bear.cap <- make.capthist(as.data.frame(beardata$flat), trapfile1, fmt = "trapID", noccasions = 8)
+bear.cap <- make.capthist(as.data.frame(beardata$edf), trapfile1, fmt = "trapID", noccasions = 8)
 secr.mask <- read.mask(data = bear.ss[[1]]*1000, spacing=2000)
  
 # fit a selection of models in secr:
@@ -86,7 +86,7 @@ library("scrbook")
 data("beardata")
  
 #oSCR data
-y3d <- beardata$bearArray
+y3d <- beardata$y3d
 traps.df <-data.frame(X=beardata$trapmat[,1],Y=beardata$trapmat[,2])
 sex.df <- data.frame(sex=beardata$sex-1)
 bear.sf <- list(caphist=list(y3d),
@@ -98,12 +98,12 @@ class(bear.sf) <- "scrFrame"
  
 bear.ss <- make.ssDF(bear.sf, buffer=20, res=2)
  
-#secr data
+# secr data
 secr.traps <- as.matrix(cbind(c(1:dim(beardata$trapmat)[1]), beardata$trapmat * 1000))
 colnames(secr.traps) <- c("trapID", "x", "y")
 traps1 <- as.data.frame(secr.traps[, 1:3])
 trapfile1 <- read.traps(data = traps1, detector = "proximity")
-bear.df <- as.data.frame(beardata$flat)
+bear.df <- as.data.frame(beardata$edf)
 bear.df$Session <- rep(1,nrow(bear.df))
 bear.cap <- make.capthist(bear.df, trapfile1, fmt = "trapID", noccasions = 8)
 indCovs <- data.frame(sex = beardata$sex)

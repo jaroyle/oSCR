@@ -17,7 +17,8 @@ A list of capture history arrays with dimensions \eqn{n x J x K} (individual-by-
   \item{traps}{
 A list of data frames, one for each session, containing the coordinates of all the traps/detectors. The coordinates must be named X and Y (note these are capitals). Traps that are not operational in specific occasions can be \emph{turned off} by supplying the appropriate \code{trapOperation} object.}
   \item{indCovs}{
-A list of data frames, one for each session, containing individual-specific data. Currently \code{oSCR} deals only with  a two-class category such as sex, but can accommodate missing data (e.g., male=1, female=0, and unknown=NA).}
+A list of data frames, one for each session, containing individual-specific data. Currently \code{oSCR} deals only with  a two-class category such as sex, 
+but can accommodate missing data (e.g., male=1, female=0, and unknown=NA).}
   \item{trapCovs}{
 A two level list. A list for each session contains a further list of data frames, one for each occasion, i.e., trap covariates can be time-varying.
 }

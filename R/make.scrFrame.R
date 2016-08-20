@@ -1,5 +1,5 @@
-make.scrFrame <- function(caphist, traps, indCovs=NULL, 
-                          trapCovs=NULL, trapOperation=NULL, telemetry=NULL, type="scr"){
+make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, 
+                          trapOperation=NULL, telemetry=NULL, rsfDF=NULL, type="scr"){
   
   #must have caphist and traps
   if(any(is.null(caphist),is.null(traps)))
@@ -128,6 +128,33 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL,
         stop("number of individuals in telemetry$indCovs does not match telemetry$fixfreq")
       if(any(!names(indCovs[[1]]) %in% c(names(telemetry$indCovs[[1]]),"removed")))
         stop("indCovs do not match between capture and telemetry data")
+    }
+    
+    if(!is.null(rsfDF)){
+      library(FNN)
+      rsfCovs <- names(rsfDF[[1]][,-c(1:2),drop=F])
+      
+      if(is.null(trapCovs)){
+        trapCovs <- list(); length(trapCovs) <- n.sessions
+        for(s in 1:n.sessions){
+          trap.grid <- as.vector(get.knnx(rsfDF[[s]][,c("X","Y")],traps[[s]][,c("X","Y")],1)$nn.index)
+          trapCovs[[s]] <- list(); length(trapCovs[[s]]) <- caphist.dimensions[3,s]
+          for (k in 1:caphist.dimensions[3,s]){
+            trapCovs[[s]][[k]] <- data.frame(rsfDF[[s]][trap.grid,rsfCovs])
+            names(trapCovs[[s]][[k]]) <- rsfCovs
+          }
+        }
+      } else {
+        for(s in 1:n.sessions){
+          if(any(!rsfCovs %in% trapCovs[[s]][[1]])){
+            miss.rsfCovs <- rsfCovs[which(!rsfCovs %in% trapCovs[[s]][[1]])]
+            trap.grid <- as.vector(get.knnx(rsfDF[[s]][,c("X","Y")],traps[[s]][,c("X","Y")],1)$nn.index)
+            for (k in 1:caphist.dimensions[3,s]){
+              trapCovs[[s]][[k]] <- data.frame(trapCovs[[s]][[k]],rsfDF[[s]][trap.grid,rsfCovs])
+            }
+          }
+        }
+      }
     }
   }
     

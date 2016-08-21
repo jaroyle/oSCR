@@ -80,7 +80,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     if (any(maxY > 1) & encmod %in% c("B","CLOG"))
         stop("caphist must be binary when using the Binomial/Cloglog encounter model")
     if (all(maxY == 1) & encmod == "P")
-        stop("caphist looks binary but Poisson encounter model is selected")
+        warning("caphist looks binary but Poisson encounter model is selected")
     if (theta >2 | theta <1)
         warning("theta should be between 1 (exponential) and 2 (half-normal)
              for power model distance function")

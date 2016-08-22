@@ -15,6 +15,10 @@ change type=multicatch to be just another encounter model....
 update nybear data so that all data objects are correct (trap
 locations are not)
 
+OUT OF DATE -- update slowworm analysis example
+
+OUT OF DATE -- update microtus analysis example
+
 --------- Moderate ----------------------------------------------
 
 Farm out design matrix creation

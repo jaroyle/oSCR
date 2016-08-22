@@ -1,11 +1,7 @@
 need to allow covariate * sex interactions
 
 new set of likelihood functions for when there is no temporal
-variation in p
-
-auxiliary telemetry data
-
-flesh out the help files
+variation in p. NOTE: this will cause problems with AIC comparisons....
 
 make oSCR faster!
  - efficient trimming of the state space for all-zero ind (requires irregular matrix indexing)
@@ -22,41 +18,14 @@ print warning/messages for oSCR.fit objectects:
    3. if dist=ecol note that trimS or the buffer might have to change
         [should be in help file too]
 
-
 allow for sessions with no captures......
 
+change type=multicatch to be just another encounter model....
+
+update nybear data so that all data objects are correct (trap
+locations are not)
 
 
-telemetyr
-telemetry data plan:
+---------- DONE ----------------
 
-1. add rsfDF to make.scrFrame.  This object can have different
-resolution than state-space. 
-
-If this is provided then:
-
- 1a. every covariate in rsfDF gets auto-matically converted to a
- trapCov using "rsf2traps" or similar
- 
- 1b. currently telemetry.processor() can convert rsfDF covariates to
- cell frequencies needed to compute the likelihood. This function
- should be called within the make.scrFrame call. 
-
-2. there are TWO options for modeling RSF covariates:
-
- 2.1:  we could have an RSF=TRUE option which, if TRUE, will use any
- covariate in the rsfDF as a covariate on the telemetry data.  This
- seems straightforward.....??
-
- should produce a warning message or someting to make sure user knows
- that only covariates in rsfDF are used.
-
- XXXXX Dan: I still think option 2.1 is best.  Then when RSF=TRUE, you check that names in rsfDF are terms in the p0 model.
-
-
-
-
- 2.2: we could add a whole new formula to the function call.  This
- seems more difficult. 
-
-3. The likelihood bit of the telemetry data is easy enough to add.
+telemetry: DONE (thanks Dan!)

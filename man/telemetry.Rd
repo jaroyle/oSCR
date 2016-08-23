@@ -316,14 +316,6 @@ fit2 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
 
 
 
-Okay, now make.scrFrame can accept an rsfDF (as a list, like usual) and if you do provide one,
- it will check for trapCovs that correspond to rsfDF covariates and add them if they are absent.  
-This is cool because ANY spatial covariates that you can define for the state space are easily 
-and automatically formatted as a trapCov, whether or not you had previous trapCovs, and whether
- or not you even have telemetry data.  So including rsfDF in make.scrFrame can be used as a trick 
-to create spatial trap covariates.
-
-
 
 
 

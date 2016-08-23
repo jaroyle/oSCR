@@ -15,6 +15,8 @@ change type=multicatch to be just another encounter model....
 update nybear data so that all data objects are correct (trap
 locations are not)
 
+model average predictions. predict.oSCR should take a fitList....(optional)
+
 OUT OF DATE -- update slowworm analysis example
 
 OUT OF DATE -- update microtus analysis example

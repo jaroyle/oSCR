@@ -1,6 +1,7 @@
 --------- East to do or critical --------------------------------
 
 Hack predict.oSCR to compute ESA (make a summary method perhaps)
+  [almost done]
 
 print warning/messages for oSCR.fit objectects:
    1. density is per pixel
@@ -11,6 +12,11 @@ print warning/messages for oSCR.fit objectects:
 allow for sessions with no captures......
 
 change type=multicatch to be just another encounter model....
+
+update mander analysis to include multicatch=TRUE
+
+in print() for fit objects, print the type of encounter model (B, P,
+MN)
 
 update nybear data so that all data objects are correct (trap
 locations are not)

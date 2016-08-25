@@ -25,11 +25,14 @@ make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = N
 A two level list (a list of lists, lol). A list for each session contains a list of data frames, one for each occasion, i.e., trap covariates can be time-varying. The occasion level data has a row for each trap matching the \code{traps} object, and a named column for each covariate.}
 
   \item{trapOperation}{A list of binary matrices with dimension \eqn{J x K} (trap-by-occasion), one for each session. The matrix denotes whether a trap was operational (1) or not (0) in each occasion. Traps with trapOperation equal to zero does not contribute to the likelihood.}
-  \item{telemetry}{
-%%     ~~Describe \code{telemetry} here~~
+  \item{telemetry}{A list with 2 objects containing data from collared individuals:\\
+  1) \code{fixfreq}, a list of matrices with dimension \eqn{n.tel x nG} (collared individual-by-grid cell), one for each session.  The values are counts of the number of telemetry/GPS fixes within each grid cell of the rsfDF, as returned by the \code{telemetry.processor()} function.\\
+  2) \code{indCovs}, a list containing individual-specific data, one for each session.  This is structured the same as the \code{indCovs} object for captured individuals, and currently only accommodates sex.
 }
   \item{rsfDF}{
-%%     ~~Describe \code{rsfDF} here~~
+Similar to the \code{ssDF}, a list of data frames for each session containing the coordinates of the state-space pixels (labeled "X" and "Y") and covariate values used for fitting the resource selection function.  This can be exactly the same as the \code{ssDF}, or represent a grid with an even finer resolution (coarser resolution NOT recommended).\\
+
+By specifying the \code{rsfDF} when making the \code{scrFrame}, covariates within the \code{rsfDF} are automatically added to \code{trapCovs} if missing. 
 }
   \item{type}{This should be set to `SCR'.}
 

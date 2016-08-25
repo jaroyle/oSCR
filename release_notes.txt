@@ -1,0 +1,5 @@
+8/25 
+
+make.scrFrame docs added (Chris/Dan)
+
+small addition to ocelot man page to set disturb=0 for session 1

@@ -5,7 +5,7 @@
 \title{Create a formatted oSCR data object}
 
 \description{
-A helper function for creating the primary \pkg{oSCR} data object, an scrFrame, used for fitting spatial capture-recapture models with the fitting function \link[oSCR]{oSCR.fit}.}
+A helper function for creating the primary \pkg{oSCR} data object, an scrFrame, used for fitting spatial capture-recapture models with the fitting function \code{\link{oSCR.fit}}.}
 
 \usage{
 make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = NULL, telemetry = NULL, rsfDF = NULL, type = "scr")}

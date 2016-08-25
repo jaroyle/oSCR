@@ -108,5 +108,25 @@ ldist <- apply(gDistance(SpatialPoints(as.matrix(pts)),
 
 
 
+
+##
+## 
+## plot the cost-surface variable "disturb"
+##
+##
+
+# Do this before fitting ASU models because all values should be 0 pre-disturb
+  ocelot.cost[[1]][,"disturb"]<- 0
+
+  plot(ocelot.cost[[2]][,c("X","Y")],pch=".")
+  points(ocelot.cost[[2]][,c("X","Y")][ocelot.cost[[2]][,"disturb"]==1,],pch=20)
+  ocelot.cost[[1]][,"disturb"]<- 0
+  table(ocelot.cost[[1]][,"disturb"])
+# plot(seismic_lines, add=TRUE)
+  points(tdf1[,c("X","Y")],pch=3, lwd=3,col="red")
+ 
+
+
+
 }
 \keyword{datasets}

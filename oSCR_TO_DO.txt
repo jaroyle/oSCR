@@ -3,6 +3,9 @@
 Hack predict.oSCR to compute ESA (make a summary method perhaps)
   [almost done]
 
+We really need a 'predict.connectivity(model, costDF, ssDF, type = c (
+"potential", "dwc")[1]) function.
+
 print warning/messages for oSCR.fit objectects:
    1. density is per pixel
    2. Nhat = 

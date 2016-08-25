@@ -133,7 +133,7 @@ cap<-apply(y,1,sum)>0
 y<-y[cap,]
 gr<-as.matrix(gr)
 # Average capture location
-sbar<- crossprod(n, gr)/as.vector(crossprod(n, rep(1,nrow(gr))))
+sbar<- crossprod(t(n), gr)/as.vector(crossprod(n, rep(1,nrow(gr))))
 
 # Set up the data for oSCR
 library(oSCR)

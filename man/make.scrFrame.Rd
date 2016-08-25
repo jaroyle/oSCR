@@ -18,9 +18,9 @@ make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = N
 
   \item{indCovs}{A list, one for each session, containing individual-specific data. Currently two types of individual covariates are used:
   
-  \emph{sex}, a binary (two-class) covariate codes as 1 for males, 0 for females, and NA for individuals with unknown sex.
+  1) \emph{sex}, a binary (two-class) covariate codes as 1 for males, 0 for females, and NA for individuals with unknown sex.
   
-  \emph{removed}, a integer value detailing on which occasion an individual was removed from the study (e.g., a mortality event). If there were no removals then this information is not required.\\
+  2) \emph{removed}, a integer value detailing on which occasion an individual was removed from the study (e.g., a mortality event). If there were no removals then this information is not required.\\
   
   If supplied, the columns of the \code{indCovs} must be named \emph{sex} and/or \emph{removed}.}
 
@@ -29,7 +29,7 @@ make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = N
 
   \item{trapOperation}{A list of binary matrices with dimension \eqn{J x K} (trap-by-occasion), one for each session. The matrix denotes whether a trap was operational (1) or not (0) in each occasion. Traps with trapOperation equal to zero does not contribute to the likelihood.}
   
-  \item{telemetry}{A list with 2 objects containing data from collared individuals:
+  \item{telemetry}{A list with two objects containing data from collared individuals:
   
   1) \code{fixfreq}, a list of matrices with dimension \eqn{n.tel x nG} (collared individual-by-grid cell), one for each session.  The values are counts of the number of telemetry/GPS fixes within each grid cell of the rsfDF, as returned by the \code{telemetry.processor()} function.
   

@@ -16,9 +16,12 @@ make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = N
 
   \item{traps}{A list of trap coordinates, one for each session. The coordinate columns must be named `X' and `Y' (note these are capitals). All traps used in the study must be provided here and should coincide with the columns of the \code{caphist} array. Traps that are not operational in specific occasions can be `turned off' by supplying the appropriate \code{trapOperation} object.}
 
-  \item{indCovs}{A list, one for each session, containing individual-specific data. Currently two types of individual covariates are used: \
-  \emph{sex}, a binary (two-class) covariate codes as 1 for males, 0 for females, and NA for individuals with unknown sex.\
+  \item{indCovs}{A list, one for each session, containing individual-specific data. Currently two types of individual covariates are used:
+  
+  \emph{sex}, a binary (two-class) covariate codes as 1 for males, 0 for females, and NA for individuals with unknown sex.
+  
   \emph{removed}, a integer value detailing on which occasion an individual was removed from the study (e.g., a mortality event). If there were no removals then this information is not required.\\
+  
   If supplied, the columns of the \code{indCovs} must be named \emph{sex} and/or \emph{removed}.}
 
   \item{trapCovs}{

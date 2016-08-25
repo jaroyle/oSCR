@@ -43,7 +43,7 @@ make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = N
   \item{type}{This should be set to "SCR".}
   }
 
-\details{The scrFrame is the formatted data object required for fitting SCR models using link[oSCR]{oSCR.fit}. A variety of error chacks are conducted to ensure that the individual data objects are consistent.}
+\details{The scrFrame is the formatted data object required for fitting SCR models using \code{\link{oSCR.fit}}. A variety of error checks are conducted to ensure that the individual data objects are consistent.}
 
 \value{An object of class scrFrame}
 

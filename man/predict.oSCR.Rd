@@ -67,12 +67,12 @@ Andy Royle
 # Load the beardata (also in oSCR now)
 library("oSCR")
 data(beardata)
-nind<-dim(beardata$bearArray)[1]
-K<-dim(beardata$bearArray)[3]
-ntraps<-dim(beardata$bearArray)[2]
+nind<-dim(beardata$y3d)[1]
+K<-dim(beardata$y3d)[3]
+ntraps<-dim(beardata$y3d)[2]
 traplocs<- as.matrix(beardata$trapmat)
 par(mfrow=c(1,1))
-temp <- spiderplot(beardata$bearArray,beardata$trapmat)
+temp <- spiderplot(beardata$y3d,beardata$trapmat)
 
  
 # Fit a basic model
@@ -81,7 +81,7 @@ temp <- spiderplot(beardata$bearArray,beardata$trapmat)
  
 
 tdf<- cbind(1:38, beardata$trapmat, matrix(1, nrow=38, ncol=8))
-edf<- beardata$flat
+edf<- beardata$edf
 edf[,1]<- 1  # change all sessions to 1 , *important* !
 data<- data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL,
  tdf = list(tdf), K = c(8), ntraps = c(38), remove.zeros = TRUE, remove.extracaps = TRUE, sex.nacode = NULL, tdf.sep = "/")
@@ -108,9 +108,6 @@ pred<- predict.oSCR(sf, out1 ,ssDF)
 #### predict.oSCR is just a wrapper. If you want you can get the raw materials here:
 #### a<- oSCR.fit(scrFrame=scrFrame,ssDF=ssDF,start.vals=out1$rawOutput$estimate,predict=TRUE)
 ####
-
-  
-
 # Plot posterior of s for a specific individual
 par(mfrow=c(1,1))
 for(i in 1:47){
@@ -140,11 +137,11 @@ par(mfrow=c(1,1))
 plot(pred$r[[1]])   # pred is a list, one for each session, $r is a raster 
 points(tdf[,2:3],pch=20)
 title("Realized density")
-null <- spiderplot(beardata$bearArray,beardata$trapmat, add=TRUE)
+null <- spiderplot(beardata$y3d,beardata$trapmat, add=TRUE)
 
 # Conditional probability of capture (ESA is area-weighted sum of this)
 par(mar=c(3,3,3,6))
- plot(pred$pbar[[1]])
+plot(pred$pbar[[1]])
 
 
 

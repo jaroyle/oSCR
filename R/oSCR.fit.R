@@ -236,9 +236,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 for (i in tCovMissing) print(i))
         }
         mod2 <- update(model[[2]], ~. - sex - session - t - b -
-                       b:sex - sex:b - b:session - session:b - b:session:sex -
-                       b:sex:session - sex:session:b - sex:b:session -
-                       session:b:sex - session:sex:b)
+                       b:sex - sex:b - b:session - session:b - 
+                       sex:session - session:sex -
+                       b:session:sex - b:sex:session - sex:session:b - 
+                       sex:b:session - session:b:sex - session:sex:b)
 
         if (any(c("session") %in% allvars.T))
             tSession <- TRUE

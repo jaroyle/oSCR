@@ -1,5 +1,8 @@
 --------- East to do or critical --------------------------------
 
+order print(out) same as out$outStats and same as order of starting
+values!!
+
 Hack predict.oSCR to compute ESA (make a summary method perhaps)
   [almost done]
 
@@ -31,6 +34,10 @@ OUT OF DATE -- update slowworm analysis example
 OUT OF DATE -- update microtus analysis example
 
 --------- Moderate ----------------------------------------------
+
+make a "Squeeze" function which will reduce a full scrFrame to include
+only days where at least 1 trap was operated (should make things a tad
+bit faster too in large camera trap studies). 
 
 Farm out design matrix creation
 

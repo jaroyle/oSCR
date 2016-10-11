@@ -8,6 +8,11 @@
 \description{
 Computes the estimated posterior distribution for each activity centers
 and the total realized density.
+
+NOTE: Right now this only works when the state-space coordinates can be
+converted to a raster. This is done internally with rasterFromXYZ in the
+raster package. But it throws an error if the state-space coordinates
+are irregular. We will fix this.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{

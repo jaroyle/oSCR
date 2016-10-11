@@ -39,7 +39,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     #           distance moved and is probably too small.")
     
     cl <- match.call(expand.dots = TRUE)
-    model.call <- model
+    model.call <- as.list(paste(model))
     
     if (!require(abind))
         stop("need to install package 'abind'")
@@ -236,9 +236,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 for (i in tCovMissing) print(i))
         }
         mod2 <- update(model[[2]], ~. - sex - session - t - b -
-                       b:sex - sex:b - b:session - session:b - b:session:sex -
-                       b:sex:session - sex:session:b - sex:b:session -
-                       session:b:sex - session:sex:b)
+                       b:sex - sex:b - b:session - session:b - 
+                       sex:session - session:sex -
+                       b:session:sex - b:sex:session - sex:session:b - 
+                       sex:b:session - session:b:sex - session:sex:b)
 
         if (any(c("session") %in% allvars.T))
             tSession <- TRUE
@@ -361,40 +362,55 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     if (DorN == "D") {
         mod1 <- update(model[[1]], ~. - sex)
         for (s in 1:ns) {
-            dm.den[[s]] <- model.matrix(mod1, as.data.frame(ssDF[[s]]))
+          dm.den[[s]] <- model.matrix(mod1, as.data.frame(ssDF[[s]]))
         }
         d.nms <- colnames(dm.den[[1]])
         names.beta.den <- paste("d.beta", d.nms, sep = ".")
         chx <- grep(fixed=TRUE,"Intercept", names.beta.den)
         if (length(chx) > 0)
             names.beta.den[chx] <- "d0.(Intercept)"
-        pars.d0 <- log(mean((unlist(lapply(scrFrame$caphist,
-            nrow)))/unlist(lapply(ssDF, nrow))))
-        pars.beta.den <- c(pars.d0, rep(0.1, length(names.beta.den) -
-            1))
+        pars.d0 <- log(mean((unlist(lapply(scrFrame$caphist,nrow)))/unlist(lapply(ssDF, nrow))))
+        pars.beta.den <- c(pars.d0, rep(0.1, length(names.beta.den) - 1))
         pars.n0 <- NULL
         names.n0 <- NULL
     }
+
     if (distmet == "ecol" && length(allvars.dist) == 0) {
         message("You specified 'ecological distance' (distmet='ecol') but provided no\ncost surface.\n    Euclidean distance will be used.")
     }
     if (length(allvars.dist) > 0) {
         ccovnms <- colnames(costDF[[1]])
-        cCovMissing <- allvars.dist[which(!allvars.dist %in%
-            ccovnms)]
+        cCovMissing <- allvars.dist[which(!allvars.dist %in% ccovnms)]
         if (length(cCovMissing) > 0) {
             stop("I cant find theses covariates in 'costDF'",
                 for (i in cCovMissing) print(i))
         }
     }
-    mod4 <- update(model[[4]], ~. - sex - session - 1)
-    if (distmet == "ecol") {
-        for (s in 1:ns) {
-            dm.cost[[s]] <- my.model.matrix(mod4, costDF[[s]])
-            names.dist <- paste("c.beta.", allvars.dist, sep = "")
-            pars.dist <- rep(0, length(names.dist))
-        }
+
+#    mod4 <- update(model[[4]], ~. - sex - session - 1)
+#    if (distmet == "ecol") {
+#        for (s in 1:ns) {
+#            dm.cost[[s]] <- my.model.matrix(mod4, costDF[[s]])
+#            names.dist <- paste("c.beta.", allvars.dist, sep = "")
+#            pars.dist <- rep(0, length(names.dist))
+#        }
+#    }
+
+    if(distmet == "ecol"){
+      mod4 <- update(model[[4]], ~. - sex - session)
+      for (s in 1:ns) {
+        dm.cost[[s]] <- model.matrix(mod4, as.data.frame(costDF[[s]]))
+      }
+      c.nms <- colnames(dm.cost[[1]])
+      names.dist <- paste("c.beta", c.nms, sep = ".")
+      chx <- grep(fixed=TRUE,"Intercept", names.dist)
+      if (length(chx) > 0)
+        names.dist[chx] <- "c0.(Intercept)"
+      pars.c0 <- 0.01
+      pars.dist <- c(pars.c0, rep(0.01, length(names.dist) - 1))
     }
+    
+
     if (!smallslow) {
         if (distmet == "euc") {
             for (s in 1:ns) {
@@ -797,9 +813,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 tr <- transition(costR, transitionFunction = function(x) (1/(mean(x))),
                   direction = directions)
                 trLayer <- geoCorrection(tr, scl = F)
-                D[[s]] <- costDistance(trLayer, as.matrix(scrFrame$traps[[s]][,
-                  c("X", "Y")]), as.matrix(ssDF[[s]][, c(c("X",
-                  "Y"))]))
+                D[[s]] <- costDistance(trLayer,
+                                       as.matrix(scrFrame$traps[[s]][,c("X", "Y")]), 
+                                       as.matrix(ssDF[[s]][, c("X","Y")]))
             }
             if (smallslow) {
                 if (distmet == "euc") {
@@ -1608,6 +1624,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
             links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"
             links[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- "(log)"
+            links[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- "(log)"
             links[grep(fixed=TRUE,"psi", pn)] <- "(logit)"
             links[grep(fixed=TRUE,"beta", pn)] <- "(Identity)"
             trans.mle <- rep(0, length(pv))
@@ -1620,6 +1637,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             trans.mle[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"sig.(Intercept)", pn)])
             trans.mle[grep(fixed=TRUE,"n0.", pn)] <- exp(pars[grep(fixed=TRUE,"n0.", pn)])
             trans.mle[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"d0.(Intercept)", pn)])
+            trans.mle[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"c0.(Intercept)", pn)])
             trans.mle[grep(fixed=TRUE,"psi", pn)] <- plogis(pars[grep(fixed=TRUE,"psi", pn)])
             trans.mle[grep(fixed=TRUE,"beta", pn)] <- pars[grep(fixed=TRUE,"beta", pn)]
             if (pBehave) {

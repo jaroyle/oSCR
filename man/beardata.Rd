@@ -2,10 +2,11 @@
 \alias{beardata}
 \docType{data}
 \title{
-bear data %%   ~~ data name/kind ... ~~
+Fort Drum bear data %%   ~~ data name/kind ... ~~
 }
 \description{
-comes from gardner et al. 2010... 
+  Data from the Fort Drum black bear hair snare study, see Gardner et
+  al. (2010). 
 }
 \usage{data("beardata")}
 \format{
@@ -32,7 +33,11 @@ comes from gardner et al. 2010...
   $ sex      : num [1:47] 1 1 2 1 1 1 1 2 1 2 ...
 }
 \details{
-%%  ~~ If necessary, more details than the __description__ above ~~
+loads the Fort Drum beardata.
+A list with "trapmat", "y3d" (3 d array), "edf" (2 d matrix, secr
+format, with sessions coding for sex) and "sex" (sex of the individuals,
+1=female, 2=male)
+
 }
 \source{
 %%  ~~ reference to a publication or URL from which the data were obtained ~~
@@ -110,7 +115,7 @@ indCovs <- data.frame(sex = beardata$sex)
 covariates(bear.cap) <- indCovs
 secr.mask <- read.mask(data = bear.ss[[1]]*1000, spacing=2000)
  
-#### try sex:
+#### try sex effect on p0:
 s.bear.0 = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ 1, sigma ~ 1), hcov= "sex", mask = secr.mask)
 o.bear.0 = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1, sig ~ 1), ssDF=bear.ss)
  

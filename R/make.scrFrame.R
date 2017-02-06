@@ -1,4 +1,4 @@
-make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, 
+make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=NULL,
                           trapOperation=NULL, telemetry=NULL, rsfDF=NULL, type="scr"){
   
   #must have caphist and traps
@@ -75,6 +75,33 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
     }
   }
   
+  #sigCovs
+  if(!is.null(sigCovs)){
+    if(nrow(sigCovs) != length(caphist))
+      stop("number of rows in sigCovs does not match number of sessions")
+    if(!"session" %in% colnames(sigCovs)){
+      sigCovs$session <- factor(1:n.sessions)
+    }
+    if(!is.null(indCovs)){
+      if("sex" %in% colnames(indCovs[[1]])){
+        sigCovs <- sigCovs[rep(1:n.sessions,2),,drop=F]
+        rownames(sigCovs) <- NULL
+        sigCovs$sex <- factor(rep(c("female","male"),each=n.sessions))
+      }
+    }
+  }else{
+    sigCovs <- data.frame(session = factor(1:n.sessions))
+    if(!is.null(indCovs)){
+      if("sex" %in% colnames(indCovs[[1]])){
+        sigCovs <- sigCovs[rep(1:n.sessions,2),,drop=F]
+        rownames(sigCovs) <- NULL
+        sigCovs <- sigCovs[rep(1:n.sessions,2),,drop=F]
+        rownames(sigCovs) <- NULL
+        sigCovs$sex <- factor(rep(c("female","male"),each=n.sessions))
+      }
+    }
+  }
+
   #trapOperation
   if(!is.null(trapOperation)){
     if(!is.list(trapOperation))
@@ -165,6 +192,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
                    "traps" = traps,
                    "indCovs" = indCovs,
                    "trapCovs" = trapCovs,
+                   "sigCovs" = sigCovs,
                    "trapOperation" = trapOperation,
                    "occasions" = caphist.dimensions[3,],
                    "type" = type,

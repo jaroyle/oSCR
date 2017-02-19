@@ -129,6 +129,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
     }
   }
   mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
+  mdm <- max(max.dist,na.rm=T)
   
   #telemetry
   if(!is.null(telemetry)){
@@ -156,6 +157,13 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
       if(any(!names(indCovs[[1]]) %in% c(names(telemetry$indCovs[[1]]),"removed")))
         stop("indCovs do not match between capture and telemetry data")
     }
+    #overlap between collared/captured individuals
+    if(!is.null(telemetry$cap.tel)){
+      if(!is.list(telemetry$cap.tel))
+        stop("telemetry$indCovs must be a list")
+      warning("make sure captured individuals w/ collars sorted first!")
+    }
+    
   }
     if(!is.null(rsfDF)){
       library(FNN)
@@ -197,6 +205,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
                    "occasions" = caphist.dimensions[3,],
                    "type" = type,
                    "mmdm" = mmdm,
+                   "mdm" = mdm,
                    "telemetry" = telemetry)
   
   class(scrFrame) <- "scrFrame"  

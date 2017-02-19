@@ -1205,6 +1205,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             if (!is.null(YYtel)){ #check if telemetry exists
               Ytels <- YYtel[[s]]
               sxtel <- scrFrame$telemetry$indCovs[[s]]$sex + 1
+              cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
               lik.marg.tel <- rep(NA, nrow(Ytels))
             } 
             if (predict)
@@ -1241,6 +1242,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }
             }
             if (!is.null(scrFrame$telemetry)){
+              # only Euclidean distance for telemetry fixes
               Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
             lik.marg <- lik.marg1 <- lik.marg2 <- rep(NA, nrow(Ys))
@@ -1266,6 +1268,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.s <- exp(dm.den[[s]] %*% d.beta)
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
+            
+            # some collared ind captured, so keep lik.cond for combining later
+            if (!is.null(cap.tel)){
+              lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
+            }
+            
             for (i in 1:nrow(Ys)) {
                 if (plotit) {
                   pp <- sum(trimR[[s]][[i]][[k]])
@@ -1368,6 +1376,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
            #                  lik.cond <- numeric(nG[s])
+                  if (!is.null(cap.tel)){
+                    if (i %in% cap.tel){
+                      lik.cond.tel[match(i,cap.tel),] <- lik.cond
+                    }
+                  }
+                  
                   lik.cond[trimC[[s]][[i]]] <- exp(lik.cond[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
 ######            lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm = T))
                   tmpPsi <- (sx[i] == 1) * (1 - psi.sex[s]) +
@@ -1543,6 +1557,25 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 probs <- t(probs/denom)
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
+                #browser()
+                if (!is.null(cap.tel)){
+                  if (i <= length(cap.tel)){
+                    # combine conditional likelihoods if some collared ind were captured
+                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
+                    #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
+                    lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])
+                  
+                    tmpPsi <- (sx[cap.tel[i]] == 1) * (1 - psi.sex[s]) + (sx[cap.tel[i]] == 2) * psi.sex[s]
+                    # fix marginal likelihoods
+                    lik.marg[cap.tel[i]] <- sum(lik.cond.tot * as.vector(pi.s)) * tmpPsi
+                    lik.marg.tel[i] <- 1
+                  
+                    if (predict){
+                      preds[[s]][cap.tel[i], ] <- lik.cond.tot * as.vector(pi.s) * tmpPsi/lik.marg[cap.tel[i]]
+                    }
+                  
+                  }
+                }
                               
               }
             }

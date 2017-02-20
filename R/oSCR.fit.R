@@ -793,6 +793,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         for (s in 1:length(YY)) {
             Ys <- YY[[s]]
+            if (!is.null(YYtel)){ #check if telemetry exists
+              Ytels <- YYtel[[s]]
+              cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
+              lik.marg.tel <- rep(NA, nrow(Ytels))
+            } 
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
@@ -824,6 +829,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     "Y")], ssDF[[s]][, c("X", "Y")])
                 }
             }
+            if (!is.null(scrFrame$telemetry)){
+              # only Euclidean distance for telemetry fixes
+              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
+            }
             lik.marg <- rep(NA, nrow(Ys))
             if (!is.null(trimS)) {
                 pixels.prior <- rep(T, nG[s])
@@ -847,6 +856,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.s <- exp(dm.den[[s]] %*% d.beta)
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
+            
+            # some collared ind captured, so keep lik.cond for combining later
+            if (!is.null(cap.tel)){
+              lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
+            }
+            
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
 
             for (i in 1:nrow(Ys)) {
@@ -947,6 +962,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }  # end k loop
 #                lik.cond <- numeric(nG[s])
 #    lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm, na.rm = T))
+                 
+                 if (!is.null(cap.tel)){
+                   if (i %in% cap.tel){
+                     lik.cond.tel[match(i,cap.tel),] <- lik.cond
+                   }
+                 }
+                 
+                 
                 lik.cond[trimC[[s]][[i]]] <- exp(lik.cond[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
               #  b<<- lik.cond
               #  return(0)
@@ -955,6 +978,45 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 if (predict)
                   preds[[s]][i, ] <- (lik.cond * pi.s)/lik.marg[i]
             }
+            
+            
+            if(!is.null(YYtel)){
+              
+              if(RSF){
+                rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
+                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
+              } else {
+                rsf.lam0 <- 0
+              }
+              for (i in 1:nrow(Ytels)){
+                
+                probs <- t(exp(rsf.lam0 - alphsig[s] * Drsf[[s]]^theta))
+                denom <- rowSums(probs)
+                probs <- t(probs/denom)
+                
+                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
+                #browser()
+                if (!is.null(cap.tel)){
+                  if (i <= length(cap.tel)){
+                    # combine conditional likelihoods if some collared ind were captured
+                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
+                    #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
+                    lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])
+                    
+                    # fix marginal likelihoods
+                    lik.marg[cap.tel[i]] <- sum(lik.cond.tot * as.vector(pi.s)) 
+                    lik.marg.tel[i] <- 1
+                    
+                    if (predict){
+                      preds[[s]][cap.tel[i], ] <- lik.cond.tot * as.vector(pi.s) / lik.marg[cap.tel[i]]
+                    }
+                    
+                  }
+                }
+                
+              }
+            }
+            
             if (!predict) {
                 if (DorN == "N") {
                   nv <- c(rep(1, length(lik.marg) - 1), n0[s])
@@ -970,8 +1032,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     pixels) * atheta
                   part2 <- sum(nv[1:nind] * log(lik.marg[1:nind]))
                 }
-                ll <- -1 * (part1 + part2)
-                outLik <- outLik + ll
+              
+              if(!is.null(YYtel)){
+                part3 <- sum(log(lik.marg.tel))
+              } else {
+                part3 <- 0
+              }
+              
+              ll <- -1 * (part1 + part2 + part3)
+              outLik <- outLik + ll
             }
             if (predict) {
                 lik.bits[[s]] <- cbind(lik.mar = lik.marg)

@@ -1632,6 +1632,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     # combine conditional likelihoods if some collared ind were captured
                     lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
                     #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
+                    lik.cond.tot[is.na(lik.cond.tot)] <- 0
                     lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])
                   
                     tmpPsi <- (sx[cap.tel[i]] == 1) * (1 - psi.sex[s]) + (sx[cap.tel[i]] == 2) * psi.sex[s]

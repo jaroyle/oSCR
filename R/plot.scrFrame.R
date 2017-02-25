@@ -1,5 +1,6 @@
-plot.scrFrame<-function(scrFrame, ax=TRUE){
-  op <- par(no.readonly=TRUE)
+plot.scrFrame<-function(scrFrame, ax=TRUE, jit=1){
+  #op <- par(no.readonly=TRUE)
+  par(oma=c(0,0,0,0))
   all.ind.xy <- list()
   mean.loc <- list()
   mu.x <- list()
@@ -24,24 +25,23 @@ plot.scrFrame<-function(scrFrame, ax=TRUE){
     all.ind.xy[[s]] <- data.frame(ind = s.ind, 
                                   x   = s.ind.xy[,1], 
                                   y   = s.ind.xy[,2])
-    mu.x[[s]] <- tapply(all.ind.xy[[s]]$x,all.ind.xy[[s]]$ind,mean)
-    mu.y[[s]] <- tapply(all.ind.xy[[s]]$y,all.ind.xy[[s]]$ind,mean)
+    mu.x[[s]] <- jitter(tapply(all.ind.xy[[s]]$x,all.ind.xy[[s]]$ind,mean),factor=jit)
+    mu.y[[s]] <- jitter(tapply(all.ind.xy[[s]]$y,all.ind.xy[[s]]$ind,mean),factor=jit)
   }
-  par(oma=c(0,0,0,0))
-  for(s in 1:length(scrFrame$caphist)){
-    plot(scrFrame$traps[[s]][,c("X","Y")], asp=1, type="n", las=1, 
+  for(t in 1:length(scrFrame$caphist)){
+    plot(scrFrame$traps[[t]][,c("X","Y")], asp=1, type="n", las=1, 
          axes = ax, xlab = "", ylab = "")
     clr <- sample(colors(),nrow(tmp.ch))
     box(bty="o")
-    for(i in 1:nrow(tmp.ch)){
-      to.x <- all.ind.xy[[s]]$x[all.ind.xy[[s]]$ind %in% i]
-      to.y <- all.ind.xy[[s]]$y[all.ind.xy[[s]]$ind %in% i]
-      segments(rep(mu.x[[s]][i],length(to.x)),
-               rep(mu.y[[s]][i],length(to.y)), 
-               to.x, to.y, col=clr[i], lwd=2)
+    for(j in 1:nrow(tmp.ch)){
+      to.x <- all.ind.xy[[t]]$x[all.ind.xy[[t]]$ind %in% j]
+      to.y <- all.ind.xy[[t]]$y[all.ind.xy[[t]]$ind %in% j]
+      segments(rep(mu.x[[t]][j],length(to.x)),
+               rep(mu.y[[t]][j],length(to.y)), 
+               to.x, to.y, col=clr[j], lwd=2)
     }
-    points(scrFrame$traps[[s]][,c("X","Y")], pch="+",cex=1)
-    points(mu.x[[s]],mu.y[[s]],pch=16,cex=1.5,col=clr)
+    points(scrFrame$traps[[t]][,c("X","Y")], pch=3,cex=1)
+    points(mu.x[[t]],mu.y[[t]],pch=21,cex=1.5,bg=clr)
   }  
-  par(op)
+  #par(op)
 }

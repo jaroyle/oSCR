@@ -1,4 +1,4 @@
-make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, 
+make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=NULL,
                           trapOperation=NULL, telemetry=NULL, rsfDF=NULL, type="scr"){
   
   #must have caphist and traps
@@ -75,6 +75,33 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
     }
   }
   
+  #sigCovs
+  if(!is.null(sigCovs)){
+    if(nrow(sigCovs) != length(caphist))
+      stop("number of rows in sigCovs does not match number of sessions")
+    if(!"session" %in% colnames(sigCovs)){
+      sigCovs$session <- factor(1:n.sessions)
+    }
+    if(!is.null(indCovs)){
+      if("sex" %in% colnames(indCovs[[1]])){
+        sigCovs <- sigCovs[rep(1:n.sessions,2),,drop=F]
+        rownames(sigCovs) <- NULL
+        sigCovs$sex <- factor(rep(c("female","male"),each=n.sessions))
+      }
+    }
+  }else{
+    sigCovs <- data.frame(session = factor(1:n.sessions))
+    if(!is.null(indCovs)){
+      if("sex" %in% colnames(indCovs[[1]])){
+        sigCovs <- sigCovs[rep(1:n.sessions,2),,drop=F]
+        rownames(sigCovs) <- NULL
+        sigCovs <- sigCovs[rep(1:n.sessions,2),,drop=F]
+        rownames(sigCovs) <- NULL
+        sigCovs$sex <- factor(rep(c("female","male"),each=n.sessions))
+      }
+    }
+  }
+
   #trapOperation
   if(!is.null(trapOperation)){
     if(!is.list(trapOperation))
@@ -102,6 +129,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
     }
   }
   mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
+  mdm <- max(max.dist,na.rm=T)
   
   #telemetry
   if(!is.null(telemetry)){
@@ -129,6 +157,13 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
       if(any(!names(indCovs[[1]]) %in% c(names(telemetry$indCovs[[1]]),"removed")))
         stop("indCovs do not match between capture and telemetry data")
     }
+    #overlap between collared/captured individuals
+    if(!is.null(telemetry$cap.tel)){
+      if(!is.list(telemetry$cap.tel))
+        stop("telemetry$indCovs must be a list")
+      warning("make sure captured individuals w/ collars sorted first!")
+    }
+    
   }
     if(!is.null(rsfDF)){
       library(FNN)
@@ -165,10 +200,12 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL,
                    "traps" = traps,
                    "indCovs" = indCovs,
                    "trapCovs" = trapCovs,
+                   "sigCovs" = sigCovs,
                    "trapOperation" = trapOperation,
                    "occasions" = caphist.dimensions[3,],
                    "type" = type,
                    "mmdm" = mmdm,
+                   "mdm" = mdm,
                    "telemetry" = telemetry)
   
   class(scrFrame) <- "scrFrame"  

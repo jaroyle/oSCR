@@ -1,15 +1,15 @@
 predict.oSCR <-
-function (scrFrame, scr.fit, ssDF, costDF = NULL) 
+function (scrFrame, scr.fit, ssDF, costDF = NULL, rsfDF = NULL) 
 {
     mles <- scr.fit$rawOutput$estimate
     call <- scr.fit$call
     oSCR.fit2 <- oSCR.fit
     call.fix <- names(call)[!names(call) %in% c("", "scrFrame", 
-        "ssDF", "costDF")]
+        "ssDF", "costDF", "rsfDF")]
     for (i in 1:length(call.fix)) {
         formals(oSCR.fit2)[[call.fix[i]]] <- call[[call.fix[i]]]
     }
-    out <- oSCR.fit2(scrFrame = scrFrame, ssDF = ssDF, costDF = costDF, 
+    out <- oSCR.fit2(scrFrame = scrFrame, ssDF = ssDF, costDF = costDF, rsfDF = rsfDF,
         start.vals = mles, predict = TRUE)
     nsess <- length(out$preds)
     r <- list()

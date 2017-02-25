@@ -1,4 +1,4 @@
-oSCR.fit <-
+oSCR.fit.CS <-
 function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           ssDF = NULL, costDF = NULL, rsfDF = NULL, distmet = c("euc", "user", "ecol")[1],
           sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
@@ -86,8 +86,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
              for power model distance function")
     pars.p0 <- NULL
     names.p0 <- NULL
-    pars.sig <- NULL
-    names.sig <- NULL
     pars.beta.trap <- NULL
     names.beta.trap <- NULL
     pars.beta.den <- NULL
@@ -123,43 +121,38 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     pBothsexnsesh <- FALSE
     pBehave <- FALSE
     anySex <- FALSE
-    aDot <- FALSE
-    aJustsex <- FALSE
-    aJustsesh <- FALSE
-    aBothsexnsesh <- FALSE
     bDot <- FALSE
     bJustsex <- FALSE
     bJustsesh <- FALSE
     bBothsexnsesh <- FALSE
     warnings <- list()
-    if (length(model) == 3) {
+    if(length(model) == 3){
         model[[4]] <- formula(~1)
     }
     if((length(labels(terms(model[[4]])))>0) & distmet=="euc"){
       stop("asu model specified but no 'dismet'. Use distmet=ecol.)")
     }
-    for (i in 1:4) {
-        model[[i]] <- update.formula(model[[i]], NULL ~ .)
+    for(i in 1:4){
+      model[[i]] <- update.formula(model[[i]], NULL ~ .)
     }
-    if (is.null(ssDF)) {
-        message("Generating a state space based on traps")
-        dHPP <- TRUE
-        ssDF <- make.ssDF(scrFrame, buffer, res)
+    if(is.null(ssDF)) {
+      message("Generating a state space based on traps")
+      dHPP <- TRUE
+      ssDF <- make.ssDF(scrFrame, buffer, res)
     }
   
-    if (RSF) {
-      if (is.null(rsfDF)){
+    if(RSF){
+      if(is.null(rsfDF)){
         stop("Cannot fit RSF without rsfDF!")
       }
     }
   
-    if (!is.null(scrFrame$telemetry)) {
-      
-      if (is.null(rsfDF)){
+    if(!is.null(scrFrame$telemetry)) {
+      if(is.null(rsfDF)){
         rsfDF <- ssDF
       }
       YYtel <- scrFrame$telemetry$fixfreq
-      if (ncol(YYtel[[1]]) != nrow(rsfDF[[1]])){
+      if(ncol(YYtel[[1]]) != nrow(rsfDF[[1]])){
         stop("Grid cells for telemetry fixes do not match rsfDF")
       }
     }
@@ -191,19 +184,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     allvars.D <- all.vars(model[[1]])
     dens.fx <- allvars.D[!allvars.D %in% c("D", "session")]
     allvars.T <- all.vars(model[[2]])
-    trap.fx <- allvars.T[!allvars.T %in% c("p0", "session", "sex",
-        "t", "T", "b")]
-    allvars.sig <- all.vars(model[[3]])
+    trap.fx <- allvars.T[!allvars.T %in% c("p0", "session", "sex", "t", "T", "b")]
     allvars.dist <- all.vars(model[[4]])
     var.p0.1 <- "sex" %in% allvars.T
     var.p0.2 <- "session" %in% allvars.T
     var.p0.3 <- "t" %in% allvars.T
     var.p0.4 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[2]]),
         "term.labels"))
+    allvars.sig <- all.vars(model[[3]])
     var.sig.1 <- "sex" %in% allvars.sig
-    var.sig.2 <- "session" %in% allvars.sig
-    var.sig.3 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[3]]),
-        "term.labels"))
     var.b.1 <- "b" %in% attr(terms(model[[2]]), "term.labels")
     var.b.2 <- any(c("b:sex", "sex:b") %in% attr(terms(model[[2]]),
         "term.labels"))
@@ -213,37 +202,37 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         "sex:b:session", "session:b:sex", "session:sex:b") %in%
         attr(terms(model[[2]]), "term.labels"))
     pBehave <- any(c(var.b.1, var.b.2, var.b.3, var.b.4))
-    for (s in 1:ns) {
-        if (!is.null(trimS)){
-            pixels.prior <- rep(T, nG[s])
-            pixels.post <- apply(e2dist(scrFrame$traps[[s]][,
+    for(s in 1:ns){
+      if(!is.null(trimS)){
+        pixels.prior <- rep(T, nG[s])
+        pixels.post <- apply(e2dist(scrFrame$traps[[s]][,
                 c("X", "Y")], ssDF[[s]][, c("X", "Y")]), 2, min) <=
                 trimS
-            pixels <- (pixels.prior & pixels.post)
-            pixels <- ifelse(pixels, 1, 0)
-        }
-        else {
-            pixels <- rep(1, nG[s])
-        }
-        areaS <- c(areaS, sum(pixels) * pxArea)
+        pixels <- (pixels.prior & pixels.post)
+        pixels <- ifelse(pixels, 1, 0)
+      }
+      else{
+        pixels <- rep(1, nG[s])
+      }
+      areaS <- c(areaS, sum(pixels) * pxArea)
     }
-    if (length(trap.fx) > 0) {
-        trap.covs <- TRUE
-        tcovnms <- colnames(scrFrame$trapCovs[[1]][[1]])
-        tCovMissing <- trap.fx[which(!trap.fx %in% tcovnms)]
-        if (length(tCovMissing) > 0) {
-            stop("I cant find these covariates in 'scrFrame$trapCovs'",
-                for (i in tCovMissing) print(i))
-        }
-        mod2 <- update(model[[2]], ~. - sex - session - t - b -
-                       b:sex - sex:b - b:session - session:b - 
-                       sex:session - session:sex -
-                       b:session:sex - b:sex:session - sex:session:b - 
-                       sex:b:session - session:b:sex - session:sex:b)
+    if(length(trap.fx) > 0) {
+      trap.covs <- TRUE
+      tcovnms <- colnames(scrFrame$trapCovs[[1]][[1]])
+      tCovMissing <- trap.fx[which(!trap.fx %in% tcovnms)]
+      if(length(tCovMissing) > 0){
+       stop("I cant find these covariates in 'scrFrame$trapCovs'",
+       for(i in tCovMissing) print(i))
+      }
+      mod2 <- update(model[[2]], ~. - sex - session - t - b -
+                     b:sex - sex:b - b:session - session:b - 
+                     sex:session - session:sex -
+                     b:session:sex - b:sex:session - sex:session:b - 
+                     sex:b:session - session:b:sex - session:sex:b)
 
-        if (any(c("session") %in% allvars.T))
-            tSession <- TRUE
-        for (s in 1:ns) {
+      if(any(c("session") %in% allvars.T))
+        tSession <- TRUE
+      for (s in 1:ns) {
             tmp.dm <- list()
             for (k in 1:nK[s]) {
                 tmp.dm[[k]] <- model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
@@ -424,6 +413,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             anySex <- TRUE
         }
     }
+
+    
     tmp.p0.names <- "p0.(Intercept)"
     if (sum(var.p0.1, var.p0.2, var.p0.3, var.p0.4) == 0) {
         tmp.p0.names <- "p0.(Intercept)"
@@ -501,42 +492,57 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             paste0("p.behav.m.session", 1:ns))
         bBothsexnsesh <- TRUE
     }
-    tmp.sig.names <- "sig.(Intercept)"
-    if (sum(var.sig.1, var.sig.2, var.sig.3) == 0) {
-        aDot <- TRUE
-    }
-    if (var.sig.2 & !var.sig.3) {
-        if (ns > 1) {
-            tmp.sig.names <- c(tmp.sig.names, paste0("sig.session.",
-                2:ns))
-            aJustsesh <- TRUE
-        }
-        else {
-            aDot <- TRUE
-        }
-    }
-    if (var.sig.1 & !var.sig.3) {
-        tmp.sig.names <- c(tmp.sig.names, "sig.male")
-        aJustsex <- TRUE
-    }
-    if (var.sig.3) {
-        if (ns > 1) {
-            tmp.sig.names <- c(tmp.sig.names, paste0("sig.f.session",
-                2:ns), paste0("sig.m.session", 1:ns))
-            aBothsexnsesh <- TRUE
-        }
-        else {
-            aJustsex <- TRUE
-        }
-    }
-    names.sig <- tmp.sig.names
+
+    
+    #sigma
+    pars.sig <- NULL
+    names.sig <- NULL
+    aDot <- FALSE
+    aJustsex <- FALSE
+    aJustsesh <- FALSE
+    aBothsexnsesh <- FALSE
+    var.sig.2 <- "session" %in% allvars.sig
+    var.sig.3 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[3]]), "term.labels"))
+    
+    tmp.mm <- model.matrix(model[[3]], scrFrame$sigCovs)
+    names.sig <- paste("sig.",colnames(tmp.mm),sep="")
     pars.sig <- rep(0.1, length(names.sig))
     pars.sig[1] <- log(0.5 * mmdm)
+
+    # tmp.sig.names <- "sig.(Intercept)"
+    # if(sum(var.sig.1, var.sig.2, var.sig.3) == 0){
+    #   aDot <- TRUE
+    # }
+    # if(var.sig.2 & !var.sig.3){
+    #   if(ns > 1) {
+    #     tmp.sig.names <- c(tmp.sig.names, paste0("sig.session.", 2:ns))
+    #     aJustsesh <- TRUE
+    #   }
+    #   else{
+    #     aDot <- TRUE
+    #   }
+    # }
+    # if (var.sig.1 & !var.sig.3) {
+    #     tmp.sig.names <- c(tmp.sig.names, "sig.male")
+    #     aJustsex <- TRUE
+    # }
+    # if (var.sig.3) {
+    #     if (ns > 1) {
+    #         tmp.sig.names <- c(tmp.sig.names, paste0("sig.f.session",
+    #             2:ns), paste0("sig.m.session", 1:ns))
+    #         aBothsexnsesh <- TRUE
+    #     }
+    #     else {
+    #         aJustsex <- TRUE
+    #     }
+    # }
+    # names.sig <- tmp.sig.names
+    # pars.sig <- rep(0.1, length(names.sig))
+    # pars.sig[1] <- log(0.5 * mmdm)
+
+    
     if (scrFrame$type == "scr") {
         YY <- scrFrame$caphist
-    }
-    if (scrFrame$type == "secr") {
-        YY <- "secr2scr"
     }
     if (anySex) {
         if (sexmod == "constant") {
@@ -719,22 +725,29 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         alpha0[, , 2] <- alpha0[, , 1] + BRmat[, , 1]
-        alphsig <- numeric(ns)
-        if (aDot) {
-            tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
-            for (s in 1:ns) {
-                alphsig[s] <- tmpA
-            }
-        }
-        if (aJustsesh) {
-            tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
-            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
-                names.sig)]])
-            for (s in 1:ns) {
-                alphsig[s] <- tmpA + tmpSS[s]
-            }
-        }
+        
+        #sigma
+        sig.beta <- pv[grep("sig.",pn)]
+        alphsig <- model.matrix(model[[3]],scrFrame$sigCovs) %*% sig.beta
         alphsig <- 1/(2 * exp(alphsig)^2)
+        
+        # alphsig <- numeric(ns)
+        # if (aDot) {
+        #     tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
+        #     for (s in 1:ns) {
+        #         alphsig[s] <- tmpA
+        #     }
+        # }
+        # if (aJustsesh) {
+        #     tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
+        #     tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
+        #         names.sig)]])
+        #     for (s in 1:ns) {
+        #         alphsig[s] <- tmpA + tmpSS[s]
+        #     }
+        # }
+        # alphsig <- 1/(2 * exp(alphsig)^2)
+
         if (trap.covs) {
             t.beta <- matrix(NA, ns, length(t.nms))
             if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),
@@ -793,11 +806,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         for (s in 1:length(YY)) {
             Ys <- YY[[s]]
-            if (!is.null(YYtel)){ #check if telemetry exists
-              Ytels <- YYtel[[s]]
-              cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
-              lik.marg.tel <- rep(NA, nrow(Ytels))
-            } 
             if (predict)
                 preds[[s]] <- matrix(NA, nrow = nrow(Ys) + 1,
                   ncol = nrow(ssDF[[s]]))
@@ -829,10 +837,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     "Y")], ssDF[[s]][, c("X", "Y")])
                 }
             }
-            if (!is.null(scrFrame$telemetry)){
-              # only Euclidean distance for telemetry fixes
-              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
-            }
             lik.marg <- rep(NA, nrow(Ys))
             if (!is.null(trimS)) {
                 pixels.prior <- rep(T, nG[s])
@@ -856,12 +860,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.s <- exp(dm.den[[s]] %*% d.beta)
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
-            
-            # some collared ind captured, so keep lik.cond for combining later
-            if (!is.null(cap.tel)){
-              lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
-            }
-            
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
 
             for (i in 1:nrow(Ys)) {
@@ -962,14 +960,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }  # end k loop
 #                lik.cond <- numeric(nG[s])
 #    lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm, na.rm = T))
-                 
-                 if (!is.null(cap.tel)){
-                   if (i %in% cap.tel){
-                     lik.cond.tel[match(i,cap.tel),] <- lik.cond
-                   }
-                 }
-                 
-                 
                 lik.cond[trimC[[s]][[i]]] <- exp(lik.cond[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
               #  b<<- lik.cond
               #  return(0)
@@ -978,45 +968,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 if (predict)
                   preds[[s]][i, ] <- (lik.cond * pi.s)/lik.marg[i]
             }
-            
-            
-            if(!is.null(YYtel)){
-              
-              if(RSF){
-                rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
-                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
-              } else {
-                rsf.lam0 <- 0
-              }
-              for (i in 1:nrow(Ytels)){
-                
-                probs <- t(exp(rsf.lam0 - alphsig[s] * Drsf[[s]]^theta))
-                denom <- rowSums(probs)
-                probs <- t(probs/denom)
-                
-                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
-                #browser()
-                if (!is.null(cap.tel)){
-                  if (i <= length(cap.tel)){
-                    # combine conditional likelihoods if some collared ind were captured
-                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
-                    #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
-                    lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])
-                    
-                    # fix marginal likelihoods
-                    lik.marg[cap.tel[i]] <- sum(lik.cond.tot * as.vector(pi.s)) 
-                    lik.marg.tel[i] <- 1
-                    
-                    if (predict){
-                      preds[[s]][cap.tel[i], ] <- lik.cond.tot * as.vector(pi.s) / lik.marg[cap.tel[i]]
-                    }
-                    
-                  }
-                }
-                
-              }
-            }
-            
             if (!predict) {
                 if (DorN == "N") {
                   nv <- c(rep(1, length(lik.marg) - 1), n0[s])
@@ -1032,15 +983,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                     pixels) * atheta
                   part2 <- sum(nv[1:nind] * log(lik.marg[1:nind]))
                 }
-              
-              if(!is.null(YYtel)){
-                part3 <- sum(log(lik.marg.tel))
-              } else {
-                part3 <- 0
-              }
-              
-              ll <- -1 * (part1 + part2 + part3)
-              outLik <- outLik + ll
+                ll <- -1 * (part1 + part2)
+                outLik <- outLik + ll
             }
             if (predict) {
                 lik.bits[[s]] <- cbind(lik.mar = lik.marg)
@@ -1173,42 +1117,50 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         alpha0[, , 1, 2] <- alpha0[, , 1, 1] + BRmat[, , 1, 1]
         alpha0[, , 2, 2] <- alpha0[, , 2, 1] + BRmat[, , 2, 1]
-        alphsig <- matrix(0, ns, 2)
-        tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
-        if (aDot) {
-            alphsig[, ] <- tmpA
-        }
-        if (aJustsex & !aJustsesh) {
-            tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
-            alphsig[, 1] <- tmpA
-            alphsig[, 2] <- tmpA + tmpSex
-        }
-        if (aJustsesh & !aJustsex) {
-            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
-                names.sig)]])
-            for (s in 1:ns) {
-                alphsig[s, 1] <- tmpA + tmpSS[s]
-                alphsig[s, 2] <- tmpA + tmpSS[s]
-            }
-        }
-        if (aJustsesh & aJustsex) {
-            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
-                names.sig)]])
-            tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
-            for (s in 1:ns) {
-                alphsig[s, 1] <- tmpA + tmpSS[s]
-                alphsig[s, 2] <- tmpA + tmpSS[s] + tmpSex
-            }
-        }
-        if (aBothsexnsesh) {
-            tmpSF <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.f.session",
-                names.sig)]])
-            tmpSM <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.m.session",
-                names.sig)]]
-            alphsig[, 1] <- tmpA + tmpSF
-            alphsig[, 2] <- tmpA + tmpSM
-        }
+
+        #sigma
+        sig.beta <- pv[grep("sig.",pn)]
+        alphsig <- model.matrix(model[[3]],scrFrame$sigCovs) %*% sig.beta
         alphsig <- 1/(2 * exp(alphsig)^2)
+        alphsig <- matrix(alphsig, ns, 2, byrow=FALSE)
+
+        # tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
+        # if (aDot) {
+        #     alphsig[, ] <- tmpA
+        # }
+        # if (aJustsex & !aJustsesh) {
+        #     tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
+        #     alphsig[, 1] <- tmpA
+        #     alphsig[, 2] <- tmpA + tmpSex
+        # }
+        # if (aJustsesh & !aJustsex) {
+        #     tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
+        #         names.sig)]])
+        #     for (s in 1:ns) {
+        #         alphsig[s, 1] <- tmpA + tmpSS[s]
+        #         alphsig[s, 2] <- tmpA + tmpSS[s]
+        #     }
+        # }
+        # if (aJustsesh & aJustsex) {
+        #     tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
+        #         names.sig)]])
+        #     tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
+        #     for (s in 1:ns) {
+        #         alphsig[s, 1] <- tmpA + tmpSS[s]
+        #         alphsig[s, 2] <- tmpA + tmpSS[s] + tmpSex
+        #     }
+        # }
+        # if (aBothsexnsesh) {
+        #     tmpSF <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.f.session",
+        #         names.sig)]])
+        #     tmpSM <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.m.session",
+        #         names.sig)]]
+        #     alphsig[, 1] <- tmpA + tmpSF
+        #     alphsig[, 2] <- tmpA + tmpSM
+        # }
+        # alphsig <- 1/(2 * exp(alphsig)^2)
+
+        
         if (trap.covs) {
             t.beta <- matrix(NA, ns, length(t.nms))
             if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),
@@ -1274,7 +1226,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             if (!is.null(YYtel)){ #check if telemetry exists
               Ytels <- YYtel[[s]]
               sxtel <- scrFrame$telemetry$indCovs[[s]]$sex + 1
-              cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
               lik.marg.tel <- rep(NA, nrow(Ytels))
             } 
             if (predict)
@@ -1311,7 +1262,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 }
             }
             if (!is.null(scrFrame$telemetry)){
-              # only Euclidean distance for telemetry fixes
               Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
             lik.marg <- lik.marg1 <- lik.marg2 <- rep(NA, nrow(Ys))
@@ -1337,12 +1287,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 d.s <- exp(dm.den[[s]] %*% d.beta)
                 pi.s <- (d.s * pixels)/sum(d.s * pixels)
             }
-            
-            # some collared ind captured, so keep lik.cond for combining later
-            if (!is.null(cap.tel)){
-              lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
-            }
-            
             for (i in 1:nrow(Ys)) {
                 if (plotit) {
                   pp <- sum(trimR[[s]][[i]][[k]])
@@ -1445,12 +1389,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
            #                  lik.cond <- numeric(nG[s])
-                  if (!is.null(cap.tel)){
-                    if (i %in% cap.tel){
-                      lik.cond.tel[match(i,cap.tel),] <- lik.cond
-                    }
-                  }
-                  
                   lik.cond[trimC[[s]][[i]]] <- exp(lik.cond[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
 ######            lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm = T))
                   tmpPsi <- (sx[i] == 1) * (1 - psi.sex[s]) +
@@ -1626,26 +1564,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
                 probs <- t(probs/denom)
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
-                #browser()
-                if (!is.null(cap.tel)){
-                  if (i <= length(cap.tel)){
-                    # combine conditional likelihoods if some collared ind were captured
-                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
-                    #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
-                    lik.cond.tot[is.na(lik.cond.tot)] <- 0
-                    lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])
-                  
-                    tmpPsi <- (sx[cap.tel[i]] == 1) * (1 - psi.sex[s]) + (sx[cap.tel[i]] == 2) * psi.sex[s]
-                    # fix marginal likelihoods
-                    lik.marg[cap.tel[i]] <- sum(lik.cond.tot * as.vector(pi.s)) * tmpPsi
-                    lik.marg.tel[i] <- 1
-                  
-                    if (predict){
-                      preds[[s]][cap.tel[i], ] <- lik.cond.tot * as.vector(pi.s) * tmpPsi/lik.marg[cap.tel[i]]
-                    }
-                  
-                  }
-                }
                               
               }
             }

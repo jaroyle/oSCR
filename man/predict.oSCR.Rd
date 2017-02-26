@@ -34,6 +34,14 @@ predictions are required %%     ~~Describe \code{ssDF} here~~
 the cost surface dataframe for obtaining the model fit for which
 predictions are required %%     ~~Describe \code{costDF} here~~
 }
+\item{rsfDF}{
+  resource selection data frame 
+}
+\item{override.trim=F}{
+ If TRUE uses trimS value from the scr.fit object otherwise uses no
+ trimS value so that predictions are produced on the whole state-space
+ object. 
+  }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~

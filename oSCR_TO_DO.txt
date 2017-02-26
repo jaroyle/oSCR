@@ -1,10 +1,15 @@
 --------- East to do or critical --------------------------------
 
+include Dan's telemetry fixes in the "no sex" likelihood (or else
+obviate the need for the "no sex" likelihood)
+
 order print(out) same as out$outStats and same as order of starting
 values!!
 
 Hack predict.oSCR to compute ESA (make a summary method perhaps)
   [almost done]
+
+Fix predict.oSCR to allow for irregular statepsace grid.
 
 We really need a 'predict.connectivity(model, costDF, ssDF, type = c (
 "potential", "dwc")[1]) function.
@@ -15,7 +20,11 @@ print warning/messages for oSCR.fit objectects:
    3. if dist=ecol note that trimS or the buffer might have to change
         [should be in help file too]
 
-allow for sessions with no captures......
+**** Add a type of behavioral response .. global and dependent among
+individuals.... this is easy to do, just compute a different prevCap
+and have a "Mb.type=" argument. 
+
+Allow for sessions with no captures......
 
 change type=multicatch to be just another encounter model....
 
@@ -32,6 +41,9 @@ model average predictions. predict.oSCR should take a fitList....(optional)
 OUT OF DATE -- update slowworm analysis example
 
 OUT OF DATE -- update microtus analysis example
+
+predict.oSCR should have option of not using trimS even if model fit
+did use trimS
 
 --------- Moderate ----------------------------------------------
 

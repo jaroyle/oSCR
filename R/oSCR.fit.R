@@ -1,232 +1,202 @@
 oSCR.fit <-
-function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
-          ssDF = NULL, costDF = NULL, rsfDF = NULL, distmet = c("euc", "user", "ecol")[1],
+function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL, 
+          costDF = NULL, rsfDF = NULL, distmet = c("euc", "user", "ecol")[1],
           sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
-          DorN = c("D", "N")[1], directions = 8, Dmat = NULL,
-          trimS = NULL, start.vals = NULL, PROJ = NULL, pxArea = 1,
-          plotit = F, mycex = 1, tester = F, pl = 0, nlmgradtol = 1e-06,
-          nlmstepmax = 10, predict = FALSE, smallslow = FALSE, multicatch = FALSE,
-          se = TRUE, print.level = 0, getStarts = FALSE, theta = 2, RSF = FALSE, YYtel = NULL)
-{
+          DorN = c("D", "N")[1], directions = 8, Dmat = NULL, trimS = NULL, 
+          start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 1, 
+          tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, 
+          smallslow = FALSE, multicatch = FALSE, se = TRUE, print.level = 0, 
+          getStarts = FALSE, theta = 2, RSF = FALSE, YYtel = NULL){
+  
   ptm <- proc.time()
   starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
   my.model.matrix <- function(form, data) {
-        mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = lapply(data.frame(data[,
-            sapply(data.frame(data), is.factor)]), contrasts,
-            contrasts = FALSE)))
-        return(mdm)
-    }
-    hessian <- ifelse(se, TRUE, FALSE)
-    max.dist <- NULL
-    for (i in 1:length(scrFrame$caphist)) {
-        for (j in 1:nrow(scrFrame$caphist[[i]])) {
-          if(dim(scrFrame$caphist[[i]])[3]>1){
-            where <- apply(scrFrame$caphist[[i]][j, , ], 1, sum) > 0
-          }else{
-            where <- scrFrame$caphist[[i]][j, , ] > 0
-          }
-          if (sum(where) > 1)
-                max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where,
-                  c("X", "Y")]), na.rm = T))
-        }
-    }
-    mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
-    mdm <- mean(max.dist[max.dist > 0], na.rm = T)
-    
-    #ADD A CHECK FOR WHETHER TRIMS IS TOO SMALL
-    #if((!is.null(trimS)) & (trimS < (0.6*mdm)))
-    #  warning("The trimS value is smaller than half the max observed 
-    #           distance moved and is probably too small.")
-    
-    cl <- match.call(expand.dots = TRUE)
-    model.call <- as.list(paste(model))
-    
-    if (!require(abind))
-        stop("need to install package 'abind'")
-    if (!require(Formula))
-        stop("need to load package 'Formula'")
-    if (distmet == "ecol") {
-        if (!require(raster))
-            stop("need to install package 'raster'")
-        if (!require(gdistance))
-            stop("need to install package 'gdistance'")
-    }
-    if (!inherits(scrFrame, "scrFrame")) {
-        stop("Data must be of class 'scrFrame'")
-    }
-    if (encmod %in% c("B","CLOG") & max(unlist(lapply(scrFrame$caphist, max))) >
-        1) {
-        stop("Data in caphist must be Binary")
-    }
-    if (distmet == "ecol") {
-        if (is.null(PROJ)) {
-            message("Projection not provided, using default: '+proj=utm +zone=12 +datum=WGS84'")
-        }
-    }
-    if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist))
-        stop("A 'state space' object must be provided for EACH session.")
-    if (multicatch) {
-        for (s in 1:length(scrFrame$caphist)) {
-            captures <- apply(scrFrame$caphist[[s]], c(1, 3),
-                sum)
-            if (any(captures > 1))
-                stop("error: multicatch system cannot have > 1 capture.")
-        }
-    }
-    if (predict & is.null(start.vals)) {
-        stop("Starting values required to predict (hint: use estimated MLEs)")
-    }
-    maxY <- unlist(lapply(scrFrame$caphist, max))
-    if (any(maxY > 1) & encmod %in% c("B","CLOG"))
-        stop("caphist must be binary when using the Binomial/Cloglog encounter model")
-    if (all(maxY == 1) & encmod == "P")
-        warning("caphist looks binary but Poisson encounter model is selected")
-    if (theta >2 | theta <1)
-        warning("theta should be between 1 (exponential) and 2 (half-normal)
-             for power model distance function")
-    pars.p0 <- NULL
-    names.p0 <- NULL
-    pars.sig <- NULL
-    names.sig <- NULL
-    pars.beta.trap <- NULL
-    names.beta.trap <- NULL
-    pars.beta.den <- NULL
-    names.beta.den <- NULL
-    pars.n0 <- NULL
-    names.n0 <- NULL
-    pars.beta.den <- NULL
-    names.beta.den <- NULL
-    pars.dist <- NULL
-    names.dist <- NULL
-    pars.sex <- NULL
-    names.sex <- NULL
-    singleS <- NULL
-    singleT <- NULL
-    singleG <- NULL
-    D <- list()
-    Drsf <- list()
-    #YY <- list()
-    dm.den <- list()
-    tmp.dm <- list()
-    dm.trap <- list()
-    dm.cost <- list()
-    dm.rsf <- list()
-    posterior <- list()
-    dHPP <- FALSE
-    dIPP <- FALSE
-    n0Session <- FALSE
-    trap.covs <- FALSE
-    pDot <- FALSE
-    pTime <- FALSE
-    pJustsex <- FALSE
-    pJustsesh <- FALSE
-    pBothsexnsesh <- FALSE
-    pBehave <- FALSE
-    anySex <- FALSE
-    aDot <- FALSE
-    aJustsex <- FALSE
-    aJustsesh <- FALSE
-    aBothsexnsesh <- FALSE
-    bDot <- FALSE
-    bJustsex <- FALSE
-    bJustsesh <- FALSE
-    bBothsexnsesh <- FALSE
-    warnings <- list()
-    if (length(model) == 3) {
-        model[[4]] <- formula(~1)
-    }
-    if((length(labels(terms(model[[4]])))>0) & distmet=="euc"){
-      stop("asu model specified but no 'dismet'. Use distmet=ecol.)")
-    }
-    for (i in 1:4) {
-        model[[i]] <- update.formula(model[[i]], NULL ~ .)
-    }
-    if (is.null(ssDF)) {
-        message("Generating a state space based on traps")
-        dHPP <- TRUE
-        ssDF <- make.ssDF(scrFrame, buffer, res)
-    }
-  
-    if (RSF) {
-      if (is.null(rsfDF)){
-        stop("Cannot fit RSF without rsfDF!")
-      }
-    }
-  
-    if (!is.null(scrFrame$telemetry)) {
-      
-      if (is.null(rsfDF)){
-        rsfDF <- ssDF
-      }
-      YYtel <- scrFrame$telemetry$fixfreq
-      if (ncol(YYtel[[1]]) != nrow(rsfDF[[1]])){
-        stop("Grid cells for telemetry fixes do not match rsfDF")
-      }
-    }
+    cont.arg <- lapply(data.frame(data[,sapply(data.frame(data), is.factor)]), 
+                       contrasts, contrasts = FALSE) 
+    mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = cont.arg))
+    return(mdm)
+  }
+  hessian <- ifelse(se, TRUE, FALSE)
+  mmdm <- scrFrame$mmdm
 
-    ns <- length(scrFrame$caphist)
-    nt <- length(scrFrame$traps)
-    nK <- unlist(lapply(scrFrame$caphist, function(x) dim(x)[3]))
-    hiK <- max(nK)
-    nG <- unlist(lapply(ssDF, nrow))
-    nnn <- all(unlist(lapply(ssDF, function(x) {
-        "session" %in% names(x) })))
-    areaS <- NULL
-    if ("session" %in% all.vars(model[[1]]) & (!nnn)) {
-        for (s in 1:ns) {
-            ssDF[[s]]$session <- factor(rep(s, nrow(ssDF[[s]])),
-                levels = 1:ns)
-        }
+  #ADD A CHECK FOR WHETHER TRIMS IS TOO SMALL
+  #if((!is.null(trimS)) & (trimS < (0.6*mdm)))
+  #  warning("The trimS value is smaller than half the max observed 
+  #           distance moved and is probably too small.")
+    
+  cl <- match.call(expand.dots = TRUE)
+  model.call <- as.list(paste(model))
+    
+  if (!require(abind)) stop("need to install package 'abind'")
+  if (!require(Formula)) stop("need to load package 'Formula'")
+  if (distmet == "ecol") {
+    if (!require(raster)) stop("need to install package 'raster'")
+    if (!require(gdistance)) stop("need to install package 'gdistance'")
+  }
+  if (!inherits(scrFrame, "scrFrame")) stop("Data must be of class 'scrFrame'")
+  if ((encmod %in% c("B","CLOG")) & (max(unlist(lapply(scrFrame$caphist, max))) > 1)) {
+    stop("Error: Data in caphist must be Binary")
+  }
+  if (distmet == "ecol" & is.null(PROJ))
+    message("Projection not provided, using default: '+proj=utm +zone=12 +datum=WGS84'")
+  if (!is.null(ssDF) & length(ssDF) != length(scrFrame$caphist))
+    stop("Error: A 'state space' object must be provided for EACH session.")
+  if (multicatch) {
+    for (s in 1:length(scrFrame$caphist)) {
+      captures <- apply(scrFrame$caphist[[s]], c(1, 3), sum)
+      if (any(captures > 1)) 
+        stop("Error: multicatch system cannot have > 1 capture.")
     }
-    nnnn <- all(unlist(lapply(scrFrame$trapCovs[[1]][[1]], function(x) {
-      "session" %in% names(x) })))
-    if("session" %in% all.vars(model[[2]]) & (!nnnn)){
-      for(s in 1:ns){
-       for(m in 1:length(scrFrame$trapCovs[[s]])){
-         scrFrame$trapCovs[[s]][[m]]$session <- factor(rep(s, nrow(scrFrame$trapCovs[[s]][[m]])),
-                                                  levels = 1:ns)
-       }
+  }
+  if (predict & is.null(start.vals))
+    stop("Starting values required to predict (hint: use estimated MLEs)")
+  maxY <- unlist(lapply(scrFrame$caphist, max))
+  if (any(maxY > 1) & encmod %in% c("B","CLOG"))
+    stop("caphist must be binary when using the Binomial/Cloglog encounter model")
+  if (all(maxY == 1) & encmod == "P")
+    warning("caphist looks binary but Poisson encounter model is selected")
+  if (theta >2 | theta <1)
+    warning("theta should be between 1 (exponential) and 2 (half-normal) for 
+            power model distance function")
+  pars.p0 <- NULL
+  names.p0 <- NULL
+  pars.sig <- NULL
+  names.sig <- NULL
+  pars.beta.trap <- NULL
+  names.beta.trap <- NULL
+  pars.beta.den <- NULL
+  names.beta.den <- NULL
+  pars.n0 <- NULL
+  names.n0 <- NULL
+  pars.beta.den <- NULL
+  names.beta.den <- NULL
+  pars.dist <- NULL
+  names.dist <- NULL
+  pars.sex <- NULL
+  names.sex <- NULL
+  singleS <- NULL
+  singleT <- NULL
+  singleG <- NULL
+  D <- list()
+  Drsf <- list()
+  dm.den <- list()
+  tmp.dm <- list()
+  dm.trap <- list()
+  dm.cost <- list()
+  dm.rsf <- list()
+  posterior <- list()
+  dHPP <- FALSE
+  dIPP <- FALSE
+  n0Session <- FALSE
+  trap.covs <- FALSE
+  pDot <- FALSE
+  pTime <- FALSE
+  pJustsex <- FALSE
+  pJustsesh <- FALSE
+  pBothsexnsesh <- FALSE
+  pBehave <- FALSE
+  anySex <- FALSE
+  aDot <- FALSE
+  aJustsex <- FALSE
+  aJustsesh <- FALSE
+  aBothsexnsesh <- FALSE
+  bDot <- FALSE
+  bJustsex <- FALSE
+  bJustsesh <- FALSE
+  bBothsexnsesh <- FALSE
+  warnings <- list()
+  if (length(model) == 3) {
+    model[[4]] <- formula(~1)
+  }
+  if((length(labels(terms(model[[4]])))>0) & distmet=="euc"){
+    stop("Error: asu model specified but no 'dismet'. Use distmet=ecol.)")
+  }
+  for (i in 1:4) {
+    model[[i]] <- update.formula(model[[i]], NULL ~ .)
+  }
+  if (is.null(ssDF)) {
+    message("Generating a state space based on traps")
+    dHPP <- TRUE
+    ssDF <- make.ssDF(scrFrame, buffer, res)
+  }
+  if (RSF) {
+    if (is.null(rsfDF))
+      stop("Error: Cannot fit RSF without rsfDF!")
+  }
+  if (!is.null(scrFrame$telemetry)) {
+    if (is.null(rsfDF)){
+      rsfDF <- ssDF
+    }
+    YYtel <- scrFrame$telemetry$fixfreq
+    if (ncol(YYtel[[1]]) != nrow(rsfDF[[1]]))
+      stop("Error: Grid cells for telemetry fixes do not match rsfDF")
+  }
+  ns <- length(scrFrame$caphist)
+  nt <- length(scrFrame$traps)
+  nK <- unlist(lapply(scrFrame$caphist, function(x) dim(x)[3]))
+  hiK <- max(nK)
+  nG <- unlist(lapply(ssDF, nrow))
+  nnn <- all(unlist(lapply(ssDF, function(x) {"session" %in% names(x)})))
+  areaS <- NULL
+  
+  if ("session" %in% all.vars(model[[1]]) & (!nnn)) {
+    for (s in 1:ns) {
+      ssDF[[s]]$session <- factor(rep(s, nrow(ssDF[[s]])), levels = 1:ns)
+    }
+  }
+  nnnn <- all(unlist(lapply(scrFrame$trapCovs[[1]][[1]], 
+                            function(x) {"session" %in% names(x) })))
+  if ("session" %in% all.vars(model[[2]]) & (!nnnn)) {
+    for(s in 1:ns){
+      for(m in 1:length(scrFrame$trapCovs[[s]])){
+        sesf <- factor(rep(s, nrow(scrFrame$trapCovs[[s]][[m]])),levels = 1:ns)
+        scrFrame$trapCovs[[s]][[m]]$session <- sesf 
       }
     }
-    allvars.D <- all.vars(model[[1]])
-    dens.fx <- allvars.D[!allvars.D %in% c("D", "session")]
-    allvars.T <- all.vars(model[[2]])
-    trap.fx <- allvars.T[!allvars.T %in% c("p0", "session", "sex",
-        "t", "T", "b")]
-    allvars.sig <- all.vars(model[[3]])
-    allvars.dist <- all.vars(model[[4]])
-    var.p0.1 <- "sex" %in% allvars.T
-    var.p0.2 <- "session" %in% allvars.T
-    var.p0.3 <- "t" %in% allvars.T
-    var.p0.4 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[2]]),
-        "term.labels"))
-    var.sig.1 <- "sex" %in% allvars.sig
-    var.sig.2 <- "session" %in% allvars.sig
-    var.sig.3 <- any(c("sex:session", "session:sex") %in% attr(terms(model[[3]]),
-        "term.labels"))
-    var.b.1 <- "b" %in% attr(terms(model[[2]]), "term.labels")
-    var.b.2 <- any(c("b:sex", "sex:b") %in% attr(terms(model[[2]]),
-        "term.labels"))
-    var.b.3 <- any(c("b:session", "session:b") %in% attr(terms(model[[2]]),
-        "term.labels"))
-    var.b.4 <- any(c("b:session:sex", "b:sex:session", "sex:session:b",
-        "sex:b:session", "session:b:sex", "session:sex:b") %in%
-        attr(terms(model[[2]]), "term.labels"))
-    pBehave <- any(c(var.b.1, var.b.2, var.b.3, var.b.4))
-    for (s in 1:ns) {
-        if (!is.null(trimS)){
-            pixels.prior <- rep(T, nG[s])
-            pixels.post <- apply(e2dist(scrFrame$traps[[s]][,
-                c("X", "Y")], ssDF[[s]][, c("X", "Y")]), 2, min) <=
-                trimS
-            pixels <- (pixels.prior & pixels.post)
-            pixels <- ifelse(pixels, 1, 0)
-        }
-        else {
-            pixels <- rep(1, nG[s])
-        }
-        areaS <- c(areaS, sum(pixels) * pxArea)
+  }
+  
+  allvars.D <- all.vars(model[[1]])
+  dens.fx <- allvars.D[!allvars.D %in% c("D", "session")]
+  allvars.T <- all.vars(model[[2]])
+  trap.fx <- allvars.T[!allvars.T %in% c("p0", "session", "sex", "t", "T", "b")]
+  allvars.sig <- all.vars(model[[3]])
+  allvars.dist <- all.vars(model[[4]])
+  var.p0.1 <- "sex" %in% allvars.T
+  var.p0.2 <- "session" %in% allvars.T
+  var.p0.3 <- "t" %in% allvars.T
+  var.p0.4 <- any(c("sex:session", "session:sex") %in% 
+                    attr(terms(model[[2]]), "term.labels"))
+  var.sig.1 <- "sex" %in% allvars.sig
+  var.sig.2 <- "session" %in% allvars.sig
+  var.sig.3 <- any(c("sex:session", "session:sex") %in% 
+                     attr(terms(model[[3]]), "term.labels"))
+  var.b.1 <- "b" %in% attr(terms(model[[2]]), "term.labels")
+  var.b.2 <- any(c("b:sex", "sex:b") %in% 
+                   attr(terms(model[[2]]), "term.labels"))
+  var.b.3 <- any(c("b:session", "session:b") %in% 
+                   attr(terms(model[[2]]), "term.labels"))
+  var.b.4 <- any(c("b:session:sex", "b:sex:session", "sex:session:b", 
+                   "sex:b:session", "session:b:sex", "session:sex:b") %in% 
+                   attr(terms(model[[2]]), "term.labels"))
+  pBehave <- any(c(var.b.1, var.b.2, var.b.3, var.b.4))
+  
+  for (s in 1:ns) {
+    if (!is.null(trimS)){
+      pixels.prior <- rep(T, nG[s])
+        pixels.post <- apply(e2dist(scrFrame$traps[[s]][ , c("X", "Y")], 
+                                    ssDF[[s]][, c("X", "Y")]), 2, min) <= trimS
+        pixels <- (pixels.prior & pixels.post)
+        pixels <- ifelse(pixels, 1, 0)
     }
+    else {
+      pixels <- rep(1, nG[s])
+    }
+    areaS <- c(areaS, sum(pixels) * pxArea) #should be ssDF$res
+  }
+  
+  
+  #clean formatting to here
+  
     if (length(trap.fx) > 0) {
         trap.covs <- TRUE
         tcovnms <- colnames(scrFrame$trapCovs[[1]][[1]])
@@ -501,37 +471,23 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             paste0("p.behav.m.session", 1:ns))
         bBothsexnsesh <- TRUE
     }
-    tmp.sig.names <- "sig.(Intercept)"
-    if (sum(var.sig.1, var.sig.2, var.sig.3) == 0) {
-        aDot <- TRUE
-    }
-    if (var.sig.2 & !var.sig.3) {
-        if (ns > 1) {
-            tmp.sig.names <- c(tmp.sig.names, paste0("sig.session.",
-                2:ns))
-            aJustsesh <- TRUE
-        }
-        else {
-            aDot <- TRUE
-        }
-    }
-    if (var.sig.1 & !var.sig.3) {
-        tmp.sig.names <- c(tmp.sig.names, "sig.male")
-        aJustsex <- TRUE
-    }
-    if (var.sig.3) {
-        if (ns > 1) {
-            tmp.sig.names <- c(tmp.sig.names, paste0("sig.f.session",
-                2:ns), paste0("sig.m.session", 1:ns))
-            aBothsexnsesh <- TRUE
-        }
-        else {
-            aJustsex <- TRUE
-        }
-    }
-    names.sig <- tmp.sig.names
+
+    #Setup: sigma
+    pars.sig <- NULL
+    names.sig <- NULL
+    aDot <- FALSE
+    aJustsex <- FALSE
+    aJustsesh <- FALSE
+    aBothsexnsesh <- FALSE
+    var.sig.2 <- "session" %in% allvars.sig
+    var.sig.3 <- any(c("sex:session", "session:sex") %in% 
+                     attr(terms(model[[3]]), "term.labels"))
+    
+    tmp.mm <- model.matrix(model[[3]], scrFrame$sigCovs)
+    names.sig <- paste("sig.",colnames(tmp.mm),sep="")
     pars.sig <- rep(0.1, length(names.sig))
     pars.sig[1] <- log(0.5 * mmdm)
+
     if (scrFrame$type == "scr") {
         YY <- scrFrame$caphist
     }
@@ -552,139 +508,60 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         pars.sex <- NULL
         names.sex <- NULL
     }
-    pv <- round(c(pars.p0, pars.sig, pars.beta.trap, pars.beta.den,
-        pars.dist, pars.n0, pars.sex), 2)
-    pn <- c(names.p0, names.sig, names.beta.trap, names.beta.den,
-        names.dist, names.n0, names.sex)
+    
+    #create starting values objects (pv: values, pn: names) 
+    pv <- round(c(pars.p0, pars.sig, pars.beta.trap, pars.beta.den, pars.dist, 
+                  pars.n0, pars.sex), 2)
+    pn <- c(names.p0, names.sig, names.beta.trap, names.beta.den, names.dist, 
+            names.n0, names.sex)
     if (!is.null(start.vals)) {
-        if (length(pv) == length(start.vals)) {
-            pv <- start.vals
-        }
-        else {
-            message("The number of starting values provided doesnt match the \n\n           number of parameters in the model. Randomly generated values \n\n           are being used. Use getStarts = T to get correct length.")
-        }
+      if (length(pv) == length(start.vals)) {
+        pv <- start.vals
+      }
+      else {
+        message(
+          "The number of starting values provided doesnt match the \n\n 
+           number of parameters in the model. Randomly generated values \n\n 
+           are being used. Use getStarts = T to get correct length.")
+      }
     }
-    if (pBehave) {
-        prevcap <- list()
-        for (s in 1:length(YY)) {
-            Ys <- YY[[s]]
-            prevcap[[s]] <- array(0, dim = c(dim(Ys)[1], dim(Ys)[2],
-                dim(Ys)[3]))
-            first <- matrix(0, dim(Ys)[1], dim(Ys)[2])
-            for (i in 1:dim(Ys)[1]) {
-                for (j in 1:dim(Ys)[2]) {
-                  if (sum(Ys[i, j, ]) > 0) {
-                    first[i, j] <- min((1:(dim(Ys)[3]))[Ys[i,
-                      j, ] > 0])
-                    prevcap[[s]][i, j, 1:first[i, j]] <- 0
-                    if (first[i, j] < dim(Ys)[3])
-                      prevcap[[s]][i, j, (first[i, j] + 1):(dim(Ys)[3])] <- 1
-                  }
-                }
-            }
-            zeros <- array(0, c(1, dim(prevcap[[s]])[2], dim(prevcap[[s]])[3]))
-            prevcap[[s]] <- abind(prevcap[[s]], zeros, along = 1)
-        }
-    }
-
     if (getStarts == TRUE) {
-        oSCR.start <- list(parameters = pn, values = pv)
-        return(oSCR.start)
+      oSCR.start <- list(parameters = pn, values = pv)
+      return(oSCR.start)
+    }
+    
+    #create the prevcap objects
+    if (pBehave) {
+      prevcap <- list()
+      for (s in 1:length(YY)) {
+        Ys <- YY[[s]]
+        prevcap[[s]] <- array(0, dim = c(dim(Ys)[1], dim(Ys)[2], dim(Ys)[3]))
+        first <- matrix(0, dim(Ys)[1], dim(Ys)[2])
+        for (i in 1:dim(Ys)[1]) {
+          for (j in 1:dim(Ys)[2]) {
+            if (sum(Ys[i, j, ]) > 0) {
+              first[i, j] <- min((1:(dim(Ys)[3]))[Ys[i, j, ] > 0])
+              prevcap[[s]][i, j, 1:first[i, j]] <- 0
+              if (first[i, j] < dim(Ys)[3])
+                prevcap[[s]][i, j, (first[i, j] + 1):(dim(Ys)[3])] <- 1
+            }
+          }
+        }
+        zeros <- array(0, c(1, dim(prevcap[[s]])[2], dim(prevcap[[s]])[3]))
+        prevcap[[s]] <- abind(prevcap[[s]], zeros, along = 1)
+      }
     }
 
-
-
-    nR<- nC<- list()
-    trimR <- trimC <- list()
-    for (s in 1:length(YY)) {
-
-
-        Ys <- YY[[s]]
-        zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-        Ys <- abind(Ys, zeros, along = 1)
-
-        trimR[[s]] <- list()
-        trimC[[s]] <- list()
-        nR[[s]]<- nC[[s]]<- list()
-
-
-      for (i in 1:nrow(Ys)) {
-           trimR[[s]][[i]]<- list()
-           nR[[s]][[i]]<- list()
-           if (is.null(trimS)) {
-                pp <- rep(T, ncol(Ys))
-                trimC[[s]][[i]] <- rep(T, nG[s])
-                for(k in 1:nK[s]){
-                    trimR[[s]][[i]][[k]] <- pp
-                }
-            }
-            else {
-                if(i < nrow(Ys)){
-                  if(dim(Ys)[3]>1){
-                    pp <- apply(Ys[i, , ], 1, sum) > 0
-                  }else{
-                    pp <- Ys[i, ,1] > 0
-                  }
-                  for(k in 1:nK[s]){
-                      if (!is.null(scrFrame$trapOperation)) {
-
-                     trimR[[s]][[i]][[k]] <- (apply(rbind(rep(trimS*3 +
-                    2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
-                    c("X", "Y")])), 2, min) <= (2 * trimS)) & (scrFrame$trapOperation[[s]][,k]==1)
-
-
-
-                  }else{
-                         trimR[[s]][[i]][[k]] <- apply(rbind(rep(trimS*3 +
-                    2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
-                    c("X", "Y")])), 2, min) <= (2 * trimS)
-
-
-                     }
-                  nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]]   )
-              }
-
-                  trimC[[s]][[i]] <- apply(rbind(rep(trimS +
-                    2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
-                    "Y")])), 2, min, na.rm = T) <= trimS
-                }   # end loop over i
-                else {
-
-                  pp <- rep(T, ncol(Ys))
-                  trimC[[s]][[i]] <- apply(rbind(rep(trimS +
-                    2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
-                    "Y")])), 2, min, na.rm = T) <= trimS
-                  for(k in 1:nK[s]){
-                  if (!is.null(scrFrame$trapOperation)) {
-                      trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
-                  }else{
-                      trimR[[s]][[i]][[k]]<- pp
-                      }
-
-                      nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]])
-                  }
-
-              }
-            }
-
-           if (multicatch) {
-              for(k in 1:nK[s]){
-                trimR[[s]][[i]][[k]] <- rep(T, length(trimR[[s]][[i]][[k]]))
-                  nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]] )
-              }
-           }
-           nC[[s]][[i]]<- sum(trimC[[s]][[i]])
-           }
-       }
-
-    msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
-        hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
-        alpha0 <- array(0, dim = c(ns, hiK, 2))
-        tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
+    #Do the trimming
+    get.trims <- do.trim(scrFrame, ssDF, trimS)
+    trimR <- get.trims$trimR
+    trimC <- get.trims$trimC
+    
+    msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D, hiK = hiK, nG = nG, 
+                           nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
+        
+      alpha0 <- array(0, dim = c(ns, hiK, 2))
+      tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
         if (pDot & !pTime) {
             alpha0[, , ] <- tmpP
         }
@@ -719,22 +596,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
         }
         alpha0[, , 2] <- alpha0[, , 1] + BRmat[, , 1]
-        alphsig <- numeric(ns)
-        if (aDot) {
-            tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
-            for (s in 1:ns) {
-                alphsig[s] <- tmpA
-            }
-        }
-        if (aJustsesh) {
-            tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
-            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
-                names.sig)]])
-            for (s in 1:ns) {
-                alphsig[s] <- tmpA + tmpSS[s]
-            }
-        }
+
+        #sigma
+        sig.beta <- pv[grep("sig.",pn)]
+        alphsig <- model.matrix(model[[3]],scrFrame$sigCovs) %*% sig.beta
         alphsig <- 1/(2 * exp(alphsig)^2)
+        
         if (trap.covs) {
             t.beta <- matrix(NA, ns, length(t.nms))
             if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),
@@ -1176,42 +1043,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         }
         alpha0[, , 1, 2] <- alpha0[, , 1, 1] + BRmat[, , 1, 1]
         alpha0[, , 2, 2] <- alpha0[, , 2, 1] + BRmat[, , 2, 1]
-        alphsig <- matrix(0, ns, 2)
-        tmpA <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.(Intercept)", names.sig)]]
-        if (aDot) {
-            alphsig[, ] <- tmpA
-        }
-        if (aJustsex & !aJustsesh) {
-            tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
-            alphsig[, 1] <- tmpA
-            alphsig[, 2] <- tmpA + tmpSex
-        }
-        if (aJustsesh & !aJustsex) {
-            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
-                names.sig)]])
-            for (s in 1:ns) {
-                alphsig[s, 1] <- tmpA + tmpSS[s]
-                alphsig[s, 2] <- tmpA + tmpSS[s]
-            }
-        }
-        if (aJustsesh & aJustsex) {
-            tmpSS <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.session",
-                names.sig)]])
-            tmpSex <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.male", names.sig)]]
-            for (s in 1:ns) {
-                alphsig[s, 1] <- tmpA + tmpSS[s]
-                alphsig[s, 2] <- tmpA + tmpSS[s] + tmpSex
-            }
-        }
-        if (aBothsexnsesh) {
-            tmpSF <- c(0, pv[pn %in% names.sig[grep(fixed=TRUE,"sig.f.session",
-                names.sig)]])
-            tmpSM <- pv[pn %in% names.sig[grep(fixed=TRUE,"sig.m.session",
-                names.sig)]]
-            alphsig[, 1] <- tmpA + tmpSF
-            alphsig[, 2] <- tmpA + tmpSM
-        }
+
+        #sigma
+        sig.beta <- pv[grep("sig.",pn)]
+        alphsig <- model.matrix(model[[3]],scrFrame$sigCovs) %*% sig.beta
         alphsig <- 1/(2 * exp(alphsig)^2)
+        alphsig <- matrix(alphsig, ns, 2, byrow=FALSE)
+
         if (trap.covs) {
             t.beta <- matrix(NA, ns, length(t.nms))
             if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),

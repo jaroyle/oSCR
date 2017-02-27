@@ -23,10 +23,8 @@ telemetry.processor <- function(ssDF, teldata){
 # Distance between traps and activity centers
 # Faster than using loops
 e2dist <- function (x, y){
-  if(!is.matrix(x)) 
-    x <- as.matrix(x)
-  if(!is.matrix(y)) 
-    y <- as.matrix(y)
+  if (!is.matrix(x)) x <- as.matrix(x)
+  if (!is.matrix(y)) y <- as.matrix(y)
   i <- sort(rep(1:nrow(y), nrow(x)))
   dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
@@ -78,6 +76,89 @@ e2dist <- function (x, y){
 #        ifelse(size[1]>0, 0, 1), xpd = TRUE)
 #}
 #
+
+
+################################################################################
+## Trim to do local evaluations - identify traps and s's within trim of capture
+
+do.trim <- function(scrFrame, ssDF, trimS){
+  trimR <- trimC <- list()
+  Nocc <- scrFrame$occasions
+  
+  for (s in 1:length(scrFrame$caphist)) {#each session
+    Ys <- scrFrame$caphist[[s]]
+    Xs <- scrFrame$traps[[s]]
+    Os <- scrFrame$trapOperation[[s]]
+    Ss <- ssDF[[s]]
+    zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
+    Ys <- abind::abind(Ys, zeros, along = 1)
+    trimR[[s]] <- list()
+    trimC[[s]] <- list()
+    
+    for (i in 1:nrow(Ys)) { #each individual
+      trimR[[s]][[i]] <- list()
+      trimC[[s]][[i]] <- list()
+      
+      #if no trim: global evaluation
+      if (is.null(trimS)) {
+        pp <- rep(T, ncol(Ys))
+        trimC[[s]][[i]] <- rep(T, nG[s])
+        
+        for (k in 1:Nocc[s]) {#each occasion
+          trimR[[s]][[i]][[k]] <- pp
+        }
+      }
+      #if trim: local evaluation
+      else {
+        if (i < nrow(Ys)) {
+          if (dim(Ys)[3]>1) {
+            pp <- apply(Ys[i, , ], 1, sum) > 0
+          }
+          else {
+            pp <- Ys[i, , 1] > 0
+          }
+          for (k in 1:Nocc[s]) {
+            tmp.a <- rep(trimS*3 + 2, nrow(Xs))
+            tmp.b <- e2dist(Xs[pp, c("X", "Y"), drop = FALSE], 
+                            Xs[ , c("X", "Y")])
+            if (!is.null(Os)) {
+              tmp.ls <- (apply(rbind(tmp.a, tmp.b), 2, min) <= (2 * trimS)) & 
+                (Os[,k] == 1)
+            }
+            else {
+              tmp.ls <- (apply(rbind(tmp.a, tmp.b), 2, min) <= (2 * trimS))
+            }
+            trimR[[s]][[i]][[k]] <- tmp.ls 
+          }
+          tmp.a <- rep(trimS + 2, nrow(Ss))
+          tmp.b <- e2dist(Xs[pp, c("X", "Y"), drop = FALSE], 
+                          Ss[, c("X","Y")]) 
+          tmp.ls <- apply(rbind(tmp.a, tmp.b),2, min, na.rm = T) <= trimS
+          trimC[[s]][[i]] <- tmp.ls
+        }#end i
+        else {
+          pp <- rep(T, ncol(Ys))
+          for (k in 1:Nocc[s]) {
+            if (!is.null(Os)) {
+              trimR[[s]][[i]][[k]] <- pp & (Os[,k] == 1) 
+            }
+            else {
+              trimR[[s]][[i]][[k]] <- pp
+            }
+          }
+          tmp.a <- rep(trimS + 2, nrow(Ss))
+          tmp.b <- e2dist(Xs[pp, c("X", "Y"), drop = FALSE],
+                          Ss[, c("X","Y")])
+          tmp.ls <- apply(rbind(tmp.a, tmp.b), 2, min, na.rm = T) <= trimS
+          trimC[[s]][[i]] <- tmp.ls
+        }
+      }
+    }
+  }
+  trim.obj <- list(trimR = trimR, trimC = trimC)
+  return(trim.obj)
+}
+################################################################################
 
 
 ################################################################################

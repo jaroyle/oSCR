@@ -125,7 +125,7 @@ do.trim <- function(scrFrame, ssDF, trimS){
       #if no trim: global evaluation
       if (is.null(trimS)) {
         pp <- rep(T, ncol(Ys))
-        trimC[[s]][[i]] <- rep(T, nG[s])
+        trimC[[s]][[i]] <- rep(T, Nocc[s])
         
         for (k in 1:Nocc[s]) {#each occasion
           trimR[[s]][[i]][[k]] <- pp
@@ -146,7 +146,7 @@ do.trim <- function(scrFrame, ssDF, trimS){
                             Xs[ , c("X", "Y")])
             if (!is.null(Os)) {
               tmp.ls <- (apply(rbind(tmp.a, tmp.b), 2, min) <= (2 * trimS)) & 
-                (Os[,k] == 1)
+                        (Os[,k] == 1)
             }
             else {
               tmp.ls <- (apply(rbind(tmp.a, tmp.b), 2, min) <= (2 * trimS))

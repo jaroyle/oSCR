@@ -1481,7 +1481,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
         }
         if (predict) {
             return(list(preds = preds, ss.bits = ss.bits, lik.bits = lik.bits,
-                ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
+                        ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
         }
 
     }   # end likelihood
@@ -1577,7 +1577,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                        AIC = 2 * myfit$minimum + 2 * length(myfit$estimate),
                        started = starttime, ended = endtime,
                        proctime = (proc.time() - ptm)[3]/60, scrFrame = scrFrame,
-                       ssDF = ssDF)
+                       ssDF = ssDF, costDF = costDF, rsfDF = rsfDF)
         class(output) <- "oSCR.fit"
         return(output)
       }

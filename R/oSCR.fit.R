@@ -858,9 +858,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             
             # some collared ind captured, so keep lik.cond for combining later
+            if (!is.null(YYtel)){
             if (!is.null(cap.tel)){
               lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
-            }
+            }}
             
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
 
@@ -963,9 +964,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 #                lik.cond <- numeric(nG[s])
 #    lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm, na.rm = T))
                  
-                 if (!is.null(cap.tel)){
-                   if (i %in% cap.tel){
-                     lik.cond.tel[match(i,cap.tel),] <- lik.cond
+                 if (!is.null(YYtel)){
+                   if (!is.null(cap.tel)){
+                     if (i %in% cap.tel){
+                       lik.cond.tel[match(i,cap.tel),] <- lik.cond
+                     }
                    }
                  }
                  
@@ -1339,8 +1342,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
             }
             
             # some collared ind captured, so keep lik.cond for combining later
-            if (!is.null(cap.tel)){
-              lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
+            if (!is.null(YYtel)){
+              if (!is.null(cap.tel)){
+                lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
+              }
             }
             
             for (i in 1:nrow(Ys)) {
@@ -1445,9 +1450,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
 
 
            #                  lik.cond <- numeric(nG[s])
-                  if (!is.null(cap.tel)){
-                    if (i %in% cap.tel){
-                      lik.cond.tel[match(i,cap.tel),] <- lik.cond
+                  if (!is.null(YYtel)){
+                    if (!is.null(cap.tel)){
+                      if (i %in% cap.tel){
+                        lik.cond.tel[match(i,cap.tel),] <- lik.cond
+                      }
                     }
                   }
                   

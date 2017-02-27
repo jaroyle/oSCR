@@ -1,3 +1,7 @@
+#Changes:
+#1. covariates on sigma
+#2. replace the trim stuff w/ a function
+
 oSCR.fit.CS <-
 function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
           ssDF = NULL, costDF = NULL, rsfDF = NULL, distmet = c("euc", "user", "ecol")[1],
@@ -494,7 +498,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     }
 
     
-    #sigma
+    #Setup: sigma
     pars.sig <- NULL
     names.sig <- NULL
     aDot <- FALSE
@@ -509,38 +513,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
     pars.sig <- rep(0.1, length(names.sig))
     pars.sig[1] <- log(0.5 * mmdm)
 
-    # tmp.sig.names <- "sig.(Intercept)"
-    # if(sum(var.sig.1, var.sig.2, var.sig.3) == 0){
-    #   aDot <- TRUE
-    # }
-    # if(var.sig.2 & !var.sig.3){
-    #   if(ns > 1) {
-    #     tmp.sig.names <- c(tmp.sig.names, paste0("sig.session.", 2:ns))
-    #     aJustsesh <- TRUE
-    #   }
-    #   else{
-    #     aDot <- TRUE
-    #   }
-    # }
-    # if (var.sig.1 & !var.sig.3) {
-    #     tmp.sig.names <- c(tmp.sig.names, "sig.male")
-    #     aJustsex <- TRUE
-    # }
-    # if (var.sig.3) {
-    #     if (ns > 1) {
-    #         tmp.sig.names <- c(tmp.sig.names, paste0("sig.f.session",
-    #             2:ns), paste0("sig.m.session", 1:ns))
-    #         aBothsexnsesh <- TRUE
-    #     }
-    #     else {
-    #         aJustsex <- TRUE
-    #     }
-    # }
-    # names.sig <- tmp.sig.names
-    # pars.sig <- rep(0.1, length(names.sig))
-    # pars.sig[1] <- log(0.5 * mmdm)
-
-    
     if (scrFrame$type == "scr") {
         YY <- scrFrame$caphist
     }
@@ -598,95 +570,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame,
         return(oSCR.start)
     }
 
-
-
-    nR<- nC<- list()
-    trimR <- trimC <- list()
-    for (s in 1:length(YY)) {
-
-
-        Ys <- YY[[s]]
-        zeros <- array(0, c(1, dim(Ys)[2], dim(Ys)[3]))
-        Ys <- abind(Ys, zeros, along = 1)
-
-        trimR[[s]] <- list()
-        trimC[[s]] <- list()
-        nR[[s]]<- nC[[s]]<- list()
-
-
-      for (i in 1:nrow(Ys)) {
-           trimR[[s]][[i]]<- list()
-           nR[[s]][[i]]<- list()
-           if (is.null(trimS)) {
-                pp <- rep(T, ncol(Ys))
-                trimC[[s]][[i]] <- rep(T, nG[s])
-                for(k in 1:nK[s]){
-                    trimR[[s]][[i]][[k]] <- pp
-                }
-            }
-            else {
-                if(i < nrow(Ys)){
-                  if(dim(Ys)[3]>1){
-                    pp <- apply(Ys[i, , ], 1, sum) > 0
-                  }else{
-                    pp <- Ys[i, ,1] > 0
-                  }
-                  for(k in 1:nK[s]){
-                      if (!is.null(scrFrame$trapOperation)) {
-
-                     trimR[[s]][[i]][[k]] <- (apply(rbind(rep(trimS*3 +
-                    2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
-                    c("X", "Y")])), 2, min) <= (2 * trimS)) & (scrFrame$trapOperation[[s]][,k]==1)
-
-
-
-                  }else{
-                         trimR[[s]][[i]][[k]] <- apply(rbind(rep(trimS*3 +
-                    2, nrow(scrFrame$traps[[s]])), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), scrFrame$traps[[s]][,
-                    c("X", "Y")])), 2, min) <= (2 * trimS)
-
-
-                     }
-                  nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]]   )
-              }
-
-                  trimC[[s]][[i]] <- apply(rbind(rep(trimS +
-                    2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
-                    "Y")])), 2, min, na.rm = T) <= trimS
-                }   # end loop over i
-                else {
-
-                  pp <- rep(T, ncol(Ys))
-                  trimC[[s]][[i]] <- apply(rbind(rep(trimS +
-                    2, nG[s]), e2dist(matrix(unlist(scrFrame$traps[[s]][pp,
-                    c("X", "Y")]), sum(pp), 2), ssDF[[s]][, c("X",
-                    "Y")])), 2, min, na.rm = T) <= trimS
-                  for(k in 1:nK[s]){
-                  if (!is.null(scrFrame$trapOperation)) {
-                      trimR[[s]][[i]][[k]]<- pp & (scrFrame$trapOperation[[s]][,k]==1)
-                  }else{
-                      trimR[[s]][[i]][[k]]<- pp
-                      }
-
-                      nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]])
-                  }
-
-              }
-            }
-
-           if (multicatch) {
-              for(k in 1:nK[s]){
-                trimR[[s]][[i]][[k]] <- rep(T, length(trimR[[s]][[i]][[k]]))
-                  nR[[s]][[i]][[k]]<- sum(trimR[[s]][[i]][[k]] )
-              }
-           }
-           nC[[s]][[i]]<- sum(trimC[[s]][[i]])
-           }
-       }
-
+    #Do the trimming
+    get.trims <- do.trim(scrFrame, ssDF, trimS)
+    trimR <- get.trims$trimR
+    trimC <- get.trims$trimC
+    
+    
     msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D,
         hiK = hiK, nG = nG, nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         alpha0 <- array(0, dim = c(ns, hiK, 2))

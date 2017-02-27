@@ -77,6 +77,29 @@ e2dist <- function (x, y){
 #}
 #
 
+################################################################################
+## Make a previous capture object for use with a behavioral response model
+do.prevcap <- function(scrFrame){
+  prevcap <- list()
+  for (s in 1:length(scrFrame$caphist)) {
+    Ys <- scrFrame$caphist[[s]]
+    prevcap[[s]] <- array(0, dim = c(dim(Ys)[1], dim(Ys)[2], dim(Ys)[3]))
+    first <- matrix(0, dim(Ys)[1], dim(Ys)[2])
+    for (i in 1:dim(Ys)[1]) {
+      for (j in 1:dim(Ys)[2]) {
+        if (sum(Ys[i, j, ]) > 0) {
+          first[i, j] <- min((1:(dim(Ys)[3]))[Ys[i, j, ] > 0])
+          prevcap[[s]][i, j, 1:first[i, j]] <- 0
+          if (first[i, j] < dim(Ys)[3])
+            prevcap[[s]][i, j, (first[i, j] + 1):(dim(Ys)[3])] <- 1
+        }
+      }  
+    }
+    zeros <- array(0, c(1, dim(prevcap[[s]])[2], dim(prevcap[[s]])[3]))
+    prevcap[[s]] <- abind(prevcap[[s]], zeros, along = 1)
+  }
+  return(prevcap)
+}
 
 ################################################################################
 ## Trim to do local evaluations - identify traps and s's within trim of capture

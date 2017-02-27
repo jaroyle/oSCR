@@ -74,9 +74,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
   names.dist <- NULL
   pars.sex <- NULL
   names.sex <- NULL
-  singleS <- NULL
-  singleT <- NULL
-  singleG <- NULL
   D <- list()
   Drsf <- list()
   dm.den <- list()
@@ -96,10 +93,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
   pBothsexnsesh <- FALSE
   pBehave <- FALSE
   anySex <- FALSE
-  aDot <- FALSE
-  aJustsex <- FALSE
-  aJustsesh <- FALSE
-  aBothsexnsesh <- FALSE
   bDot <- FALSE
   bJustsex <- FALSE
   bJustsesh <- FALSE
@@ -194,79 +187,73 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     areaS <- c(areaS, sum(pixels) * pxArea) #should be ssDF$res
   }
   
+  #trap covariates
+  #can be altered to have session, sex, and b in the DM
+  if (length(trap.fx) > 0) {
+    trap.covs <- TRUE
+    tcovnms <- colnames(scrFrame$trapCovs[[1]][[1]])
+    tCovMissing <- trap.fx[which(!trap.fx %in% tcovnms)]
+    if (length(tCovMissing) > 0) {
+      stop("I cant find these covariates in 'scrFrame$trapCovs'",
+      for (i in tCovMissing) print(i))
+    }
+    mod2 <- update(model[[2]], ~. - sex - session - t - b - b:sex - sex:b - 
+                   b:session - session:b - sex:session - session:sex - 
+                   b:session:sex - b:sex:session - sex:session:b - sex:b:session - 
+                   session:b:sex - session:sex:b)
+    if (any(c("session") %in% allvars.T)) tSession <- TRUE
+    for (s in 1:ns) {
+      tmp.dm <- list()
+      for (k in 1:nK[s]) {
+        #why the -1 here?
+        tmp.dm[[k]] <- model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
+        if (s == 1 && k == 1) t.nms <- colnames(tmp.dm[[k]])
+        if (nrow(tmp.dm[[k]]) != nrow(scrFrame$trapCovs[[s]][[k]])) {
+          mis <- setdiff(rownames(scrFrame$trapCovs[[s]][[k]]),
+                         rownames(my.model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])))
+          tmp.insert <- matrix(NA, length(mis), ncol(tmp.dm[[k]]))
+          row.names(tmp.insert) <- mis
+          tmp.dm[[k]] <- rbind(tmp.dm[[k]], tmp.insert)
+          tmp.dm[[k]] <- tmp.dm[[k]][order(as.numeric(row.names(tmp.dm[[k]]))), ]
+        }
+      }
+      dm.trap[[s]] <- tmp.dm
+      if (RSF) {
+        if (any(!tcovnms %in% names(rsfDF[[s]]))){
+          rsfMissing <- tcovnms[which(!tcovnms %in% names(rsfDF[[s]]))]
+          for (miss in 1:length(rsfMissing)) {
+            rsfDF[[s]][,rsfMissing[miss]] <- 0
+          }
+        }
+        dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])[ , -1, drop=FALSE]
+      }
+    }
+    if (any(paste0("session:", t.nms) %in% 
+            attr(terms(model[[2]]), "term.labels"))) {
+      t.nms.sess <- t.nms[which(paste0("session:", t.nms) %in% 
+                                attr(terms(model[[2]]), "term.labels"))]
+      tmpTsess <- rep(1:ns, each = length(t.nms.sess))
+      tmpTcovs <- rep(t.nms.sess, ns)
+      names.beta.trap1 <- paste("t.beta.", tmpTcovs, ".session", tmpTsess, sep = "")
+      if (length(t.nms) > length(t.nms.sess)) {
+        t.nms.nosess <- t.nms[!t.nms %in% t.nms.sess]
+        names.beta.trap <- c(names.beta.trap1, paste("t.beta.", t.nms.nosess, sep = ""))
+      }
+      else {
+        names.beta.trap <- names.beta.trap1
+      }
+      pars.beta.trap <- rep(0,length(names.beta.trap))
+    }
+    else {
+      names.beta.trap <- paste("t.beta.", t.nms, sep = "")
+      pars.beta.trap <- rep(0,length(names.beta.trap))
+    }
+  }
+
   
   #clean formatting to here
-  
-    if (length(trap.fx) > 0) {
-        trap.covs <- TRUE
-        tcovnms <- colnames(scrFrame$trapCovs[[1]][[1]])
-        tCovMissing <- trap.fx[which(!trap.fx %in% tcovnms)]
-        if (length(tCovMissing) > 0) {
-            stop("I cant find these covariates in 'scrFrame$trapCovs'",
-                for (i in tCovMissing) print(i))
-        }
-        mod2 <- update(model[[2]], ~. - sex - session - t - b -
-                       b:sex - sex:b - b:session - session:b - 
-                       sex:session - session:sex -
-                       b:session:sex - b:sex:session - sex:session:b - 
-                       sex:b:session - session:b:sex - session:sex:b)
 
-        if (any(c("session") %in% allvars.T))
-            tSession <- TRUE
-        for (s in 1:ns) {
-            tmp.dm <- list()
-            for (k in 1:nK[s]) {
-                tmp.dm[[k]] <- model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])[,-1,drop=FALSE]
-                if (s == 1 && k == 1)
-                  t.nms <- colnames(tmp.dm[[k]])
-                if (nrow(tmp.dm[[k]]) != nrow(scrFrame$trapCovs[[s]][[k]])) {
-                  mis <- setdiff(rownames(scrFrame$trapCovs[[s]][[k]]),
-                    rownames(my.model.matrix(mod2, scrFrame$trapCovs[[s]][[k]])))
-                  tmp.insert <- matrix(NA, length(mis), ncol(tmp.dm[[k]]))
-                  row.names(tmp.insert) <- mis
-                  tmp.dm[[k]] <- rbind(tmp.dm[[k]], tmp.insert)
-                  tmp.dm[[k]] <- tmp.dm[[k]][order(as.numeric(row.names(tmp.dm[[k]]))),
-                    ]
-                }
-            }
-            dm.trap[[s]] <- tmp.dm
-
-            if (RSF){
-            
-            if (any(!tcovnms %in% names(rsfDF[[s]]))){
-              rsfMissing <- tcovnms[which(!tcovnms %in% names(rsfDF[[s]]))]
-              for (miss in 1:length(rsfMissing)){
-                rsfDF[[s]][,rsfMissing[miss]] <- 0
-              }
-            }
-              dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])[,-1,drop=FALSE]
-            }
-            
-        }
-        if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),
-            "term.labels"))) {
-            t.nms.sess <- t.nms[which(paste0("session:", t.nms) %in%
-                attr(terms(model[[2]]), "term.labels"))]
-            tmpTsess <- rep(1:ns, each = length(t.nms.sess))
-            tmpTcovs <- rep(t.nms.sess, ns)
-            names.beta.trap1 <- paste("t.beta.", tmpTcovs, ".session",
-                tmpTsess, sep = "")
-            if (length(t.nms) > length(t.nms.sess)) {
-                t.nms.nosess <- t.nms[!t.nms %in% t.nms.sess]
-                names.beta.trap <- c(names.beta.trap1, paste("t.beta.",
-                  t.nms.nosess, sep = ""))
-            }
-            else {
-              names.beta.trap <- names.beta.trap1
-            }
-            pars.beta.trap <- rep(0,length(names.beta.trap))
-        }
-        else {
-            names.beta.trap <- paste("t.beta.", t.nms, sep = "")
-            pars.beta.trap <- rep(0,length(names.beta.trap))
-        }
-    }
-    if (length(dens.fx) > 0) {
+  if (length(dens.fx) > 0) {
         dcovnms <- colnames(ssDF[[1]])
         dCovMissing <- dens.fx[which(!dens.fx %in% dcovnms)]
         if (length(dCovMissing) > 0) {
@@ -356,15 +343,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                 for (i in cCovMissing) print(i))
         }
     }
-
-#    mod4 <- update(model[[4]], ~. - sex - session - 1)
-#    if (distmet == "ecol") {
-#        for (s in 1:ns) {
-#            dm.cost[[s]] <- my.model.matrix(mod4, costDF[[s]])
-#            names.dist <- paste("c.beta.", allvars.dist, sep = "")
-#            pars.dist <- rep(0, length(names.dist))
-#        }
-#    }
 
     if(distmet == "ecol"){
       mod4 <- update(model[[4]], ~. - sex - session)
@@ -475,10 +453,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     #Setup: sigma
     pars.sig <- NULL
     names.sig <- NULL
-    aDot <- FALSE
-    aJustsex <- FALSE
-    aJustsesh <- FALSE
-    aBothsexnsesh <- FALSE
     var.sig.2 <- "session" %in% allvars.sig
     var.sig.3 <- any(c("sex:session", "session:sex") %in% 
                      attr(terms(model[[3]]), "term.labels"))
@@ -488,12 +462,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     pars.sig <- rep(0.1, length(names.sig))
     pars.sig[1] <- log(0.5 * mmdm)
 
-    if (scrFrame$type == "scr") {
-        YY <- scrFrame$caphist
-    }
-    if (scrFrame$type == "secr") {
-        YY <- "secr2scr"
-    }
     if (anySex) {
         if (sexmod == "constant") {
             pars.sex <- 0
@@ -532,24 +500,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     
     #create the prevcap objects
     if (pBehave) {
-      prevcap <- list()
-      for (s in 1:length(YY)) {
-        Ys <- YY[[s]]
-        prevcap[[s]] <- array(0, dim = c(dim(Ys)[1], dim(Ys)[2], dim(Ys)[3]))
-        first <- matrix(0, dim(Ys)[1], dim(Ys)[2])
-        for (i in 1:dim(Ys)[1]) {
-          for (j in 1:dim(Ys)[2]) {
-            if (sum(Ys[i, j, ]) > 0) {
-              first[i, j] <- min((1:(dim(Ys)[3]))[Ys[i, j, ] > 0])
-              prevcap[[s]][i, j, 1:first[i, j]] <- 0
-              if (first[i, j] < dim(Ys)[3])
-                prevcap[[s]][i, j, (first[i, j] + 1):(dim(Ys)[3])] <- 1
-            }
-          }
-        }
-        zeros <- array(0, c(1, dim(prevcap[[s]])[2], dim(prevcap[[s]])[3]))
-        prevcap[[s]] <- abind(prevcap[[s]], zeros, along = 1)
-      }
+      prevcap <- do.prevcap(scrFrame)
     }
 
     #Do the trimming
@@ -557,7 +508,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     trimR <- get.trims$trimR
     trimC <- get.trims$trimC
     
-    msLL.nosex <- function(pv = pv, pn = pn, YY = YY, D = D, hiK = hiK, nG = nG, 
+    msLL.nosex <- function(pv = pv, pn = pn, D = D, hiK = hiK, nG = nG, 
                            nK = nK, dm.den = dm.den, dm.trap = dm.trap) {
         
       alpha0 <- array(0, dim = c(ns, hiK, 2))
@@ -658,8 +609,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             lik.bits <- list()
             ss.bits <- list()
         }
-        for (s in 1:length(YY)) {
-            Ys <- YY[[s]]
+        for (s in 1:length(scrFrame$caphist)) {
+            Ys <- scrFrame$caphist[[s]]
             if (!is.null(YYtel)){ #check if telemetry exists
               Ytels <- YYtel[[s]]
               cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
@@ -924,11 +875,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
         }
         if (predict) {
             return(list(preds = preds, lik.bits = lik.bits, ss.bits = ss.bits,
-                ssDF = ssDF, data = YY, traps = scrFrame$traps))
+                ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
         }
     }
-    msLL.sex <- function(pv, pn, YY, D, Y, nG, nK, hiK, dm.den,
-        dm.trap) {
+    msLL.sex <- function(pv, pn, scrFrame, D, Y, nG, nK, hiK, dm.den, dm.trap) {
         alpha0 <- array(0, c(ns, hiK, 2, 2))
         tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
         if (pDot & !pTime) {
@@ -1110,8 +1060,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             lik.bits <- list()
             ss.bits <- list()
         }
-        for (s in 1:length(YY)) {
-            Ys <- YY[[s]]
+        for (s in 1:length(scrFrame$caphist)) {
+            Ys <- scrFrame$caphist[[s]]
             if (!is.null(YYtel)){ #check if telemetry exists
               Ytels <- YYtel[[s]]
               sxtel <- scrFrame$telemetry$indCovs[[s]]$sex + 1
@@ -1531,122 +1481,129 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
         }
         if (predict) {
             return(list(preds = preds, ss.bits = ss.bits, lik.bits = lik.bits,
-                ssDF = ssDF, data = YY, traps = scrFrame$traps))
+                ssDF = ssDF, data = scrFrame$caphist, traps = scrFrame$traps))
         }
 
     }   # end likelihood
 
-    if(getStarts == FALSE){
-        if (!predict){
-            message("Fitting model: D", paste(model)[1], ", p0",
-                paste(model)[2], ", sigma", paste(model)[3],
-                ", asu", paste(model)[4], sep = " ")
-            if (!anySex) {
-                message("Using ll function 'msLL.nosex' \nHold on tight!")
-                message(Sys.time())
-                message(paste(pn, " ", sep = " | "))
-                message(" ")
-                myfit <- suppressWarnings(nlm(msLL.nosex, p = pv,
-                  pn = pn, YY = YY, D = D, nG = nG, nK = nK,
-                  hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
-                  hessian = hessian, print.level = print.level, iterlim = 200))
-            }
-            else {
-                message("Using ll function 'msLL.sex' \nHold on tight!")
-                message(Sys.time())
-                message(paste(pn, " ", sep = " | "))
-                message(" ")
-                myfit <- suppressWarnings(nlm(msLL.sex, p = pv,
-                  pn = pn, YY = YY, D = D, nG = nG, nK = nK,
-                  hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
-                  hessian = hessian, print.level = print.level, iterlim = 200))
-            }
-            links <- rep(NA, length(pn))
-            pars <- myfit$estimate
-            if (encmod == "B") {
-                links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(logit)"
-            }
-            else {
-                links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(log)"
-            }
-            links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
-            links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"
-            links[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- "(log)"
-            links[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- "(log)"
-            links[grep(fixed=TRUE,"psi", pn)] <- "(logit)"
-            links[grep(fixed=TRUE,"beta", pn)] <- "(Identity)"
-            trans.mle <- rep(0, length(pv))
-            if (encmod == "B") {
-                trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- plogis(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
-            }
-            else {
-                trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
-            }
-            trans.mle[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"sig.(Intercept)", pn)])
-            trans.mle[grep(fixed=TRUE,"n0.", pn)] <- exp(pars[grep(fixed=TRUE,"n0.", pn)])
-            trans.mle[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"d0.(Intercept)", pn)])
-            trans.mle[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"c0.(Intercept)", pn)])
-            trans.mle[grep(fixed=TRUE,"psi", pn)] <- plogis(pars[grep(fixed=TRUE,"psi", pn)])
-            trans.mle[grep(fixed=TRUE,"beta", pn)] <- pars[grep(fixed=TRUE,"beta", pn)]
-            if (pBehave) {
-                links[grep(fixed=TRUE,"pBehav", pn)] <- "(Identity)"
-                trans.mle[grep(fixed=TRUE,"pBehav", pn)] <- pars[grep(fixed=TRUE,"pBehav", pn)]
-            }
-            std.err <- rep(rep(NA, length(pv)))
-            trans.se <- rep(NA, length(pv))
-            if("hessian" %in% names(myfit)) {
-              if(sum(myfit$hessian) != 0){
-                #Need a check for this error and return mles and a warning
-                #Error in solve.default(myfit$hessian) :
-                #Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-                std.err <- sqrt(diag(solve(myfit$hessian)))
-              }else{
-                warning("Something went wrong! Try better starting values.")
-              }
-            }
-            outStats <- data.frame(parameters = pn, link = links,
-                mle = myfit$estimate, std.er = std.err, mle.tr = trans.mle,
-                se.tr = trans.se)
-            VcV <- NULL
-            if(DorN == "N") {
-            ## write some code to return per session density 
-              
-            }else{
-            ## write some code to return per session abundance 
-            
-            }
-            endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
-            output <- list(call = cl, model=model.call,rawOutput = myfit, 
-                outStats = outStats,coef.mle = data.frame(param = pn, mle = myfit$estimate),
-                Area = areaS, nObs = unlist(lapply(scrFrame$caphist,nrow)), mmdm = mmdm, 
-                nll = myfit$minimum, AIC = 2 * myfit$minimum + 2 * length(myfit$estimate),
-                started = starttime, ended = endtime, proctime = (proc.time() - ptm)[3]/60)
-            class(output) <- "oSCR.fit"
-            return(output)
+    if(getStarts == FALSE) {
+      if (!predict) {
+        message("Fitting model: D", paste(model)[1], 
+                            ", p0", paste(model)[2], 
+                         ", sigma", paste(model)[3],
+                           ", asu", paste(model)[4], sep = " ")
+        if (!anySex) {
+          message("Using ll function 'msLL.nosex' \nHold on tight!")
+          message(Sys.time())
+          message(paste(pn, " ", sep = " | "))
+          message(" ")
+          myfit <- suppressWarnings(
+                     nlm(msLL.nosex, p = pv, pn = pn, D = D, nG = nG, nK = nK,
+                         hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
+                         hessian = hessian, print.level = print.level, 
+                         iterlim = 200))
         }
-        if (predict) {
-            message("Predicting model: D", paste(model)[1], ", p0",
-                paste(model)[2], ", sigma", paste(model)[3],
-                ", cost", paste(model)[4], sep = " ")
-            if (!anySex) {
-                message("Using ll function 'msLL.nosex' \nHold on tight!")
-                message(Sys.time())
-                message(paste(pn, " ", sep = " | "))
-                message(" ")
-                myfit <- msLL.nosex(p = start.vals, pn = pn,
-                  YY = YY, D = D, hiK = hiK, nG = nG, nK = nK,
-                  dm.den = dm.den, dm.trap = dm.trap)
-            }
-            else {
-                message("Using ll function 'msLL.sex' \nHold on tight!")
-                message(Sys.time())
-                message(paste(pn, " ", sep = " | "))
-                message(" ")
-                myfit <- msLL.sex(p = start.vals, pn = pn, YY = YY,
-                  D = D, nK = nK, nG = nG, hiK = hiK, dm.den = dm.den,
-                  dm.trap = dm.trap)
-            }
-            return(myfit)
+        else {
+          message("Using ll function 'msLL.sex' \nHold on tight!")
+          message(Sys.time())
+          message(paste(pn, " ", sep = " | "))
+          message(" ")
+          myfit <- suppressWarnings(
+                     nlm(msLL.sex, p = pv, pn = pn, D = D, nG = nG, nK = nK,
+                         hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
+                         hessian = hessian, print.level = print.level, 
+                         iterlim = 200))
+        }
+        links <- rep(NA, length(pn))
+        pars <- myfit$estimate
+        if (encmod == "B") {
+          links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(logit)"
+        }
+        else {
+          links[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- "(log)"
+        }
+        links[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- "(log)"
+        links[grep(fixed=TRUE,"n0.", pn)] <- "(log)"
+        links[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- "(log)"
+        links[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- "(log)"
+        links[grep(fixed=TRUE,"psi", pn)] <- "(logit)"
+        links[grep(fixed=TRUE,"beta", pn)] <- "(Identity)"
+        trans.mle <- rep(0, length(pv))
+        if (encmod == "B") {
+          trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- plogis(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
+        }
+        else {
+          trans.mle[grep(fixed=TRUE,"p0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"p0.(Intercept)", pn)])
+        }
+        trans.mle[grep(fixed=TRUE,"sig.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"sig.(Intercept)", pn)])
+        trans.mle[grep(fixed=TRUE,"n0.", pn)] <- exp(pars[grep(fixed=TRUE,"n0.", pn)])
+        trans.mle[grep(fixed=TRUE,"d0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"d0.(Intercept)", pn)])
+        trans.mle[grep(fixed=TRUE,"c0.(Intercept)", pn)] <- exp(pars[grep(fixed=TRUE,"c0.(Intercept)", pn)])
+        trans.mle[grep(fixed=TRUE,"psi", pn)] <- plogis(pars[grep(fixed=TRUE,"psi", pn)])
+        trans.mle[grep(fixed=TRUE,"beta", pn)] <- pars[grep(fixed=TRUE,"beta", pn)]
+        if (pBehave) {
+          links[grep(fixed=TRUE,"pBehav", pn)] <- "(Identity)"
+          trans.mle[grep(fixed=TRUE,"pBehav", pn)] <- pars[grep(fixed=TRUE,"pBehav", pn)]
+        }
+        std.err <- rep(rep(NA, length(pv)))
+        trans.se <- rep(NA, length(pv))
+        if("hessian" %in% names(myfit)) {
+          if(sum(myfit$hessian) != 0){
+          #Need a check for this error and return mles and a warning
+          #Error in solve.default(myfit$hessian) :
+          #Lapack routine dgesv: system is exactly singular: U[1,1] = 0
+          std.err <- sqrt(diag(solve(myfit$hessian)))
+        }
+        else {
+          warning("Something went wrong! Try better starting values.")
+        }
+        }
+        outStats <- data.frame(parameters = pn, link = links, mle = myfit$estimate, 
+                               std.er = std.err, mle.tr = trans.mle, se.tr = trans.se)
+        VcV <- NULL
+        if(DorN == "N") {
+        ## write some code to return per session density 
+        }
+        else{
+        ## write some code to return per session abundance 
+            
+        }
+        endtime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
+        output <- list(call = cl, model=model.call,rawOutput = myfit, 
+                       outStats = outStats, 
+                       coef.mle = data.frame(param = pn, mle = myfit$estimate),
+                       Area = areaS, nObs = unlist(lapply(scrFrame$caphist,nrow)),
+                       mmdm = mmdm, nll = myfit$minimum, 
+                       AIC = 2 * myfit$minimum + 2 * length(myfit$estimate),
+                       started = starttime, ended = endtime,
+                       proctime = (proc.time() - ptm)[3]/60, scrFrame = scrFrame,
+                       ssDF = ssDF)
+        class(output) <- "oSCR.fit"
+        return(output)
+      }
+      if (predict) {
+          message("Predicting model: D", paste(model)[1], 
+                                 ", p0", paste(model)[2], 
+                              ", sigma", paste(model)[3],
+                                ", asu", paste(model)[4], sep = " ")
+          if (!anySex) {
+            message("Using ll function 'msLL.nosex' \nHold on tight!")
+            message(Sys.time())
+            message(paste(pn, " ", sep = " | "))
+            message(" ")
+            myfit <- msLL.nosex(p = start.vals, pn = pn, D = D, hiK = hiK, 
+                                nG = nG, nK = nK, dm.den = dm.den, 
+                                dm.trap = dm.trap)
+          }
+          else {
+            message("Using ll function 'msLL.sex' \nHold on tight!")
+            message(Sys.time())
+            message(paste(pn, " ", sep = " | "))
+            message(" ")
+            myfit <- msLL.sex(p = start.vals, pn = pn, D = D, nK = nK, nG = nG, 
+                              hiK = hiK, dm.den = dm.den, dm.trap = dm.trap)
+          }
+          return(myfit)
         }
     }
 }

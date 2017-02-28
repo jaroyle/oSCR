@@ -1600,7 +1600,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             message(Sys.time())
             message(paste(pn, " ", sep = " | "))
             message(" ")
-            myfit <- msLL.sex(p = start.vals, pn = pn, D = D, nK = nK, nG = nG, 
+            myfit <- msLL.sex(scrFrame=scrFrame, p = start.vals, pn = pn, D = D, nK = nK, nG = nG, 
                               hiK = hiK, dm.den = dm.den, dm.trap = dm.trap)
           }
           return(myfit)

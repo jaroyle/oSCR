@@ -1509,7 +1509,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
           message(paste(pn, " ", sep = " | "))
           message(" ")
           myfit <- suppressWarnings(
-                     nlm(msLL.sex, p = pv, pn = pn, D = D, nG = nG, nK = nK,
+                     nlm(msLL.sex, scrFrame=scrFrame, p = pv, pn = pn, D = D, nG = nG, nK = nK,
                          hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                          hessian = hessian, print.level = print.level, 
                          iterlim = 200))

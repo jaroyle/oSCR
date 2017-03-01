@@ -1,5 +1,7 @@
 predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL, 
                           rsfDF = NULL, override.trim=FALSE) {
+  library(sp)
+  library(raster)
   mles <- scr.fit$rawOutput$estimate
   call <- scr.fit$call
   oSCR.fit2 <- oSCR.fit
@@ -46,7 +48,7 @@ predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
     nguys <- dim(out$preds[[s]])[1]
     Nhat <- sum(out$ss.bits[[s]][, "d.s"])
     n0 <- out$ss.bits[[s]][, "d.s"] * out$ss.bits[[s]][,"lik.cond"]
-    tmp <- sp::SpatialPoints(out$ssDF[[s]][,c("X","Y")])
+    tmp <- SpatialPoints(out$ssDF[[s]][,c("X","Y")])
     tmp <- try(sp::points2grid(tmp))
     if( class(tmp) == "try-error") {
       cat("Cannot rasterize state-space",fill=TRUE)
@@ -54,7 +56,7 @@ predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
                         pbar = (1 - out$ss.bits[[s]][, "lik.cond"]))
     }
     else {
-      pbar[[s]] <- raster::rasterFromXYZ(
+      pbar[[s]] <- rasterFromXYZ(
                      cbind(out$ssDF[[s]][, c("X", "Y")], 
                            pbar = (1 - out$ss.bits[[s]][, "lik.cond"])))
     }

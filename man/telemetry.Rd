@@ -41,6 +41,8 @@ Andy Royle, Dan Linden
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+
+
 library(oSCR)
 library(scrbook)
 
@@ -70,8 +72,8 @@ alpha2<- 1   # This is the effect of the covariate on resource selection
 Ntel<-4      # number of individuals with telemetry devices
 nsim<-100
 Nfixes<-20   # number of telemetry fixes per individual. Note: these
-             ### should probably be regarded as indepedent locations of
-             ### home range usage. 
+### should probably be regarded as indepedent locations of
+### home range usage. 
 N<- 100      # population size
 
 # Simulate activity centers of all N individuals in the population
@@ -83,7 +85,9 @@ S<-gr[Sid,]
 # because we can't have truncated telemetry observations. 
 
 poss.tel<- S[,1]>5 & S[,1]<35 & S[,2]>5 & S[,2]<35
-tel.guys<-sample(Sid[poss.tel],Ntel)
+# tel.guys<-sample(Sid[poss.tel],Ntel)
+tel.guys<- Sid[c(2,5,13,22)] #which s for telemetry guys (these 4 purposely selected)
+cap.tel <- c(1,3,7,14)   #which row in capture history for each telemetry guy
 sid<-tel.guys
 stel<-gr[sid,]
 
@@ -91,7 +95,7 @@ stel<-gr[sid,]
 n<-matrix(NA,nrow=Ntel,ncol=1600)
 
 # for each telemetered guy simulate a number of fixes.
-# note that n = 0 for most of the landscape
+# note that nfix = 0 for most of the landscape pixels
 par(mfrow=c(3,3))
 lammat<-matrix(NA,nrow=Ntel,ncol=1600)
 for(i in 1:Ntel){
@@ -133,7 +137,14 @@ cap<-apply(y,1,sum)>0
 y<-y[cap,]
 gr<-as.matrix(gr)
 # Average capture location
-sbar<- crossprod(t(n), gr)/as.vector(crossprod(n, rep(1,nrow(gr))))
+#sbar<- crossprod(t(n), gr)/as.vector(crossprod(t(n), matrix(1,nrow=nrow(gr),ncol=1)))
+
+plot(S,pch=15,col="lightgray")
+points(stel,pch=15,col=c("green","blue","purple","orange"))
+points(X,pch=3,col="red")
+for(j in 1:Ntel){
+  points(X[which(y[cap.tel[j],]>0),,drop=FALSE],pch=22,col=c("green","blue","purple","orange")[j])
+}
 
 # Set up the data for oSCR
 library(oSCR)
@@ -161,67 +172,71 @@ for(i in 1:nrow(y)){
 
 # KEY STEP:
 # Create the telemetry list (use telemetry.processor() for raw fix data,
-#   see below).  The telemetry list MUST HAVE sex information. (it
-#   usually will in practice) 
-telemetry <- list(fixfreq=list(n),indCovs=list(data.frame(sex=c(0,1,0,1))))
+# see below).  The inclusion of "cap.tel" indicates that some collared
+# individuals were also captured -- this vector includes the row position
+# in the capture history array for each collared individual.  If some
+# collared individuals were not captured, they should be sorted last,
+# possibly by assigning uniqe IDs with additional characters (e.g., 99 or XX).
+telemetry <- list(fixfreq=list(n),indCovs=list(data.frame(sex=c(0,1,0,1))),
+                  cap.tel=list(cap.tel))
 
-# We first fit a model that does NOT use the RSF model but uses "z" as a trapCov:
-# Create the scrFrame. 
+# Create the scrFrame 
 sftel <- make.scrFrame(caphist = list(y.arr),
                        traps = list(data.frame(X=X[,1],Y=X[,2])), 
                        trapCovs = trapCovs,
-                       #telemetry = telemetry,
+                       telemetry = telemetry,
                        indCovs = list(data.frame(sex=sex.cap))
-                       )
+)
 
-# fit the SCR model with NO telemetry integration
+###########################
+#     Model fitting       #
+###########################
+
+# fit the SCR model with NO telemetry integration (z from traps only)
 fit1 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                #rsfDF=list(rsfDF),RSF=TRUE,
-                model=list(D~1,p0~z,sigma~1,path~1))
+                 #rsfDF=list(rsfDF),RSF=TRUE,
+                 trimS=7.5,
+                 model=list(D~1,p0~z,sigma~1,path~1))
 
-# Next we use the telemetry information to inform about both beta.z and
-# also 'sigma'
-sftel <- make.scrFrame(caphist = list(y.arr),
-                       traps = list(data.frame(X=X[,1],Y=X[,2])), 
-                       trapCovs = trapCovs,
-                        telemetry = telemetry,
-                       indCovs = list(data.frame(sex=sex.cap))
-                       )
+# Next we use the telemetry information to inform about both beta.z (RSF=TRUE) and
+# also 'sigma', assuming independence between data (captures vs. collars)
 fit2 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                 rsfDF=list(rsfDF),
-                RSF=TRUE,
+                 rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
+                 trimS = 7.5,
+                 model=list(D~1,p0~z,sigma~1,path~1))
+
+# Now we use the telemetry information again (RSF = TRUE) but assume dependence
+# between data since some collared guys were captured
+fit3 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
+                rsfDF=list(rsfDF),RSF=TRUE,telemetry="dep",
+                trimS = 7.5,
                 model=list(D~1,p0~z,sigma~1,path~1))
 
-# Nowe we fit the SCR model with RSF = FALSE, which only uses the
-#   telemetry data to inform about 'sigma' NOT the RSF parameters
-fit2b <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                  rsfDF=list(rsfDF),
-                  RSF=FALSE,
+# Here we fit the SCR model with RSF = FALSE, which only uses the
+# telemetry data to inform about 'sigma' NOT the RSF parameters
+fit4 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
+                  rsfDF=list(rsfDF),RSF=FALSE,telemetry="ind",
+                  trimS = 7.5,
                   model=list(D~1,p0~z,sigma~1,path~1))
 
+
 #
-# Same 2 models but no trapcovs. They are made internally from the rsfDF when provided
+# Same models but no trapcovs. They are made internally from the rsfDF when provided
 # to make.scrFrame.  Note: it is mandatory for rsfDF to be provided to
 # oSCR.fit AND make.scrFrame (may be changed in the future).
 #
 sftel <- make.scrFrame(caphist = list(y.arr),
                        traps = list(data.frame(X=X[,1],Y=X[,2])), 
                        trapCovs = NULL, rsfDF=list(rsfDF),
-                        telemetry = telemetry,
+                       telemetry = telemetry,
                        indCovs = list(data.frame(sex=sex.cap))
-                       )
+)
 
 # fit the SCR model with telemetry integration
-fit3 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                 rsfDF=list(rsfDF),
-                 RSF=TRUE,
+fit2b <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
+                 rsfDF=list(rsfDF),RSF=TRUE,
                  model=list(D~1,p0~z,sigma~1,path~1))
 
-# fit the SCR model with telemetry integration
-fit3b <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                 rsfDF=list(rsfDF),
-                 RSF=FALSE,
-                 model=list(D~1,p0~z,sigma~1,path~1))
 
 
 #
@@ -269,7 +284,7 @@ telemetry <- list(fixfreq=list(ntel),indCovs=list(data.frame(sex=c(0,1,0))))
 
 # teldata2[,2:3]<- teldata2[,2:3]/10000
 #telemetry <- list(fixfreq=telemetry.processor( list(rsfDF),list(teldata2))$nfreq,
- #                 indCovs=list(data.frame(sex=c(0,1,0))))
+#                 indCovs=list(data.frame(sex=c(0,1,0))))
 
 
 # create the scrFrame
@@ -282,41 +297,40 @@ sftel <- make.scrFrame(caphist = list(y.arr),
 
 # fit the SCR model with telemetry integration
 fit <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                rsfDF=list(rsfDF),RSF=TRUE,
+                rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
                 model=list(D~1,p0~z,sigma~1,path~1))
 
 
 
 #
 # Same model but here converting from raw GPS coordinates into frequencies
-# using the handy telemetry.processor function. We thin out the raw telemetry data
+# using the telemetry.processor function. NOTE: we thin the raw telemetry data
 # 
- kp<- seq(1,nrow(teldata2),10)
- teldata2[,2:3]<- teldata2[,2:3]/10000
- teldata2<- teldata2[kp,]
- telemetry <- list(fixfreq=telemetry.processor( list(rsfDF),list(teldata2))$nfreq,
-                indCovs=list(data.frame(sex=c(0,1,0))))
+kp<- seq(1,nrow(teldata2),length= 0.10*nrow(teldata2)) #keep x% of fixes
+teldata2.thin <- teldata2
+teldata2.thin[,2:3]<- teldata2[,2:3]/10000
+teldata2.thin<- teldata2.thin[kp,]
 
-plot(ssDF[,1:2],pch=15,col="lightgray",main="telemetry1")
-points(ssDF[which(apply(telemetry1$fixfreq[[1]],2,sum)>0),1:2],pch=15,col=rgb(1,0,0,1))
-plot(ss[,1:2],pch=15,col="lightgray",main="telemetry2")
-points(ss[which(apply(telemetry2$fixfreq[[1]],2,sum)>0),1:2],pch=15,col=rgb(1,0,0,1))
+# Note list structure needed for telemetry.processor, just like other oSCR functions
+telemetry2 <- list(fixfreq=telemetry.processor(list(rsfDF),list(teldata2.thin))$nfreq,
+                  indCovs=list(data.frame(sex=c(0,1,0))))
+
+plot(ssDF[,1:2],pch=15,col="lightgray",main="telemetry")
+points(ssDF[which(apply(telemetry$fixfreq[[1]],2,sum)>0),1:2],pch=15,col=rgb(1,0,0,1))
+plot(ssDF[,1:2],pch=15,col="lightgray",main="telemetry2")
+points(ssDF[which(apply(telemetry2$fixfreq[[1]],2,sum)>0),1:2],pch=15,col=rgb(1,0,0,1))
 
 # create the scrFrame
 sftel <- make.scrFrame(caphist = list(y.arr),
                        traps = list(traplocs), 
                        trapCovs = trapCovs, 
-                       telemetry = telemetry,
+                       telemetry = telemetry2,
                        indCovs = list(data.frame(sex=sex.cap)) )
 
 # fit the SCR model with telemetry integration
-fit2 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                rsfDF=list(rsfDF),RSF=TRUE,
+fit <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
+                rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
                 model=list(D~1,p0~z,sigma~1,path~1))
-
-
-
-
 
 
 

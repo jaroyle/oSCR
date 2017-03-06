@@ -6,7 +6,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
           start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 1, 
           tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, 
           smallslow = FALSE, multicatch = FALSE, se = TRUE, print.level = 0, 
-          getStarts = FALSE, theta = 2, RSF = FALSE, YYtel = NULL){
+          getStarts = FALSE, theta = 2, RSF = FALSE, telemetry = c("none","ind","dep")[1]){
   
   ptm <- proc.time()
   starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
@@ -97,6 +97,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
   bJustsex <- FALSE
   bJustsesh <- FALSE
   bBothsexnsesh <- FALSE
+  telem <- FALSE
   warnings <- list()
   if (length(model) == 3) {
     model[[4]] <- formula(~1)
@@ -116,11 +117,16 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     if (is.null(rsfDF))
       stop("Error: Cannot fit RSF without rsfDF!")
   }
-  if (!is.null(scrFrame$telemetry)) {
+  if (telemetry %in% c("ind","dep")) {
+    if (is.null(scrFrame$telemetry)){
+      stop("Error: No telemetry data in scrFrame!")
+    }
+    telem <- TRUE
+    YYtel <- scrFrame$telemetry$fixfreq
+    
     if (is.null(rsfDF)){
       rsfDF <- ssDF
     }
-    YYtel <- scrFrame$telemetry$fixfreq
     if (ncol(YYtel[[1]]) != nrow(rsfDF[[1]]))
       stop("Error: Grid cells for telemetry fixes do not match rsfDF")
   }
@@ -611,7 +617,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
         }
         for (s in 1:length(scrFrame$caphist)) {
             Ys <- scrFrame$caphist[[s]]
-            if (!is.null(YYtel)){ #check if telemetry exists
+            if (telem){ #check if telemetry exists
               Ytels <- YYtel[[s]]
               cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
               lik.marg.tel <- rep(NA, nrow(Ytels))
@@ -647,7 +653,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                     "Y")], ssDF[[s]][, c("X", "Y")])
                 }
             }
-            if (!is.null(scrFrame$telemetry)){
+            if (telem){
               # only Euclidean distance for telemetry fixes
               Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
@@ -676,10 +682,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             }
             
             # some collared ind captured, so keep lik.cond for combining later
-            if (!is.null(YYtel)){
-            if (!is.null(cap.tel)){
+            if (telemetry == "dep"){
               lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
-            }}
+            }
             
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
 
@@ -782,11 +787,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
 #                lik.cond <- numeric(nG[s])
 #    lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm, na.rm = T))
                  
-                 if (!is.null(YYtel)){
-                   if (!is.null(cap.tel)){
-                     if (i %in% cap.tel){
-                       lik.cond.tel[match(i,cap.tel),] <- lik.cond
-                     }
+                 if (telemetry == "dep"){
+                   if (i %in% cap.tel){
+                     lik.cond.tel[match(i,cap.tel),] <- lik.cond
                    }
                  }
                  
@@ -801,7 +804,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             }
             
             
-            if(!is.null(YYtel)){
+            if(telem){
               
               if(RSF){
                 rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
@@ -817,7 +820,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                 #browser()
-                if (!is.null(cap.tel)){
+                if (telemetry == "dep"){
                   if (i <= length(cap.tel)){
                     # combine conditional likelihoods if some collared ind were captured
                     lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
@@ -854,7 +857,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                   part2 <- sum(nv[1:nind] * log(lik.marg[1:nind]))
                 }
               
-              if(!is.null(YYtel)){
+              if(telem){
                 part3 <- sum(log(lik.marg.tel))
               } else {
                 part3 <- 0
@@ -1062,7 +1065,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
         }
         for (s in 1:length(scrFrame$caphist)) {
             Ys <- scrFrame$caphist[[s]]
-            if (!is.null(YYtel)){ #check if telemetry exists
+            if (telem){ #check if telemetry exists
               Ytels <- YYtel[[s]]
               sxtel <- scrFrame$telemetry$indCovs[[s]]$sex + 1
               cap.tel <- scrFrame$telemetry$cap.tel[[s]]  #index of captured ind w/ collars
@@ -1101,7 +1104,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                     "Y")], ssDF[[s]][, c("X", "Y")])
                 }
             }
-            if (!is.null(scrFrame$telemetry)){
+            if (telem){
               # only Euclidean distance for telemetry fixes
               Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
@@ -1130,10 +1133,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             }
             
             # some collared ind captured, so keep lik.cond for combining later
-            if (!is.null(YYtel)){
-              if (!is.null(cap.tel)){
+            if (telemetry == "dep"){
                 lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
-              }
             }
             
             for (i in 1:nrow(Ys)) {
@@ -1238,11 +1239,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
 
 
            #                  lik.cond <- numeric(nG[s])
-                  if (!is.null(YYtel)){
-                    if (!is.null(cap.tel)){
-                      if (i %in% cap.tel){
-                        lik.cond.tel[match(i,cap.tel),] <- lik.cond
-                      }
+                  if (telemetry == "dep"){
+                    if (i %in% cap.tel){
+                      lik.cond.tel[match(i,cap.tel),] <- lik.cond
                     }
                   }
                   
@@ -1406,7 +1405,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                 }
             }
             
-            if(!is.null(YYtel)){
+            if(telem){
 
               if(RSF){
                 rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
@@ -1422,7 +1421,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                 #browser()
-                if (!is.null(cap.tel)){
+                if (telemetry == "dep"){
                   if (i <= length(cap.tel)){
                     # combine conditional likelihoods if some collared ind were captured
                     lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
@@ -1460,7 +1459,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                     pixels) * atheta
                   part2 <- sum(nv[1:nind] * log(lik.marg[1:nind]))
               }
-              if(!is.null(YYtel)){
+              if(telem){
                 part3 <- sum(log(lik.marg.tel))
               } else {
                 part3 <- 0

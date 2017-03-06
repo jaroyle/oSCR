@@ -1492,6 +1492,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                          ", sigma", paste(model)[3],
                            ", asu", paste(model)[4], sep = " ")
         if (!anySex) {
+          if (telem){
+            message("Telemetry: ",telemetry)
+          }
           message("Using ll function 'msLL.nosex' \nHold on tight!")
           message(Sys.time())
           message(paste(pn, " ", sep = " | "))
@@ -1503,6 +1506,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                          iterlim = 200))
         }
         else {
+          if (telem){
+            message("Telemetry: ",telemetry)
+          }
           message("Using ll function 'msLL.sex' \nHold on tight!")
           message(Sys.time())
           message(paste(pn, " ", sep = " | "))
@@ -1586,6 +1592,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                               ", sigma", paste(model)[3],
                                 ", asu", paste(model)[4], sep = " ")
           if (!anySex) {
+            if (telem){
+              message("Telemetry: ",telemetry)
+            }
             message("Using ll function 'msLL.nosex' \nHold on tight!")
             message(Sys.time())
             message(paste(pn, " ", sep = " | "))
@@ -1595,6 +1604,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
                                 dm.trap = dm.trap)
           }
           else {
+            if (telem){
+              message("Telemetry: ",telemetry)
+            }
             message("Using ll function 'msLL.sex' \nHold on tight!")
             message(Sys.time())
             message(paste(pn, " ", sep = " | "))

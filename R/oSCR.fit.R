@@ -192,6 +192,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
     }
     areaS <- c(areaS, sum(pixels) * pxArea) #should be ssDF$res
   }
+  #turn off RSF if no spatial trap covariates (i.e., p0~1)
+  if (RSF & length(trap.fx) == 0){
+    RSF <- FALSE
+  }
   
   #trap covariates
   #can be altered to have session, sex, and b in the DM

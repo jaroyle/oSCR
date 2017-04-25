@@ -18,7 +18,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
   }
   hessian <- ifelse(se, TRUE, FALSE)
   mmdm <- scrFrame$mmdm
-
+  mmdm[is.na(mmdm)] <- mean(mmdm,na.rm=T)
+  
   #ADD A CHECK FOR WHETHER TRIMS IS TOO SMALL
   #if((!is.null(trimS)) & (trimS < (0.6*mdm)))
   #  warning("The trimS value is smaller than half the max observed 

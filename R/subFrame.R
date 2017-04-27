@@ -26,6 +26,12 @@
    }else{
      trapOperation <- scrFrame$trapOperation[subs]
    }
+
+   if(!is.null(scrFrame$telemetry)){
+     telemetry <- scrFrame$telemetry
+   }else{
+     telemetry <- NULL
+   }
    
    caphist.dimensions <- sapply(caphist,dim)
    

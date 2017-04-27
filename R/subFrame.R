@@ -2,16 +2,25 @@
    
    caphist <- scrFrame$caphist[subs]
    traps <- scrFrame$traps[subs]
+
    if(!is.null(scrFrame$indCovs)){
      indCovs <- scrFrame$indCovs[subs]
    }else{
-     indCovs <- scrFrame$indCovs[subs]
+     indCovs <- NULL
    }
+   
    if(!is.null(scrFrame$trapCovs)){
      trapCovs <- scrFrame$trapCovs[subs]
    }else{
-     trapCovs <- scrFrame$trapCovs[subs]
+     trapCovs <- NULL
    }
+   
+   if(!is.null(scrFrame$trapCovs)){
+     sigCovs <- scrFrame$sigCovs[subs,]
+   }else{
+     sigCovs <- NULL
+   }
+   
    if(!is.null(scrFrame$trapOperation)){
      trapOperation <- scrFrame$trapOperation[subs]
    }else{
@@ -33,15 +42,19 @@
      }
    }
    mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
+   mdm <- max(max.dist,na.rm=T)
    
    scrFrame <- list("caphist" = caphist,
                     "traps" = traps,
                     "indCovs" = indCovs,
                     "trapCovs" = trapCovs,
+                    "sigCovs" = sigCovs,
                     "trapOperation" = trapOperation,
                     "occasions" = caphist.dimensions[3,],
                     "type" = type,
-                    "mmdm" = mmdm)
+                    "mmdm" = mmdm,
+                    "mdm" = mdm,
+                    "telemetry" = telemetry)
    
    class(scrFrame) <- "scrFrame"  
    return(scrFrame)

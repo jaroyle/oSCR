@@ -7,18 +7,18 @@ fitList.oSCR <- function(x, rename=F, names = NULL, drop=NULL){
     fl.names <- names(x)
   
   if(rename==TRUE){
-    n1 <- paste(lapply(x,function(z) update.formula(formula(z$model[[2]]),NULL ~ .)))    
+    n1 <- paste(lapply(x,function(z) update.formula(formula(z$model[[1]]),NULL ~ .)))    
     n1 <- ifelse(n1 %in% "NULL",".",n1)
-    n2 <- paste(lapply(x,function(z) update.formula(formula(z$model[[3]]),NULL ~ .)))    
+    n2 <- paste(lapply(x,function(z) update.formula(formula(z$model[[2]]),NULL ~ .)))    
     n2 <- ifelse(n2 %in% "NULL",".",n2)
-    n3 <- paste(lapply(x,function(z) update.formula(formula(z$model[[4]]),NULL ~ .)))    
+    n3 <- paste(lapply(x,function(z) update.formula(formula(z$model[[3]]),NULL ~ .)))    
     n3 <- ifelse(n3 %in% "NULL",".",n3)
 
     count.mods <- lapply(x, function(z)length(z$model))
     if(any(count.mods>3)){
       extract.fn <- function(z){
-        if(length(z$call$model)==5)
-          tmp <- unlist(update.formula(formula(z$model[[5]]),NULL ~ .))
+        if(length(z$call$model)==4)
+          tmp <- unlist(update.formula(formula(z$model[[4]]),NULL ~ .))
         if(length(z$call$model)<5)
           tmp <- "."
         return(tmp)

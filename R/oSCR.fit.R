@@ -183,10 +183,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
   for (s in 1:ns) {
     if (!is.null(trimS)){
       pixels.prior <- rep(T, nG[s])
-        pixels.post <- apply(e2dist(scrFrame$traps[[s]][ , c("X", "Y")], 
-                                    ssDF[[s]][, c("X", "Y")]), 2, min) <= trimS
-        pixels <- (pixels.prior & pixels.post)
-        pixels <- ifelse(pixels, 1, 0)
+      pixels.post <- apply(e2dist(scrFrame$traps[[s]][ , c("X", "Y")], 
+                                  ssDF[[s]][, c("X", "Y")]), 2, min) <= trimS
+      pixels <- (pixels.prior & pixels.post)
+      pixels <- ifelse(pixels, 1, 0)
     }
     else {
       pixels <- rep(1, nG[s])

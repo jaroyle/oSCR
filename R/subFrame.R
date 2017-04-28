@@ -16,7 +16,8 @@
    }
    
    if(!is.null(scrFrame$trapCovs)){
-     sigCovs <- scrFrame$sigCovs[subs,]
+     sigCovs <- scrFrame$sigCovs[subs,,drop=FALSE]
+     sigCovs$session <- factor(1:nrow(sigCovs))
    }else{
      sigCovs <- NULL
    }

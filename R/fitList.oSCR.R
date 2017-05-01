@@ -1,4 +1,4 @@
-fitList.oSCR <- function(x, rename=F, names = NULL, drop=NULL){
+fitList.oSCR <- function(x, rename=F, names = NULL, drop=NULL,drop.asu=FALSE){
   
   if(rename==FALSE & is.null(names(x)))
     fl.names <- 1:length(x)
@@ -24,9 +24,16 @@ fitList.oSCR <- function(x, rename=F, names = NULL, drop=NULL){
         return(tmp)
       }
      n4 <- lapply(x,extract.fn)    
+    }else{
+      n4 <- rep("~1",length(x))    
     }
-    fl.names <- paste("D(",n1,") ","p(",n2,") ",
-                      "sig(",n3,") ","asu(",n4,")", sep="")
+    if(drop.asu){
+      fl.names <- paste("D(",n1,") ","p(",n2,") ",
+                        "sig(",n3,") ", sep="")
+    }else{
+      fl.names <- paste("D(",n1,") ","p(",n2,") ",
+                        "sig(",n3,") ","asu(",n4,")", sep="")
+    }
     
   }
   names(x) <- fl.names

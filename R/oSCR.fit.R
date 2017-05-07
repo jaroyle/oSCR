@@ -694,18 +694,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
             Kern <- exp(-alphsig[s] * D[[s]]^theta)
 
             for (i in 1:nrow(Ys)) {
-              if (plotit) {
-                pp <- sum(trimR[[s]][[i]][[k]])
-                plot(ssDF[[s]][, c("X", "Y")], pch = 16, col = "grey", cex = 0.5, asp = 1,
-                     main = paste("Session:", s, " Individual: ", i, " traps: ", sum(pp), sep = " "))
-                points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")], pch = 16, col = 2, cex = mycex)
-                points(scrFrame$traps[[s]][,c("X", "Y")], pch = 15, col = "grey", cex = 1)
-                points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")],
-                       scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")],
-                       pch = 15, col = 1, cex = 1)
-                pp <- apply(Ys[i,,],1,sum)>0
-                points(scrFrame$traps[[s]][pp,c("X", "Y")], pch = 15, col = 3, cex = mycex)
-              }
 
 
                  lik.cond <- numeric(nG[s])
@@ -715,7 +703,20 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
 #                  Pm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
 
            for (k in 1:nK[s]) {
-            
+             
+             if (plotit) {
+               pp <- sum(trimR[[s]][[i]][[k]])
+               plot(ssDF[[s]][, c("X", "Y")], pch = 16, col = "grey", cex = 0.5, asp = 1,
+                    main = paste("Session:", s, " Individual: ", i, " traps: ", sum(pp), sep = " "))
+               points(ssDF[[s]][trimC[[s]][[i]], c("X", "Y")], pch = 16, col = 2, cex = mycex)
+               points(scrFrame$traps[[s]][,c("X", "Y")], pch = 15, col = "grey", cex = 1)
+               points(scrFrame$traps[[s]][trimR[[s]][[i]][[k]], c("X")],
+                      scrFrame$traps[[s]][trimR[[s]][[i]][[k]],c("Y")],
+                      pch = 15, col = 1, cex = 1)
+               pp <- apply(Ys[i,,],1,sum)>0
+               points(scrFrame$traps[[s]][pp,c("X", "Y")], pch = 15, col = 3, cex = mycex)
+             }
+             
             if(!("removed" %in% names(scrFrame$indCovs[[s]]))){
               dead <- 1
             }else{

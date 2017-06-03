@@ -1,26 +1,28 @@
 make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=NULL,
                           trapOperation=NULL, telemetry=NULL, rsfDF=NULL, type="scr"){
-  
+
   #must have caphist and traps
   if(any(is.null(caphist),is.null(traps)))
     stop("caphist and trap must be provided")
-  
+
   #caphist
   if(!is.list(caphist))
     stop("caphist must be a list")
-  n.sessions <- length(caphist)  
+  n.sessions <- length(caphist)
   caphist.dimensions <- sapply(caphist,dim)
-  
+
   if(nrow(caphist.dimensions)==2)
     caphist.dimensions <- rbind(caphist.dimensions,1)
-  
+
   for(i in 1:n.sessions){
     caphist[[i]] <- array(caphist[[i]], dim=caphist.dimensions[,i])
     all.zero <- apply(apply(caphist[[i]],c(1,3),sum),1,sum)
-    if(any(all.zero==0))
-      stop("At least one individual has an all-zero encounter history")
+    if(any(all.zero==0)){
+      cat("At least one individual has an all-zero encounter history", fill=TRUE)
+      cat("Make sure this is ok...",fill=TRUE)
   }
-  
+  }
+
   #indCovs
   if(!is.null(indCovs)){
     if(!is.list(indCovs))
@@ -29,8 +31,8 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
       stop("indCovs must be a list of dataframes")
     if(length(indCovs) != length(caphist))
       stop("number of sessions in indCovs does not match caphist")
-    
-    check.dim <- sapply(indCovs,nrow) 
+
+    check.dim <- sapply(indCovs,nrow)
     if(any(check.dim!=caphist.dimensions[1,]))
       stop("number of individuals in indCovs does not match caphist")
     if(!("rmv" %in% indCovs[[1]])){
@@ -44,7 +46,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
       indCovs[[i]] <- data.frame(removed = rep(dim(caphist[[i]])[3],dim(caphist[[i]])[1]))
     }
   }
-  
+
   #traps
   if(!is.list(traps))
     stop("traps must be a list")
@@ -52,11 +54,11 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
   #  stop("traps must be a list of dataframes")
   if(length(traps)!=length(caphist))
     stop("number of sessions in traps does not match caphist")
-  
-  check.dim <- sapply(traps,nrow) 
+
+  check.dim <- sapply(traps,nrow)
   if(!all(check.dim==caphist.dimensions[2,]))
     stop("number of traps does not match caphist")
-  
+
   #trapCovs
   if(!is.null(trapCovs)){
     if(!is.list(trapCovs))
@@ -74,7 +76,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
         stop("number of traps does not match caphist")
     }
   }
-  
+
   #sigCovs
   if(!is.null(sigCovs)){
     if(nrow(sigCovs) != length(caphist))
@@ -110,11 +112,11 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
     #  stop("trapOperation must be a list of dataframes")
     if(length(trapOperation) != length(caphist))
       stop("number of sessions in trapOperation does not match caphist")
-    check.dim <- sapply(trapOperation,nrow) 
+    check.dim <- sapply(trapOperation,nrow)
     if(!all(check.dim==caphist.dimensions[2,]))
       stop("number of traps does not match caphist")
   }
-  
+
   #mean maximum distance moved
   max.dist <- NULL
   for (i in 1:length(caphist)) {
@@ -130,7 +132,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
   }
   mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
   mdm <- max(max.dist,na.rm=T)
-  
+
   #telemetry
   if(!is.null(telemetry)){
 
@@ -138,10 +140,10 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
     if(!is.list(telemetry$fixfreq))
       stop("telemetry$fixfreq must be a list")
     fixfreq.dimensions <- sapply(telemetry$fixfreq,dim)
-    
+
     if(nrow(fixfreq.dimensions)==2)
       fixfreq.dimensions <- rbind(fixfreq.dimensions,1)
-    
+
     #indCovs for telemetry
     if(!is.null(telemetry$indCovs)){
       if(!is.list(telemetry$indCovs))
@@ -151,7 +153,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
       if(length(telemetry$indCovs) != length(telemetry$fixfreq))
         stop("number of sessions in telemetry$indCovs does not match telemetry$fixfreq")
 
-      check.dim <- sapply(telemetry$indCovs,nrow) 
+      check.dim <- sapply(telemetry$indCovs,nrow)
       if(any(check.dim!=fixfreq.dimensions[1,]))
         stop("number of individuals in telemetry$indCovs does not match telemetry$fixfreq")
       if(any(!names(indCovs[[1]]) %in% c(names(telemetry$indCovs[[1]]),"removed")))
@@ -163,12 +165,12 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
         stop("telemetry$indCovs must be a list")
       warning("make sure captured individuals w/ collars sorted first!")
     }
-    
+
   }
     if(!is.null(rsfDF)){
       library(FNN)
       rsfCovs <- names(rsfDF[[1]][,-c(1:2),drop=F])
-      
+
       if(is.null(trapCovs)){
         trapCovs <- list(); length(trapCovs) <- n.sessions
         for(s in 1:n.sessions){
@@ -188,14 +190,14 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
               newtrapCovs <- data.frame(rsfDF[[s]][trap.grid,miss.rsfCovs])
               names(newtrapCovs) <- miss.rsfCovs
               trapCovs[[s]][[k]] <- data.frame(trapCovs[[s]][[k]],newtrapCovs)
-              
+
             }
           }
         }
       }
     }
-    
-  
+
+
   scrFrame <- list("caphist" = caphist,
                    "traps" = traps,
                    "indCovs" = indCovs,
@@ -207,7 +209,7 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
                    "mmdm" = mmdm,
                    "mdm" = mdm,
                    "telemetry" = telemetry)
-  
-  class(scrFrame) <- "scrFrame"  
+
+  class(scrFrame) <- "scrFrame"
   return(scrFrame)
 }

@@ -33,11 +33,12 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
     ##
     
     
-    Xid <- edf[, id.col]
+    Xid <- factor(edf[, id.col])
     if (!is.numeric(Xid)) {
         Xid <- as.numeric(as.factor(as.character(Xid)))
     }
     nind<- max(Xid)
+
     # convert to integer 
     edf[,id.col]<- Xid
     
@@ -105,6 +106,16 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
 #####        
 ## Process the EDF information here
 ##
+        if (!is.null(sex.col)) {
+           Xsex <- edf[,sex.col]
+           if (!is.numeric(Xsex)) {
+              Xsex <- as.numeric(as.factor(as.character(Xsex))) -     1
+              }
+           xx<- cbind(Xid, Xsex)
+          usex.all <- xx[!duplicated(xx),]
+        }
+
+
     caphist<- list()
     nn<-list()
     usex<- list()
@@ -118,10 +129,10 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
                 
         new.edf[[s]]<- data.frame(edf[Xsess==s,])
         
-   trapid<-  match(as.character(new.edf[[1]][,trap.col]), as.character(trapnames[[s]]) )
+   trapid<-  match(as.character(new.edf[[s]][,trap.col]), as.character(trapnames[[s]]) )
        ### levels(new.edf[[s]][,trap.col])<- unique(trapnames[[s]])
        #### levels(new.edf[[s]][,occ.col])<- unique(occnames[[s]])
-   occid<- match(as.character(new.edf[[1]][,occ.col]), as.character(occnames[[s]]))    
+   occid<- match(as.character(new.edf[[s]][,occ.col]), as.character(occnames[[s]]))    
        ntraps[s]<- length(unique(tdf[[s]][,1]))
         
         y3d<- array(0, c(nind, ntraps[s], K[s]) )
@@ -129,8 +140,6 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
         xx<- cbind( "individual" = new.edf[[s]][,id.col], 
                    "occasion" = occid,
                    "trap" = trapid )
-        
-
         for (obs in 1:nrow(xx)) {
             y3d[xx[obs, "individual"], xx[obs, "trap"], xx[obs, 
                 "occasion"]] <- y3d[xx[obs, "individual"], xx[obs, 
@@ -139,6 +148,7 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
         caphist[[s]] <- y3d
         nn[[s]] <- apply(y3d, c(1), sum)
         
+        if(remove.zeros==TRUE){
         if (!is.null(sex.col)) {
            Xsex <- new.edf[[s]][, sex.col]
            if (!is.numeric(Xsex)) {
@@ -146,11 +156,18 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
               }
            xx<- cbind(xx, "sex" = Xsex)
           usex[[s]] <- xx[!duplicated(xx[, c("individual",  "sex")]), c("individual", "sex")]
-         }
+      }
+  }else{ 
+       usex[[s]]<- usex.all
+      }
+      
    
-}
+  }
+  
+  
+  
+  
 
-    
     for (s in 1:nsess) {
             if (remove.zeros) 
             caphist[[s]] <- caphist[[s]][nn[[s]] > 0, , ]
@@ -179,7 +196,6 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
         }
     }
     else sex.oscr = NULL
-    
     
     if (!is.null(sex.col)) 
         scrFrame <- make.scrFrame(caphist = caphist, indCovs = sex.oscr, 

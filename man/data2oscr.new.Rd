@@ -2,71 +2,99 @@
 \alias{data2oscr.new}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Convert standard SCR data file(s) to oSCR data objects
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+This will take input files similar to those used
+for the R package 'secr' and convert them to list objects
+used by oSCR. 
 }
 \usage{
-data2oscr.new(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE, remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
+data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE, remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{edf}{
-%%     ~~Describe \code{edf} here~~
+NOT A LIST.
+Encounter data file having basic information about session, individual, occasion,
+trap and (optional) sex.
+Note: if the session column indicates multiple sessions then the result
+will be to produce a list of appropriate length. e.g., if session has
+values (1,2) then the output lists will all be of length 2. If you have
+session indicating "sex" you probably don't want this to happen. 
 }
   \item{sess.col}{
-%%     ~~Describe \code{sess.col} here~~
+Column index (integer) of session info
 }
   \item{id.col}{
-%%     ~~Describe \code{id.col} here~~
+Column index (integer) of individual ID
 }
   \item{occ.col}{
-%%     ~~Describe \code{occ.col} here~~
+Column index (integer) of occasion 
 }
   \item{trap.col}{
-%%     ~~Describe \code{trap.col} here~~
+Column index (integer) of trap 
 }
   \item{sex.col}{
-%%     ~~Describe \code{sex.col} here~~
+Optional column index (integer) of sex 
 }
   \item{tdf}{
-%%     ~~Describe \code{tdf} here~~
+LIST: one for each session. 
+Each element should be a trap deployment file. Necessary format:
+Trap ID, Xcoord, Ycoord, trap deployment columns, character symbol, trap covariates
+
+Optional columns: character symbol is any character symbol which indicates subsequent columns represent covariates. 
+
 }
   \item{K}{
-%%     ~~Describe \code{K} here~~
+Optional vector number of occasions per session. If not provided this is deduced from the data. It is better to provide this.
 }
   \item{ntraps}{
-%%     ~~Describe \code{ntraps} here~~
+Optional vector number of traps per session. If not provided this is deduced from the data. It is better to provide it. 
 }
   \item{remove.zeros}{
-%%     ~~Describe \code{remove.zeros} here~~
+If TRUE then individuals that were never captured in a session are removed
+from the session encounter history data. Why would you have these?
 }
   \item{remove.extracaps}{
-%%     ~~Describe \code{remove.extracaps} here~~
+If TRUE then individuals captured > 1 time in a trap at an occasion have their
+encounter frequency reduced to 1. 
 }
   \item{sex.nacode}{
-%%     ~~Describe \code{sex.nacode} here~~
+Which character codes represent unknown sex?
 }
   \item{tdf.sep}{
-%%     ~~Describe \code{tdf.sep} here~~
+Which character indicates that subsequent columns should be understood
+as trap covariates?
 }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+
+This function takes one or more encounter data files and one or more
+trap deployment files and creates list objects suitable for use by oSCR.fit.
+
+It is best to make sure that you have a proper TDF for EACH EDF that is provided.
+
+The EDF should be a single EDF.
+
+The TDF should be provided in list form. One element per session.
+
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+Returns a list with elements
+ \item{edf }{the encounter data file}
+ \item{y3d }{a list of 3-d encounter history matrices, one for each session}
+ \item{sex }{a list of sex information suitable for inputting into oSCR.fit}
+ \item{traplocs }{a list of trap locations suitable for inputting into oSCR.fit}
+ \item{trapopp }{a list of trap operation information suitable for inputting into oSCR.fit}
+ \item{trapcovs }{a list of trap covariates suitable for inputting into oSCR.fit}
+
 }
 \references{
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Andy Royle
 }
 \note{
 %%  ~~further notes~~
@@ -79,28 +107,80 @@ data2oscr.new(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col 
 }
 \examples{
 
+
 library(oSCR)
+data(ocelot)
 
-# could get EDF/TDF file from data(ocelot) but here we read in raw data files
-###data(ocelot)
-
-# ocelot data have 2 sessions
-edf<- read.csv("ocelot_edf.csv")  ##[1:41,]
-tdf1<- read.csv("ocelot_tdf1.csv")
-tdf2<- read.csv("ocelot_tdf2.csv")
-
-# convert basic EDF/TDF data into "3-d array" and list formats
-data<-data2oscr(edf[1:41,],sex.col=5, K=c(44),   ntraps=c(23), 
-             tdf=list(tdf1),
+# This fails because one TDF is given and the data imply DIFFERENT # occasions
+a<-data2oscr(rbind(edf1,edf2),sex.col=5,   ntraps=c(23,23), 
+             tdf=list(tdf1),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 
-# need to have occasions labeled same as in TDF. THIS IS DIFFERENT than old version
-colnames(tdf1) <- c("Detector","X","Y", 1:44)
-colnames(tdf2) <- c("Detector","X","Y", 1:96)
-
-data.new<- data2oscr.new(edf[1:41,],sex.col=5, K=c(44),   ntraps=c(23), 
-             tdf=list(tdf1),
+# This works. Always best to input K and ntraps!
+a<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
+             tdf=list(tdf1,tdf2),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
+
+
+# process the trap covariate info. This should be done internally but isn't yet.
+dist1=rep(0,23)
+dist2=as.vector(a$trapcovs[[2]])/1000
+dist1<- matrix(dist1,nrow=23,ncol=44,byrow=FALSE)
+dist2<- matrix(dist2, nrow=23,ncol=96, byrow=FALSE)
+# oSCR wont work if there's only one covariate...so I pad this here with a dummy covariate
+# "list of lists" format
+tc<-  list(dist=list(dist1, dist2) , dist2=list(dist1,dist2) )
+tc<- make.trapCovs(tc)
+
+
+scrFrame  <- list(caphist=a$y3d, indCovs=NULL, 
+                   type="scr", traps=a$traplocs,trapCovs=tc,
+                   trapOperation=a$trapopp )
+class(scrFrame) <- "scrFrame"
+
+# make a state-space
+ssDF <- make.ssDF(scrFrame, buffer=2000, res = 600)
+
+##  slowish 
+out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame, ssDF=ssDF,plotit=FALSE , trimS=2000)
+
+## No trim.... really slow!
+out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1), ssDF=ssDF,plotit=FALSE )
+
+## Good starts, improves run-time (can make a huge difference in complex models)
+out1c <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1), start.vals=c(-3.4, 6.4, -0.58),
+                 ssDF=ssDF,plotit=FALSE, trimS=2000 )
+
+# Fit a model with "distance to disturbance"
+out1d <- oSCR.fit(model=list(D~1,p0~dist,sig~1), scrFrame,start.vals=c(-3.5, 6.4, 0, -1.5), ssDF=ssDF, plotit=FALSE, trimS=2000  )
+
+# Session specific density
+out1e <- oSCR.fit(scrFrame,model=list(D~session,p0~1,sig~1),start.vals=c(-3.5, 6.4, -1.5, -1.5), ssDF=ssDF,plotit=FALSE , trimS=2000)
+
+
+
+## Make a density map
+pred<- predict.oSCR(scrFrame,out1e,ssDF)
+
+# Plot total density map
+par(mfrow=c(1,2))
+plot(pred$r[[1]])
+plot(pred$r[[2]])
+
+# Plot posterior of s for a specific individual
+par(mfrow=c(1,1))
+rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][1,]))
+plot(rs)
+#  library(scrbook)
+# spatial.plot(pred$ssDF[[1]][,1:2],pred$preds[[1]][8,],cx=3)
+
+
+
+
+
+
+ 
+
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

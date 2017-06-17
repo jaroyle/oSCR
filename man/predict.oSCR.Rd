@@ -16,7 +16,7 @@ are irregular. We will fix this.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-predict.oSCR(scrFrame, scr.fit, ssDF, costDF = NULL)
+predict.oSCR(scr.fit, scrFrame, ssDF, costDF = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,9 +38,9 @@ predictions are required %%     ~~Describe \code{costDF} here~~
   resource selection data frame 
 }
 \item{override.trim=F}{
- If TRUE uses trimS value from the scr.fit object otherwise uses no
- trimS value so that predictions are produced on the whole state-space
- object. 
+   If TRUE uses trimS value from the scr.fit object otherwise uses no
+   trimS value so that predictions are produced on the whole state-space
+   object. 
   }
 }
 \details{

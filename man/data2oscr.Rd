@@ -21,7 +21,8 @@ trap and (optional) sex.
 Note: if the session column indicates multiple sessions then the result
 will be to produce a list of appropriate length. e.g., if session has
 values (1,2) then the output lists will all be of length 2. If you have
-session indicating "sex" you probably don't want this to happen. 
+session indicating "sex" you probably don't want this to happen so add a
+new column for "sex" and keep that information independent of "session". 
 }
   \item{sess.col}{
 Column index (integer) of session info
@@ -45,6 +46,9 @@ Trap ID, Xcoord, Ycoord, trap deployment columns, character symbol, trap covaria
 
 Optional columns: character symbol is any character symbol which indicates subsequent columns represent covariates. 
 
+ IMPORTANT NOTE: The column names for the trap deployment columns (cols
+ >= 4) must have the same NAMES as the traps referenced in the encounter
+ data file (EDF).
 }
   \item{K}{
 Optional vector number of occasions per session. If not provided this is deduced from the data. It is better to provide this.
@@ -54,7 +58,12 @@ Optional vector number of traps per session. If not provided this is deduced fro
 }
   \item{remove.zeros}{
 If TRUE then individuals that were never captured in a session are removed
-from the session encounter history data. Why would you have these?
+from the session encounter history data. If FALSE then the resulting
+ data structure preserves individual ID across sesions.  For example in
+ a 2 session data set then output$y3d[[1]][7,,]  is the same individual
+ as output$y3d[[2]][7,,].
+For fitting models in oSCR you should have remove.zeros=TRUE
+ 
 }
   \item{remove.extracaps}{
 If TRUE then individuals captured > 1 time in a trap at an occasion have their
@@ -75,7 +84,8 @@ trap deployment files and creates list objects suitable for use by oSCR.fit.
 
 It is best to make sure that you have a proper TDF for EACH EDF that is provided.
 
-The EDF should be a single EDF.
+The EDF should be a single EDF with sessions differentiated by a column
+in the EDF.
 
 The TDF should be provided in list form. One element per session.
 
@@ -87,7 +97,9 @@ Returns a list with elements
  \item{sex }{a list of sex information suitable for inputting into oSCR.fit}
  \item{traplocs }{a list of trap locations suitable for inputting into oSCR.fit}
  \item{trapopp }{a list of trap operation information suitable for inputting into oSCR.fit}
- \item{trapcovs }{a list of trap covariates suitable for inputting into oSCR.fit}
+ \item{trapcovs }{a list of trap covariates suitable for inputting into
+   oSCR.fit}
+ \item{scrFrame}{ the scrFrame suitable for use in oSCR.fit. }
 
 }
 \references{
@@ -110,74 +122,78 @@ Andy Royle
 
 library(oSCR)
 data(ocelot)
-
+ # need to have occasions labeled same as in TDF
+colnames(tdf1) <- c("Detector","X","Y", 1:44)
+colnames(tdf2) <- c("Detector","X","Y", 1:96)
 # This fails because one TDF is given and the data imply DIFFERENT # occasions
-a<-data2oscr(rbind(edf1,edf2),sex.col=5,   ntraps=c(23,23), 
+data<-data2oscr(rbind(edf1,edf2),sex.col=5,   ntraps=c(23,23), 
              tdf=list(tdf1),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 
 # This works. Always best to input K and ntraps!
-a<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
+data<-data2oscr(rbind(edf1,edf2),sex.col=5, K=c(44,96),   ntraps=c(23,23), 
              tdf=list(tdf1,tdf2),   
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") ) 
 
 
-# process the trap covariate info. This should be done internally but isn't yet.
-dist1=rep(0,23)
-dist2=as.vector(a$trapcovs[[2]])/1000
-dist1<- matrix(dist1,nrow=23,ncol=44,byrow=FALSE)
-dist2<- matrix(dist2, nrow=23,ncol=96, byrow=FALSE)
-# oSCR wont work if there's only one covariate...so I pad this here with a dummy covariate
+
+
+
+# Note: data2oscr returns and scrFrame as one of the arguments HOWEVER the current version
+#    is not including the "trapCovs". Therefore, here, we manually process the trap covariate info. 
+# There is one covariate "distance to disturbance" which is not defined for session = 1
+#    therefore I set it to 0 here. This is probably ok if we define the "exposure" covariate to be 1/dist
+#    because then as "dist -> 0" (i.e., close to disturance) then exposure -> BIG whereas if dist -> infinity then
+#    exposure -> 0.  Therefore 0 values are like "no exposure to disturbance" which is a good description of
+#    pre-exposure.
+ 
+
+# The covariate "distance" is in the input TDF file as a trap covariate. The function data2oscr processes that into a matrix
+#  but it does NOT exist for session 1!
+dist1 =  rep(0,23)
+dist2 =  as.vector(data$trapcovs[[2]])/1000   # Convert to km
+# Organize the covariates into a matrix that is J x K (traps x occasions)
+dist1 <- matrix(dist1, nrow=23,ncol=44,byrow=FALSE)
+dist2 <- matrix(dist2, nrow=23,ncol=96, byrow=FALSE)
+# Transformation to exposure to disturbance. Scaling is pretty bad, some extreme values
+exposure1<- dist1    # This is 0 for all traps
+exposure2<- 1/dist2  # This goes to 0 as distance increase
+
+# Package these into a suitable trapCovs format. Example of 2 covariates, defined for each session here:
+tc<-  list(expose=list(exposure1, exposure2), expose2 = list(exposure1^2, exposure2^2) )
+ 
+tc<-  make.trapCovs(tc)
+# Example of 1 covariate
 # "list of lists" format
-tc<-  list(dist=list(dist1, dist2) , dist2=list(dist1,dist2) )
-tc<- make.trapCovs(tc)
+tc <-  list(expose=list(exposure1, exposure2)) 
+tc <-  make.trapCovs(tc)
+# example of 2 covariates
+#tc<-  list(dist=list(dist1, dist2) , dist2=list(dist1,dist2) )
+#tc<- make.trapCovs(tc)
 
+# Make the SCRframe. Sex is not included here. Either way is fine....
+ocelot.sf  <-  make.scrFrame(caphist=data$y3d, indCovs=NULL, 
+                    traps=data$traplocs,trapCovs=tc ,
+                    trapOperation=data$trapopp )
+ 
 
-scrFrame  <- list(caphist=a$y3d, indCovs=NULL, 
-                   type="scr", traps=a$traplocs,trapCovs=tc,
-                   trapOperation=a$trapopp )
-class(scrFrame) <- "scrFrame"
-
-# make a state-space
-ssDF <- make.ssDF(scrFrame, buffer=2000, res = 600)
-
-##  slowish 
+# Make a state-space
+ocelot.ss <- make.ssDF(ocelot.sf, buffer=2000, res = 600)
+plot(ocelot.ss[[1]], pch=20)
+points(ocelot.sf$traps[[1]],pch=3,col="red",lwd=2)
+spiderplot(data$y3d[[2]],data$traplocs[[1]],add=TRUE)
+ 
+##  fit a model
 out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame, ssDF=ssDF,plotit=FALSE , trimS=2000)
-
-## No trim.... really slow!
-out1b <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1), ssDF=ssDF,plotit=FALSE )
 
 ## Good starts, improves run-time (can make a huge difference in complex models)
 out1c <- oSCR.fit(scrFrame,model=list(D~1,p0~1,sig~1), start.vals=c(-3.4, 6.4, -0.58),
                  ssDF=ssDF,plotit=FALSE, trimS=2000 )
 
-# Fit a model with "distance to disturbance"
-out1d <- oSCR.fit(model=list(D~1,p0~dist,sig~1), scrFrame,start.vals=c(-3.5, 6.4, 0, -1.5), ssDF=ssDF, plotit=FALSE, trimS=2000  )
-
-# Session specific density
-out1e <- oSCR.fit(scrFrame,model=list(D~session,p0~1,sig~1),start.vals=c(-3.5, 6.4, -1.5, -1.5), ssDF=ssDF,plotit=FALSE , trimS=2000)
-
-
-
-## Make a density map
-pred<- predict.oSCR(scrFrame,out1e,ssDF)
-
-# Plot total density map
-par(mfrow=c(1,2))
-plot(pred$r[[1]])
-plot(pred$r[[2]])
-
-# Plot posterior of s for a specific individual
-par(mfrow=c(1,1))
-rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][1,]))
-plot(rs)
-#  library(scrbook)
-# spatial.plot(pred$ssDF[[1]][,1:2],pred$preds[[1]][8,],cx=3)
-
-
-
-
-
+# Fit a model with "exposure to disturbance"
+## default vals for some models are especially bad. Could be geographic scaling issue.
+out5 <- oSCR.fit(model=list(D~1,p0~ expose ,sig~1), ocelot.sf, start.vals=c(-3.5, 6.4, 0.035, -1.5), 
+                 ssDF=ocelot.ss, plotit=FALSE, trimS=2000  )
 
  
 

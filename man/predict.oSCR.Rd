@@ -73,8 +73,6 @@ Andy Royle
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-
-
 ###
 
 # Load the beardata (also in oSCR now)
@@ -116,12 +114,10 @@ out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF,plotit=FALSE
 Nhat<- exp(out1$outStats[3,3])*nrow(ssDF[[1]])
 
 # Obtain the predictions of density and activity center posteriors
-pred<- predict.oSCR(sf, out1 ,ssDF)
+pred<- predict.oSCR(out1 ,sf, ssDF)
 
-#### predict.oSCR is just a wrapper. If you want you can get the raw materials here:
-#### a<- oSCR.fit(scrFrame=scrFrame,ssDF=ssDF,start.vals=out1$rawOutput$estimate,predict=TRUE)
-####
-# Plot posterior of s for a specific individual
+# Plot posterior of s for a specific individual (or in this case all
+#   individuals using a loop)
 par(mfrow=c(1,1))
 for(i in 1:47){
  rs<- rasterFromXYZ(cbind(pred$ssDF[[1]][,1:2], pred$preds[[1]][i,]))
@@ -154,7 +150,13 @@ null <- spiderplot(beardata$y3d,beardata$trapmat, add=TRUE)
 
 # Conditional probability of capture (ESA is area-weighted sum of this)
 par(mar=c(3,3,3,6))
-plot(pred$pbar[[1]])
+ plot(pred$pbar[[1]])
+ points(tdf[,2:3],pch=20)
+
+# computation of ESA
+ area.of.pixel<- 0.25  ## This is from the construction of ssDF
+ ESA<- sum(area.of.pixel*values(pred$pbar[[1]]),na.rm=TRUE)
+
 
 
 

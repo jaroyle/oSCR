@@ -16,7 +16,7 @@ are irregular. We will fix this.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-predict.oSCR(scr.fit, scrFrame, ssDF, costDF = NULL)
+predict.oSCR(scr.fit, scrFrame, ssDF, costDF = NULL, rsfDF=NULL, override.trim=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -47,7 +47,7 @@ predictions are required %%     ~~Describe \code{costDF} here~~
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-  \item{r}{ raster format of density predictions (sum of posterior
+  \item{r}{ Raster format of density predictions (sum of posterior
     probabilities
   for all activity centers including n+1 ) }
   \item{ssN}{ E(N) for each state-space pixel.  }

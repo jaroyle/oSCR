@@ -1,12 +1,84 @@
+#' Main fitting function in \pkg{oSCR}
+#'
+#' Flexible likelihood analysis of the multi-session sex-structured (MSSS) spatial 
+#' capture-recapture models
+#'
+#' @param model A list with 4 components describing the SCR model. The model 
+#' formulae desribe, in order, the \emph{density} model (\code{D~}), the \emph{detection}
+#'  model (\code{p0~}), the \emph{sigma} model (\code{sig~}) and, if required, a model for the
+#'  \emph{cost surface} (\code{asu~}). Cetain special characters can be used to fit inbuilt 
+#'  models (see \link{Details}).
+#' @param scrFrame An \pkg{oSCR}-specific \emph{capture history} data object (see \link[oSCR]{make.scrFrame}).
+#' @param ssDF An \pkg{oSCR}-specific \emph{state space} data object (see \link[oSCR]{make.ssDF}).
+#' @param encmod Choice of encounter model to use. Can choose either the binomial (\code{B}),
+#' Poisson (\code{P}), or complementary log-log (\code{CLOG}) encounter model. 
+#' @param multicatch If \code{TRUE}, the multinomial encounter model is used.
+#' @param theta A non-negative power value detemining the shape of the exponential
+#' encounter model. 
+#' @param trimS A non-negative value with the same distance units as \code{traps} and 
+#' \code{ssDF}. Only state space pixels within \code{trimS} of individual captures 
+#' are evaluated as plausible activity centers (i.e., performs \emph{local} 
+#' evaluation). Speeds up computation \strong{but} should be \eqn{>2 \times mmdm}
+#' and wise to check sensitivity to \code{trimS} values.
+#' @param DorN Specify whether to fit the Poisson (\code{D}) or binomial (\code{N}) 
+#' density model. 
+#' @param sexmod Option to sex ratio as a single parameter fixed across sessions (\code{constant}), 
+#' or allow session-specific sex ratio \code{session}. 
+#' @param costDF An \pkg{oSCR}-specific \emph{cost surface} data object.
+#' @param distmet The metric to use to measure pairwise distances. Options are \code{euc},
+#' which is standard Euclidean distance, or \code{ecol}, which is the Ecological distance model 
+#' of Royle \emph{et al.} 2013 used to compute least cost paths.
+#' @param directions NUmber of directions used in \link[gDistance]{costDistance}.
+#' @param PROJ A projection string specifying the coordinate reference system for use
+#' in the \link[gDistance]{costDistance} function.  
+#' @param rsfDF An \pkg{oSCR}-specific \emph{resource selection surface} data object. DAN.
+#' @param RSF DAN
+#' @param telemetry DAN
+#' @param se If \code{TRUE} standard errors are computed. If \code{FALSE}, standard
+#' errors or \emph{not} computed, but fitting is faster.
+#' @param predict If \code{TRUE} a model is \emph{not} fit and instead, the function
+#' returns estimated population size, and data objects necessary to create a map 
+#' of realized density and posterior distributions of activity centers.
+#' @param start.vals A vector of starting values in the order they appear in the 
+#' model.
+#' @param getStarts If \code{TRUE}, the function returns a list with two objects 
+#' to help define starting values: a names objects, and a corresponding vector of
+#' default starting values.
+#' @param smallslow Not used yet.
+#' @param pxArea Not used yet.
+#' @param plotit Not used yet.
+#' @param mycex Not used.
+#' @param nlmgradtol The \code{gradtol} value passed to \code{\link{nlm}}.
+#' @param nlmstepmax The \code{stepmax} value passed to \code{\link{nlm}}.
+#' @param print.level The \code{print.level} value passed to \code{\link{nlm}}.
+#' @examples
+#' #Load the 'beardata'
+#' library("oSCR")
+#' data(beardata)
+#' tdf<- cbind(1:38, beardata$trapmat, matrix(1, nrow=38, ncol=8))
+#' edf<- beardata$edf
+#' edf[,1]<- 1
+#' data<- data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, 
+#'                  sex.col = NULL, tdf = list(tdf), K = c(8), ntraps = c(38),
+#'                  remove.zeros = TRUE, remove.extracaps = TRUE, sex.nacode = NULL, 
+#'                  tdf.sep = "/")
+#' scrFrame  <- make.scrFrame(caphist=data$y3d, traps=data$traplocs, trapCovs=NULL ,
+#'                            trapOperation=data$trapopp)
+#' sf <- data$scrFrame
+#' ssDF <- make.ssDF(sf, buffer=3, res = 0.5)
+#'
+#' #fit the NULL model: 
+#' m0 <- oSCR.fit(Model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF)
+
 oSCR.fit <-
-function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL, 
-          costDF = NULL, rsfDF = NULL, distmet = c("euc", "user", "ecol")[1],
-          sexmod = c("constant", "session")[1], encmod = c("B", "P", "CLOG")[1],
-          DorN = c("D", "N")[1], directions = 8, Dmat = NULL, trimS = NULL, 
-          start.vals = NULL, PROJ = NULL, pxArea = 1, plotit = F, mycex = 1, 
-          tester = F, pl = 0, nlmgradtol = 1e-06, nlmstepmax = 10, predict = FALSE, 
-          smallslow = FALSE, multicatch = FALSE, se = TRUE, print.level = 0, 
-          getStarts = FALSE, theta = 2, RSF = FALSE, telemetry = c("none","ind","dep")[1]){
+function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
+          encmod = c("B", "P", "CLOG")[1], multicatch = FALSE, theta = 2, 
+          trimS = NULL, DorN = c("D", "N")[1], sexmod = c("constant", "session")[1], 
+          costDF = NULL, distmet = c("euc", "user", "ecol")[1], directions = 8, 
+          PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry = c("none","ind","dep")[1],
+          se = TRUE, predict = FALSE, start.vals = NULL, getStarts = FALSE, pxArea = 1, 
+          plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE, 
+          print.level = 0){
   
   ptm <- proc.time()
   starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
@@ -28,11 +100,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF = NULL,
   cl <- match.call(expand.dots = TRUE)
   model.call <- as.list(paste(model))
     
-  if (!require(abind)) stop("need to install package 'abind'")
-  if (!require(Formula)) stop("need to load package 'Formula'")
+  if (!require(abind, quietly = TRUE)) stop("need to install package 'abind'")
+  if (!require(Formula, quietly = TRUE)) stop("need to load package 'Formula'")
   if (distmet == "ecol") {
-    if (!require(raster)) stop("need to install package 'raster'")
-    if (!require(gdistance)) stop("need to install package 'gdistance'")
+    if (!require(raster, quietly = TRUE)) stop("need to install package 'raster'")
+    if (!require(gdistance, quietly = TRUE)) stop("need to install package 'gdistance'")
   }
   if (!inherits(scrFrame, "scrFrame")) stop("Data must be of class 'scrFrame'")
   if ((encmod %in% c("B","CLOG")) & (max(unlist(lapply(scrFrame$caphist, max))) > 1)) {

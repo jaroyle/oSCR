@@ -1,0 +1,1290 @@
+---
+title: \texttt{oSCR} - an \texttt{R} package for SCR analyses
+author: |
+  | Chris Sutherland
+  | Department of Environmental Conservation
+  | University of Massachusetts - Amherst
+  | csutherland@umass.edu
+
+header-includes:
+   - \setbeamercolor{background canvas}{bg=white}
+   - \setbeamertemplate{itemize item}{\small$\bullet$}
+   - \setbeamertemplate{itemize subitem}{\tiny$\Box$}
+   - \setbeamertemplate{itemize subsubitem}{\tiny$\blacktriangleright$}
+   - \setbeamercolor{itemize item}{fg=mDarkTeal}   
+   - \setbeamercolor{itemize subitem}{fg=mLightBrown}   
+   - \setbeamercolor{itemize subsubitem}{fg=mDarkTeal}   
+   - \usepackage{color}
+   - \usepackage{verbatim}
+   - \usepackage{tikz}
+   - \usetikzlibrary{matrix,backgrounds,positioning}
+   - \usetikzlibrary{calc}
+   - \usepackage{tabto}
+   - \usepackage{amsmath}
+   
+fontsize: 10pt
+output:
+ beamer_presentation:
+    highlight: "default"
+    theme: "metropolis"
+    incremental: false
+classoption: t
+---
+
+```{r, echo=F, warning=FALSE, results='hide', message=FALSE}
+library(knitr)
+library(oSCR)
+#library(scrbook)
+
+options(width=120)
+options(width.cutoff=80)
+opts_chunk$set(prompt = FALSE, comment = NA, mysize=TRUE, size="\\scriptsize")
+hook1 <- function(x){ gsub("```\n*```r*\n*", "", x) }
+hook2 <- function(x){ gsub("```\n+```\n", "", x) }
+knit_hooks$set(document = hook2)
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
+```
+
+##What is \texttt{oSCR}?
+
+The \textcolor{mLightBrown}{\texttt{o}} is for *open*
+
+\begin{itemize}
+\item<1->  built upon various functions in \texttt{scrbook}  
+\item<2-> an editable and evolving code base
+\item<3->  a community of contributors  
+  \begin{itemize}
+  \item<3-> \textcolor{gray}{\textit{contributing}} ideas
+  \item<3-> \textcolor{gray}{\textit{contributing}} problems
+  \item<3-> \textcolor{gray}{\textit{contributing}} solutions
+  \item<3-> \textcolor{gray}{\textit{contributing}} code
+  \end{itemize}
+\item<4-> a philosophy of 'parallel publishing' 
+  \begin{itemize}
+  \item<4-> \textcolor{gray}{\textit{increase}} transparency
+  \item<4-> \textcolor{gray}{\textit{increase}} accessibility
+  \end{itemize}
+\end{itemize}
+
+\begin{tikzpicture}[overlay]
+\node[inner sep=0pt] (one) at (10,4) {\includegraphics[height=1.2in]{scrbook.png}};
+\node[inner sep=0pt] (one) at (10,0.91) {\includegraphics[height=0.8in]{oSCR.png}};
+\end{tikzpicture}
+
+##What is \texttt{oSCR}?
+
+$\ldots$ more about \texttt{oSCR}
+
+\begin{itemize}
+\item<1-> one of several ways to analyze SCR data
+  \begin{itemize}
+  \item<1-> alternative (\textit{not} substitute) to \texttt{secr}
+  \item<1-> (see Dan's lecture tomorrow)
+  \item<1-> alternative to Bayesian analysis
+  \end{itemize}
+\item<2->  likelihood based - has advantages
+  \begin{itemize}
+  \item<2-> \textcolor{gray}{\textit{advantage}} speed
+  \item<2-> \textcolor{gray}{\textit{advantage}} model selection methods 
+  \item<2-> \textcolor{gray}{\textit{advantage}} cost surface modeling
+  \item<2-> \textcolor{gray}{\textit{advantage}} user friendly
+  \end{itemize}
+\end{itemize}
+\begin{tikzpicture}[overlay]
+\node[inner sep=0pt] (one) at (10,0.175) {\includegraphics[height=0.8in]{oSCR.png}};
+\end{tikzpicture}
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{?make.scrFrame}
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{caphist} ($y_{ijk}$):
+
+- spatial capture history object
+- array with dimensions n x J x K (ind-by-trap-by-occasion)
+- binary (detected or not) $\rightarrow$ Binomial encounter model
+- counts (no. of detecteds) $\rightarrow$ Poisson encounter model
+
+## \texttt{caphist}
+
+- schematically:
+
+\scalebox{0.6}{
+\begin{tikzpicture}[overlay]
+\matrix[draw=none,inner sep=0pt] (C) at (5,-3)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.2,text height=1ex,nodes in empty cells]
+{
+3 \& 2 \& 0 \& 0    \& \cdots \& \& \&       \&        \\
+1 \& 0 \& 1 \& \cdots \&      \& \& \&       \&        \\
+  \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \& \vdots \\
+ \&  \&  \&      \&      \& \& \& \vdots \& 4      \\
+ \&  \&  \&      \&      \& \& \& 3     \& 0      \\
+ \&  \&  \&      \&      \& \& \& 1     \& 1      \\ 
+ };
+\fill[gray,opacity=.2] (C-2-1.south west) -- (C-1-1.north west) -- (C-1-9.north east) -- (C-11-9.south east) -- (C-11-8.south west) -- (C-3-8.north west) -- (C-2-1.south west);
+\draw[opacity=0.2] (C-2-1.south west) -- (C-1-1.north west)--(C-1-9.north east)--(C-11-9.south east)--(C-11-8.south west);
+
+\matrix[draw=none,inner sep=0pt] (D) at (4,-4)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.35,text height=1ex,nodes in empty cells]
+{
+2 \& 2 \& 1 \& 0    \& \cdots \& \& \&       \&        \\
+4 \& 0 \& 0 \& \cdots \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \& \vdots \\
+ \&  \&  \&      \&      \& \& \& \vdots \& 0      \\
+ \&  \&  \&      \&      \& \&  \& 0     \& 2      \\
+ \&  \&  \&      \&      \& \& \& 1     \& 0      \\ %%%%%% 8
+ };
+\fill[gray,opacity=.35] (D-3-1.south west) -- (D-1-1.north west) -- (D-1-9.north east) -- (D-11-9.south east) -- (D-11-8.south west) -- (D-4-8.north west) -- (D-3-1.south west);
+\draw[opacity=0.35] (D-3-1.south west) -- (D-1-1.north west)--(D-1-9.north east)--(D-11-9.south east)--(D-11-8.south west);
+
+
+\matrix[draw,inner sep=0pt] (E) at (3,-5) [matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=1,fill=gray,text height=1ex,nodes in empty cells]
+{
+1    \& 3 \& 0\& 1\& \cdots \&       \&  \&  \&        \\
+6    \& 1 \& 2\&  \&      \&       \&  \&  \&        \\
+0    \& 0 \&  \&  \&      \&       \&  \&  \&        \\
+3    \&  \&  \&  \&      \&       \&  \&  \&        \\
+\vdots \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&\vdots  \\
+     \&  \&  \&  \&      \&       \&  \&  \& 3      \\
+     \&  \&  \&  \&      \&       \&  \& 0 \& 0      \\
+     \&  \&  \&  \&      \& \cdots \& 0 \& 0 \& 0      \\
+};%
+
+
+\draw[] (E-6-5) node {\large\textcolor{green}{$\boldsymbol{y_{i,j,r}}$}};
+\draw[] (E-7-5) node {\large\textcolor{green}{counts}};
+
+%Trap
+\draw[] (C-1-1.north east) node[above left] {\textbf{Trap = 1}};
+\draw[] (C-1-9.north) node[above] {\textbf{$J$}};
+\draw[->, thick] ([yshift=7.5]C-1-1.north east) -- ([yshift=7.5]C-1-9.north west);
+
+%Ind
+\draw[] (E-1-1.west) node[left, yshift=2] {\textbf{Ind. = 1}};
+\draw[] (E-11-1.west) node[left, yshift=2] {\textbf{$n_{obs}$}};
+\draw[->, thick] ([xshift=-7.5]E-2-1.west) -- ([xshift=-7.5]E-10-1.west);
+
+\draw[] (E-11-9.south) node[below] {\textbf{Occassion = 1}};
+\draw[] (C-11-9.east) node[right, xshift=2ex] {\textbf{$K$}};
+\draw[->, thick] ([xshift=2ex]E-11-9.south east) -- ([xshift=2ex]C-11-9.south east);
+
+
+
+
+\matrix[draw=none,inner sep=0pt] (C) at (15,-3)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.2,text height=1ex,nodes in empty cells]
+{
+1\& 1\& 0\& 0    \& \cdots \& \& \&       \&        \\
+1\& 0\& 1\& \cdots \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \& \vdots \\
+ \&  \&  \&      \&      \& \& \& \vdots \& 1      \\
+ \&  \&  \&      \&      \& \& \& 1     \& 0      \\
+ \&  \&  \&      \&      \& \& \& 1     \& 1      \\ %%%%%% 11
+ };
+\fill[gray,opacity=.2] (C-2-1.south west) -- (C-1-1.north west) -- (C-1-9.north east) -- (C-11-9.south east) -- (C-11-8.south west) -- (C-3-8.north west) -- (C-2-1.south west);
+\draw[opacity=0.2] (C-2-1.south west) -- (C-1-1.north west)--(C-1-9.north east)--(C-11-9.south east)--(C-11-8.south west);
+
+\matrix[draw=none,inner sep=0pt] (D) at (14,-4)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.35,text height=1ex,nodes in empty cells]
+{
+1 \& 1\& 1\& 0    \& \cdots \& \& \&       \&        \\
+1 \& 0\& 0\& \cdots \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \&        \\
+ \&  \&  \&      \&      \& \& \&       \& \vdots \\
+ \&  \&  \&      \&      \& \& \& \vdots \& 0      \\
+ \&  \&  \&      \&      \& \& \& 0     \& 1      \\
+ \&  \&  \&      \&      \& \& \& 1     \& 0      \\ %%%%%% 8
+ };
+\fill[gray,opacity=.35] (D-3-1.south west) -- (D-1-1.north west) -- (D-1-9.north east) -- (D-11-9.south east) -- (D-11-8.south west) -- (D-4-8.north west) -- (D-3-1.south west);
+\draw[opacity=0.35] (D-3-1.south west) -- (D-1-1.north west)--(D-1-9.north east)--(D-11-9.south east)--(D-11-8.south west);
+
+
+\matrix[draw,inner sep=0pt] (E) at (13,-5) [matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=1,fill=gray,text height=1ex,nodes in empty cells]
+{
+1    \& 1 \& 0 \& 1\& \cdots \&       \&  \&  \&        \\
+1    \& 1 \& 1 \&  \&      \&       \&  \&  \&        \\
+0    \& 0 \&   \&  \&      \&       \&  \&  \&        \\
+1    \&  \&  \&  \&      \&       \&  \&  \&        \\
+\vdots \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \& \vdots  \\
+     \&  \&  \&  \&      \&       \&  \&  \& 1      \\
+     \&  \&  \&  \&      \&       \&  \& 0 \& 0      \\
+     \&  \&  \&  \&      \& \cdots \& 0 \& 0 \& 0      \\
+};%
+
+
+\draw[] (E-6-5) node {\large\textcolor{green}{$\boldsymbol{y_{i,j,r}}$}};
+\draw[] (E-7-5) node {\large\textcolor{green}{detections}};
+
+%Trap
+\draw[] (C-1-1.north east) node[above left] {\textbf{Trap = 1}};
+\draw[] (C-1-9.north) node[above] {\textbf{$J$}};
+\draw[->, thick] ([yshift=7.5]C-1-1.north east) -- ([yshift=7.5]C-1-9.north west);
+
+%Ind
+\draw[] (E-1-1.west) node[left, yshift=2] {\textbf{Ind. = 1}};
+\draw[] (E-11-1.west) node[left, yshift=2] {\textbf{$n_{obs}$}};
+\draw[->, thick] ([xshift=-7.5]E-2-1.west) -- ([xshift=-7.5]E-10-1.west);
+
+\draw[] (E-11-9.south) node[below] {\textbf{Occassion = 1}};
+\draw[] (C-11-9.east) node[right, xshift=2ex] {\textbf{$K$}};
+\draw[->, thick] ([xshift=2ex]E-11-9.south east) -- ([xshift=2ex]C-11-9.south east);
+\end{tikzpicture}
+}
+
+## \texttt{caphist}
+
+- in `R`:
+
+```{r, mysize=TRUE, size="\\tiny", eval=TRUE, echo=FALSE}
+yarr <- array(rbinom(3*10*3,1,0.4),c(3,10,3))
+```
+
+```{r, mysize=TRUE, size="\\tiny", eval=TRUE, echo=TRUE}
+yarr
+```
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{traps}:
+
+- a trap coordinate data frame
+- coordinates must be named `X` and `Y` (upper case)
+- all traps operational at least once (see `trapOperation`)
+- know your units!
+    - spatial units must be consistent throughout
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{trapCovs}:
+
+- a $k$-length list of trap covariate data frames
+- can model occassion-specific variation in $p$, i.e. $p_k$
+    - temperature
+    - Julian day, etc$\ldots$
+- `NA`'s allowed
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{indCovs}:
+
+- a data frame containing individual-level data
+- currently only with a two-class categorical variables
+    - typically male/female (male = 1)
+- can accomodate missing data
+- if provided, 2-class mixture model **always** fitted
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{trapOperation}:
+
+- binary J x K (trap-by-occasion) matrix 
+- denotes whether a trap was operational (1) or not (0), in each occasion
+- unoperational traps get discarded from any calculations
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist,       # spatial encounter histories
+                    traps,         # trap coordinates
+                    trapCovs,      # trap level covariates
+                    indCovs,       # sex data
+                    trapOperation, # binary operation indicator
+                    type)          # data format type
+```
+
+\normalsize
+\texttt{type}:
+
+- for now always set to `SCR`
+- in the future will allow for alternative formats
+    - secr
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+- each object must be supplied as a list
+- `make.scrFrame()` does internal checks for consistencies
+- the resulting data object (`sf`) is ready for use
+- list structure makes multi-session data formatting easy
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+- each object must be supplied as a list
+- `make.scrFrame()` does internal checks for consistencies
+- the resulting data object (`sf`) is ready for use
+- list structure makes multi-session data formatting easy
+- \textcolor{mLightBrown}{{\it single}} session data:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist       = list(ch),
+                    traps         = list(tr),
+                    trapCovs      = list(list(tc1,tc2,tc3)), #k=3      
+                    indCovs       = list(ic),
+                    trapOperation = list(to),
+                    type          = "SCR")
+```
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+- each object must be supplied as a list
+- `make.scrFrame()` does internal checks for consistencies
+- the resulting data object (`sf`) is ready for use
+- list structure makes multi-session data formatting easy
+- \textcolor{mLightBrown}{{\it two}} session data:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist       = list(ch1, ch2),
+                    traps         = list(tr1, tr1),
+                    trapCovs      = list(list(tc1.1,tc1.2,tc1.3),
+                                         list(tc2.1,tc2.2,tc2.3)), #k=3      
+                    indCovs       = list(ic1, ic2),
+                    trapOperation = list(to1,to2),
+                    type          = "SCR")
+```
+
+## \texttt{oSCR} - Data organization and structure
+
+`scrFrame`: the main data object for model fitting:
+
+- each object must be supplied as a list
+- `make.scrFrame()` does internal checks for consistencies
+- the resulting data object (`sf`) is ready for use
+- list structure makes multi-session data formatting easy
+- \textcolor{mLightBrown}{{\it three}} session data:
+
+```{r, mysize=TRUE, size="\\scriptsize", eval=FALSE}
+sf <- make.scrFrame(caphist       = list(ch1, ch2, ch3),
+                    traps         = list(tr1, tr1, tr3),
+                    trapCovs      = list(list(tc1.1,tc1.2,tc1.3),
+                                         list(tc2.1,tc2.2,tc2.3),
+                                         list(tc3.1,tc3.2,tc3.3)), #k=3      
+                    indCovs       = list(ic1, ic2, ic3),
+                    trapOperation = list(to1,to2, to3),
+                    type          = "SCR")
+```
+
+\normalsize
+
+$\ldots$ and so on and so forth
+
+## \texttt{oSCR} - Data organization and structure
+
+Data formats:
+
+- data collection and storage formats vary widely
+- `secr` format is a common format
+    - row per observation
+    - e.g., individual, trap, occasion, session
+- function to convert `secr` to `oSCR` format
+    - `data2oscr()`
+- can use work session to format personal data
+
+## Exploring the \texttt{scrFrame}
+
+Lets look at some real data
+
+- redback salamnders *Plethodon cinereus*
+- 4 sampling grids withing a single forest
+- 5 $\times$ 10 cover boards spaced 1*m* apart 
+
+\begin{tikzpicture}[overlay]
+\node[inner sep=0pt] (one) at (9,-1) {\includegraphics[height=2.8in]{sampling.png}};
+\node[inner sep=0pt] (one) at (4,-2) {\includegraphics[height=1.75in]{mark.png}};
+\end{tikzpicture}
+
+## Exploring the \texttt{scrFrame}
+
+- you can run this code!
+
+```{r,mysize=TRUE, size="\\scriptsize", echo=TRUE,eval=FALSE}
+library(oSCR)
+data(rbs)
+ls()
+
+[1] "rbs.sf" "rbs.ss"
+```
+
+```{r,mysize=TRUE, size="\\scriptsize", echo=FALSE, eval=TRUE}
+library(oSCR)
+data(rbs)
+```
+
+\normalsize
+
+- `rbs.sf` is the redback salander `scrFrame` object
+
+## Exploring the \texttt{scrFrame}
+
+- you can run this code!
+
+```{r,mysize=TRUE, size="\\scriptsize", echo=TRUE, eval=TRUE}
+library(oSCR)
+data(rbs)
+rbs.sf
+```
+
+## Subsetting the \texttt{scrFrame}
+
+- `subFrame()` can be used to efficiently subset the `scrFrame`
+
+```{r,mysize=TRUE, size="\\scriptsize", echo=TRUE, eval=FALSE}
+sf.sub <- subFrame(scrFrame, # the scrFrame to be subsetted
+                   subs)     # the index/indices to be kept
+```
+
+## Subsetting the \texttt{scrFrame}
+
+- `subFrame()` can be used to efficiently subset the `scrFrame`
+
+```{r,mysize=TRUE, size="\\scriptsize", echo=TRUE, eval=FALSE}
+sf.sub <- subFrame(scrFrame = rbs.sf, 
+                   subs = c(2,4))
+sf.sub
+```
+
+## Subsetting the \texttt{scrFrame}
+
+- let's try that with the `rbs` data:
+
+```{r,mysize=TRUE, size="\\scriptsize", echo=TRUE, eval=TRUE}
+sf.sub <- subFrame(scrFrame = rbs.sf, 
+                   subs = c(2,4))
+sf.sub
+```
+
+## \texttt{oSCR} - Data organization and structure
+
+State space definition is extremely important
+
+- part of the model
+- an approximation of activity centers (*ac*)
+    - resolution should be $\le \hat{\sigma}$
+- should represent all ac of detectable individuals
+    - buffer of at least $2\hat{\sigma}$ around traps
+
+\begin{tikzpicture}[overlay]
+\node[inner sep=0pt] (one) at (5,-1.5) {\includegraphics[height=1.2in]{sbuf.png}};
+\end{tikzpicture}
+
+## \texttt{oSCR} - Data organization and structure
+
+`ssDF`: the state space data object (\textbf{s}tate \textbf{s}pace {\textbf{d}ata \textbf{f}rame):
+
+- a list of data frames (one per session)
+- coordinates of each pixel
+    - named `X` and `Y` (upper case)
+    - each coordinate represents a *pixel*
+- named columns of pixel-specific covariate values
+    - used for modelling spatially varying density
+    - can be continuous or categorical
+    - *non-habitat* can be removed
+    - coordinates should be same units as `traps`
+
+## \texttt{oSCR} - Data organization and structure
+
+Making the `ssDF` object requires constructing a list of data frames
+
+```{r, eval=FALSE}
+ssDF <- list(ss1,  # dataframe for session 1
+             ss2,  # dataframe for session 2
+             ss3,  # dataframe for session 3
+             ss4)  # dataframe for session 4
+```
+
+## Exploring the \texttt{ssDF}
+
+Let's work with the salamander state space object:
+
+```{r, eval=TRUE}
+str(rbs.ss, give.attr=FALSE)
+```
+
+## Exploring the \texttt{ssDF}
+
+Sub setting `ssDF` is easily done:
+
+```{r, eval=FALSE}
+# sub setting ssDF is easy:
+ss.sub <- rbs.ss[c(1,2)]
+```
+
+## Exploring the \texttt{ssDF}
+
+Sub setting `ssDF` is easily done:
+
+```{r, eval=TRUE}
+# sub setting ssDF is easy:
+ss.sub <- rbs.ss[c(1,2)]
+str(ss.sub, give.attr=FALSE)
+```
+
+## Exploring the \texttt{ssDF}
+
+We can plot the object
+
+```{r, eval=TRUE, echo=FALSE}
+par(mfrow=c(2,2), oma=c(0,0,0,0),mar=c(4,4,2,2))
+```
+
+```{r, eval=TRUE, fig.align='center',fig.height=2.5,fig.width=4.2}
+par(mfrow=c(1,4)) #4 sessions
+plot.ssDF(rbs.ss)
+```
+
+## Exploring the \texttt{ssDF}
+
+We can plot the object *with the traps*
+
+```{r, eval=TRUE, fig.align='center',fig.height=2.5,fig.width=4.2}
+par(mfrow=c(1,4)) #4 sessions
+plot.ssDF(rbs.ss, scrFrame=rbs.sf)
+```
+
+## Constructing a \texttt{ssDF}
+
+If no interest in assessing spatial variation in density
+
+- the state space is somewhat arbitrary
+- no covariates
+- we can *make* an `ssDF` object: `make.ssDF()`
+
+```{r, eval=FALSE}
+ssDF <- make.ssDF(scrFrame,  # an scrFRame objects
+                  buffer,    # a buffer witdh (around traps!)
+                  res)       # the  distance between S points
+
+```
+
+## Constructing a \texttt{ssDF}
+
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+```
+
+```{r, fig.align='center',fig.height=2.5,fig.width=4.2}
+ssDF <- make.ssDF(scrFrame = sf.sub,
+                  buffer = 1,
+                  res = 1)
+plot(ssDF, sf.sub)
+```
+
+## Constructing a \texttt{ssDF}
+
+```{r, fig.align='center',fig.height=2.5,fig.width=4.2}
+ssDF <- make.ssDF(scrFrame = sf.sub,
+                  buffer = 5,
+                  res = 0.5)
+plot(ssDF, sf.sub)
+```
+
+## \texttt{oSCR} - Model fitting 
+
+With an `scrFrame` and `ssDF` object, we can start fitting models uning the fitting function `oSCR.fit()`
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{model}:
+
+- a list with 4 model formulations
+- `list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~ 1)`
+    - `D ~`: model describing variation in density
+    - `p0 ~`: model describing variation in baseline encounter prob/rate
+    - `sig ~`: model describibg variation in sigma
+    - `asu ~`: model for a cost surface
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{model}:
+
+- a list with 3 model formulations
+- `list(D ~ 1, p0 ~ 1, sig ~ 1)`
+    - `D ~`: model describing variation in density
+    - `p0 ~`: model describing variation in baseline encounter prob/rate
+    - `sig ~`: model describibg variation in sigma
+
+## \texttt{oSCR} - model choices 
+
+Varaition in \textcolor{blue}{density} (`D ~`)
+
+```{r, eval=FALSE}
+D ~ 1             # null model, constant density
+D ~ session       # density varies by session
+D ~ "covariate"   # density varies by spatially indexed covariates
+```
+
+\normalsize
+
+- includes *additive* and *interaction* models
+- includes all combinations
+- `"covariate"` must match column names in `ssDF`
+- `D ~ 1` is the default
+
+## \texttt{oSCR} - model choices 
+
+Varaition in \textcolor{blue}{detection} (`p0 ~`)
+
+```{r, eval=FALSE}
+p0 ~ 1            # null model, constant p (M0)
+p0 ~ t            # occasion specific p (Mt)
+p0 ~ b            # behavioural response (Mb)
+p0 ~ sex          # p varies by sex
+p0 ~ session      # p varies by session
+p0 ~ "covariate"  # p varies by trap level covariates
+```
+
+\normalsize
+
+- includes *additive* and *interaction* models
+- includes most combinations
+- `"covariate"` must match column names in `trapCovs`
+- `p0 ~ 1` is the default
+
+## \texttt{oSCR} - model choices 
+
+Varaition in \textcolor{blue}{sigma} (`sig ~`)
+
+```{r, eval=FALSE}
+sig ~ 1           # null model, constant sigma
+sig ~ sex         # sex-specific sigma 
+sig ~ session     # session-specific sigma
+```
+
+\normalsize
+
+- includes *additive* and *interaction* models
+- includes all combinations
+- `sig ~ 1` is the default
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{scrFrame} and \texttt{ssDF}:
+
+- we know what these are now!
+- `scrFame` is the *encounter* data object
+- `ssDF` is the *state space* data object
+
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{encmod}:
+
+A character defining which **enc**counter model to be used
+
+- `"B"`: *Binomial model* (default)
+    - response is  binary (detection/non-detection)
+
+- `"P"`: *Poisson model*
+    - response is counts (frequancy of encounters) 
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{trimS}:
+
+- a distance value used to restrict the integration area
+    - remove implausible ($>3\sigma$) activity centers
+    - points with practically zero capture probability
+- more computationally effcient for large spatial problems
+- 'trimming' to within 3$\sigma$ produces unbiased estimates
+
+## \textit{trimming} the state space 
+
+```{r,eval=FALSE}
+sf1 <- subFrame(rbs.sf,1)
+ss1 <- rbs.ss[1]
+par(ask=TRUE)
+mod <- oSCR.fit(scrFrame=sf1, ssDF=ss1, trimS=2, plotit=TRUE)
+mod <- oSCR.fit(scrFrame=sf1, ssDF=ss1, trimS=4, plotit=TRUE)
+mod <- oSCR.fit(scrFrame=sf1, ssDF=ss1, trimS=6, plotit=TRUE)
+mod <- oSCR.fit(scrFrame=sf1, ssDF=ss1, trimS=NULL, plotit=TRUE) #DEFAULT
+```
+
+\begin{tikzpicture}[overlay]
+\node[inner sep=0pt] (one) at (5.5,-2) {\includegraphics[height=1.5in]{trim.png}};
+\end{tikzpicture}
+
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{start.vals}:
+
+- starting values for the parameters to be estimated
+- a preliminary model run can give ball park values
+- models can be sensitive to starting values
+- use `getStarts=TRUE` to get parameters and order
+
+## Getting starting values 
+
+For example:
+
+```{r, mysize=TRUE, size="\\scriptsize", message=FALSE}
+sf1 <- subFrame(rbs.sf,1)
+ss1 <- rbs.ss[1]
+(oSCR.fit(model=list(D~1, p0~1, sig~1), scrFrame = sf1, 
+          ssDF = ss1, getStarts = T))
+```
+
+```{r}
+(oSCR.fit(model=list(D~1, p0~t, sig~1), scrFrame = sf1, 
+                ssDF = ss1, getStarts = T))
+```
+
+
+## \texttt{oSCR} - Model fitting 
+
+```{r,eval=FALSE}
+mod <- oSCR.fit(model,       # model formulation
+                scrFrame,    # the scrFrame object
+                ssDF,        # the ssDF object
+                encmod,      # the detection function model
+                trimS,       # local evaluation distance
+                start.vals,  # parameter starting values
+                predict,     # predict desnity
+                ...)         # a few other options
+```
+
+\normalsize
+\texttt{predict}:
+
+- compute a predicted density surface
+- supply mle's as `start.vals`
+- (we'll see this in action later!)
+
+## \texttt{oSCR} - Model fitting with the \textit{rbs} data
+
+Takes $\sim$ 7 mins, can get the model fits here: `data(rbs.mods)`)
+
+```{r, eval=FALSE}
+sf.sub <- subFrame(scrFrame = rbs.sf, subs = c(2,4))
+ss.sub <- rbs.ss[c(2,4)]
+st <- c(-3.4, 0.04, 0.08, -1, -0.08)
+#NULL model (SCR0) 
+m0 <- oSCR.fit(model=list(D~1,p0~1, sig~1), scrFrame=sf.sub,
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4)])
+```
+
+## \texttt{oSCR} - Model fitting with the \textit{rbs} data
+
+Takes $\sim$ 7 mins, can get the model fits here: `data(rbs.mods)`)
+
+```{r, eval=FALSE}
+sf.sub <- subFrame(scrFrame = rbs.sf, subs = c(2,4))
+ss.sub <- rbs.ss[c(2,4)]
+st <- c(-3.4, 0.04, 0.08, -1, -0.08)
+#NULL model (SCR0) 
+m0 <- oSCR.fit(model=list(D~1,p0~1, sig~1), scrFrame=sf.sub,
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4)])
+
+#session-specific desnsity
+m1 <- oSCR.fit(model=list(D~session,p0~1, sig~1), scrFrame=sf.sub,       
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4,5)])
+```
+
+## \texttt{oSCR} - Model fitting with the \textit{rbs} data
+
+Takes $\sim$ 7 mins, can get the model fits here: `data(rbs.mods)`)
+
+```{r, eval=FALSE}
+sf.sub <- subFrame(scrFrame = rbs.sf, subs = c(2,4))
+ss.sub <- rbs.ss[c(2,4)]
+st <- c(-3.4, 0.04, 0.08, -1, -0.08)
+#NULL model (SCR0) 
+m0 <- oSCR.fit(model=list(D~1,p0~1, sig~1), scrFrame=sf.sub,
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4)])
+
+#session-specific desnsity
+m1 <- oSCR.fit(model=list(D~session,p0~1, sig~1), scrFrame=sf.sub,       
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4,5)])
+
+#session-specific sigma
+m2 <- oSCR.fit(model=list(D~1,p0~1, sig~session), scrFrame=sf.sub,       
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,2,3,4)])
+```
+
+## \texttt{oSCR} - Model fitting with the \textit{rbs} data
+
+Takes $\sim$ 7 mins, can get the model fits here: `data(rbs.mods)`)
+
+```{r, eval=FALSE}
+sf.sub <- subFrame(scrFrame = rbs.sf, subs = c(2,4))
+ss.sub <- rbs.ss[c(2,4)]
+st <- c(-3.4, 0.04, 0.08, -1, -0.08)
+#NULL model (SCR0) 
+m0 <- oSCR.fit(model=list(D~1,p0~1, sig~1), scrFrame=sf.sub,
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4)])
+
+#session-specific desnsity
+m1 <- oSCR.fit(model=list(D~session,p0~1, sig~1), scrFrame=sf.sub,       
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,3,4,5)])
+
+#session-specific sigma
+m2 <- oSCR.fit(model=list(D~1,p0~1, sig~session), scrFrame=sf.sub,       
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,2,3,4)])
+
+#session-specific density & sigma 
+m3 <- oSCR.fit(model=list(D~session,p0~1, sig~session), scrFrame=sf.sub, 
+               ssDF=ss.sub, trim=4, start.vals = st[c(1,2,3,4,5)])
+```
+
+## \texttt{oSCR} - Model output
+
+```{r, echo=FALSE}
+data(rbs.mods)
+```
+
+```{r}
+#NULL model (SCR0) 
+m0
+```
+
+## \texttt{oSCR} - Model output
+
+```{r}
+#session-specific desnsity
+m1
+```
+
+## \texttt{oSCR} - Model output
+
+```{r}
+#session-specific sigma
+m2
+```
+
+## \texttt{oSCR} - Model output
+
+```{r}
+#session-specific density & sigma 
+m3
+```
+
+## \texttt{oSCR} - Model output
+
+```{r}
+#session-specific density & sigma 
+m3
+```
+
+\normalsize
+
+- so which model is the *right* model?
+- how could we discriminate betweem models?
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `fitList.oSCR()`
+- `modSel.oSCR()`
+- `ma.coef()`
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `fitList.oSCR()`
+    - a list of models fitted in `oSCR`
+    - can apply other summarizing functions to that list
+
+```{r, eval=FALSE}
+(fl <- fitList.oSCR(x,            # list of fitted models
+                    rename))      # if TRUE models given sensible names
+```
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `fitList.oSCR()`
+    - a list of models fitted in `oSCR`
+    - can apply other summarizing functions to that list
+
+```{r}
+(fl <- fitList.oSCR(list(m0,m1,m2,m3),
+                    rename=T))
+```
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `modSel.oSCR()`
+    - compare multiple models in a `fitList.oSCR` list
+    - generates an AIC table (`aic.tab`)
+    - generates an coeficient table (`coef.tab`)
+
+```{r, size="\\tiny"}
+ms <- modSel.oSCR(fl)
+ms$aic.tab
+```
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `modSel.oSCR()`
+    - compare multiple models in a `fitList.oSCR` list
+    - generates an AIC table (`aic.tab`)
+    - generates an coeficient table (`coef.tab`)
+
+```{r, size="\\tiny"}
+ms <- modSel.oSCR(fl)
+ms$coef.tab
+```
+
+## \texttt{oSCR} - Model selection
+
+- `modSel.oSCR()`
+
+```{r, size="\\tiny"}
+ms
+```
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `ma.coef()`
+    - takes a `modSel.oSCR` object
+    - generates model averaged coeficients (standard *and* shrinkage)
+    - generates unconditional standard errors
+    - generates relative variable importance 
+
+## \texttt{oSCR} - Model selection
+
+`oSCR` has some post processing and model selection functions:
+
+- `ma.coef()`
+    - takes a `modSel.oSCR` object
+    - generates model averaged coeficients (standard *and* shrinkage)
+    - generates unconditional standard errors
+    - generates relative variable importance 
+
+```{r, size="\\scriptsize"}
+(ma <- ma.coef(ms))
+```
+
+
+## In class exercise: Ocelot data
+
+\vspace{2.5cm}
+
+\begin{center}
+\Huge The \textcolor{mLightBrown}{Ocelot} data
+
+\footnotesize photo: http://felid-tag.org/ocelot/
+\end{center}
+
+\begin{tikzpicture}[overlay]
+\node[inner sep=0pt] (one) at (0.5, 4.01) {\includegraphics[height=1.5in]{Ocelot_area.png}};
+\node[inner sep=0pt] (one) at (10.1,-1.5) {\includegraphics[height=0.8in]{ocelot.jpg}};
+\end{tikzpicture}
+
+## In class exercise: Ocelot data
+
+\small
+
+Access the ocelot data (`data(ocelot)`) and, in small groups: 
+
+1. Make an `scrFrame` for the 2-session ocelot data
+    - `data2oscr()`, `make.scrFrame()`
+  
+2. Make a state space with a 2000*m* buffer and 500*m* resolution
+    - `make.ssDF()`, `plot.ssDF()`
+
+3. Estimate density (/100 km^2) and sigma for the simplest SCR model
+    - `oSCR.fit()`
+
+4. Fit 4 models to assess variation in density and/or sigma by session
+
+5. Which of theses 4 models is better supported by AIC
+    - `fitList.oSCR()`, `modSel.oSCR()`, `ma.coef()`
+
+
+## In class exercise: Ocelot data
+
+1. Make an `scrFrame` for the 2-session ocelot data
+
+```{r}
+data(ocelot)
+
+# convert 'secr' format to objects for oSCR
+ocelot <-data2oscr(rbind(edf1,edf2),       # encounter data file
+                   K=c(44,96),             # occasions per session
+                   ntraps=c(23,23),        # traps per session
+                   tdf=list(tdf1,tdf2),    # trap deployment files (a list)
+                   remove.zeros=TRUE,      # remove uncaptured inds
+                   remove.extracaps=TRUE)  # turn >1 to 1
+
+# make the scrFrame
+ocelot.sf <- make.scrFrame(caphist = ocelot$y3d,
+                           traps = ocelot$traplocs,
+                           trapOperation = ocelot$trapopp,
+                           type="scr")
+```
+
+## In class exercise: Ocelot data
+
+1. Make an `scrFrame` for the 2-session ocelot data
+
+```{r,fig.align='center',fig.height=2.5, fig.width=3.75}
+par(mfrow=c(1,2), oma=c(0,0,0,0),mar=c(1,1,1,1))
+plot(ocelot.sf, ax=FALSE)
+```
+
+## In class exercise: Ocelot data
+
+2. Make a state space with a 2000*m* buffer and 500*m* resolution
+
+```{r,fig.align='center',fig.height=2, fig.width=3}
+# make a state-space
+ocelot.ss <- make.ssDF(ocelot.sf, buffer=2000, res = 500)
+par(mfrow=c(1,2))
+plot(ocelot.ss,ocelot.sf)
+```
+
+## In class exercise: Ocelot data
+
+3. Estimate density (/100 km^2) and sigma for the simplest SCR model
+
+```{r,eval=TRUE, echo=FALSE}
+data(ocelot.mods)
+```
+
+```{r,eval=FALSE}
+# fit the null (default!) model
+m0 <- oSCR.fit(model=list(D ~ 1, p0 ~ 1, sig~1), # model
+               scrFrame = ocelot.sf,             # scrFrame
+               ssDF = ocelot.ss,                 # ssDF
+               trimS = 1000, se=FALSE))
+```
+
+```{r,eval=TRUE}
+m0
+```
+
+## In class exercise: Ocelot data
+
+4. Fit 4 models to assess variation in density and/or sigma by session
+
+```{r,eval=FALSE}
+# NULL
+m0 <- oSCR.fit(model=list(D ~ 1, p0 ~ 1, sig~1), scrFrame = ocelot.sf, 
+               ssDF = ocelot.ss, trimS = 1000)
+
+# D ~ session only
+m1 <- oSCR.fit(model=list(D ~ session, p0 ~ 1, sig~1), scrFrame = ocelot.sf,
+               ssDF = ocelot.ss, trimS = 1000)
+
+# sig ~ session only
+m2 <- oSCR.fit(model=list(D ~ 1, p0 ~ 1, sig~session), scrFrame = ocelot.sf,
+               ssDF = ocelot.ss, trimS = 1000)
+
+# D ~ sesison AND sig ~ session
+m3 <- oSCR.fit(model=list(D ~ session, p0 ~ 1, sig~session), scrFrame = ocelot.sf,
+               ssDF = ocelot.ss, trimS = 1000)
+```
+
+## In class exercise: Ocelot data
+
+5. Which of theses 4 models is better supported by AIC
+
+```{r,eval=TRUE}
+# make a 'fit list'
+ocelot.fl <- fitList.oSCR(list(m0,m1,m2,m3), rename = TRUE)
+
+# compare models using AIC
+ocelot.ms <- modSel.oSCR(ocelot.fl)
+```
+
+```{r,eval=TRUE, size="\\tiny"}
+ocelot.ms$aic.tab
+```
+

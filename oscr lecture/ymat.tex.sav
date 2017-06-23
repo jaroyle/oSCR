@@ -1,0 +1,150 @@
+\documentclass{article}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usetikzlibrary{matrix,backgrounds,positioning}
+\usetikzlibrary{calc}
+
+\begin{document}
+\pagestyle{empty}
+\begin{tikzpicture}[overlay,remember picture]
+\matrix[draw=none,inner sep=0pt] (C) at (2,-0.5)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.2,text height=1ex,nodes in empty cells]
+{
+3\& 2\& 0\& 0    \& \cdots&\&\&       \&        \\
+1\& 0\& 1\& \cdots&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \& \vdots \\
+ \&  \&  \&      \&      \&\&\& \vdots\& 4      \\
+ \&  \&  \&      \&      \&\&\& 3     \& 0      \\
+ \&  \&  \&      \&      \&\&\& 1     \& 1      \\ %%%%%% 11
+ };
+\fill[gray,opacity=.2] (C-2-1.south west) -- (C-1-1.north west) -- (C-1-9.north east) -- (C-11-9.south east) -- (C-11-8.south west) -- (C-3-8.north west) -- (C-2-1.south west);
+\draw[opacity=0.2] (C-2-1.south west) -- (C-1-1.north west)--(C-1-9.north east)--(C-11-9.south east)--(C-11-8.south west);
+
+\matrix[draw=none,inner sep=0pt] (D) at (1,-1.5)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.35,text height=1ex,nodes in empty cells]
+{
+2\& 2\& 1\& 0    \& \cdots&\&\&       \&        \\
+4\& 0\& 0\& \cdots&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \& \vdots \\
+ \&  \&  \&      \&      \&\&\& \vdots\& 0      \\
+ \&  \&  \&      \&      \&\&\& 0     \& 2      \\
+ \&  \&  \&      \&      \&\&\& 1     \& 0      \\ %%%%%% 8
+ };
+\fill[gray,opacity=.35] (D-3-1.south west) -- (D-1-1.north west) -- (D-1-9.north east) -- (D-11-9.south east) -- (D-11-8.south west) -- (D-4-8.north west) -- (D-3-1.south west);
+\draw[opacity=0.35] (D-3-1.south west) -- (D-1-1.north west)--(D-1-9.north east)--(D-11-9.south east)--(D-11-8.south west);
+
+
+\matrix[draw,inner sep=0pt] (E) at (0,-2.5) [matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=1,fill=gray,text height=1ex,nodes in empty cells]
+{
+1    \& 3\& 0\& 1\& \cdots&       \&  \&  \&        \\
+6    \& 1\& 2\&  \&      \&       \&  \&  \&        \\
+0    \& 0\&  \&  \&      \&       \&  \&  \&        \\
+3    \&  \&  \&  \&      \&       \&  \&  \&        \\
+\vdots&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&\vdots  \\
+     \&  \&  \&  \&      \&       \&  \&  \& 3      \\
+     \&  \&  \&  \&      \&       \&  \& 0\& 0      \\
+     \&  \&  \&  \&      \& \cdots\& 0\& 0\& 0      \\
+};%
+
+
+\draw[] (E-6-5) node {\large\textcolor{blue}{$\boldsymbol{y_{i,j,r}}$}};
+\draw[] (E-7-5) node {\large\textcolor{blue}{counts}};
+
+%Trap
+\draw[] (C-1-1.north east) node[above left] {\textbf{Trap = 1}};
+\draw[] (C-1-9.north) node[above] {\textbf{$J$}};
+\draw[->, thick] ([yshift=7.5]C-1-1.north east) -- ([yshift=7.5]C-1-9.north west);
+
+%Ind
+\draw[] (E-1-1.west) node[left, yshift=2] {\textbf{Ind. = 1}};
+\draw[] (E-11-1.west) node[left, yshift=2] {\textbf{$n_{obs}$}};
+\draw[->, thick] ([xshift=-7.5]E-2-1.west) -- ([xshift=-7.5]E-10-1.west);
+
+\draw[] (E-11-9.south) node[below] {\textbf{Occassion = 1}};
+\draw[] (C-11-9.east) node[right, xshift=2ex] {\textbf{$K$}};
+\draw[->, thick] ([xshift=2ex]E-11-9.south east) -- ([xshift=2ex]C-11-9.south east);
+
+
+
+
+\matrix[draw=none,inner sep=0pt] (C) at (13,-0.5)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.2,text height=1ex,nodes in empty cells]
+{
+1\& 1\& 0\& 0    \& \cdots&\&\&       \&        \\
+1\& 0\& 1\& \cdots&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \& \vdots \\
+ \&  \&  \&      \&      \&\&\& \vdots\& 1      \\
+ \&  \&  \&      \&      \&\&\& 1     \& 0      \\
+ \&  \&  \&      \&      \&\&\& 1     \& 1      \\ %%%%%% 11
+ };
+\fill[gray,opacity=.2] (C-2-1.south west) -- (C-1-1.north west) -- (C-1-9.north east) -- (C-11-9.south east) -- (C-11-8.south west) -- (C-3-8.north west) -- (C-2-1.south west);
+\draw[opacity=0.2] (C-2-1.south west) -- (C-1-1.north west)--(C-1-9.north east)--(C-11-9.south east)--(C-11-8.south west);
+
+\matrix[draw=none,inner sep=0pt] (D) at (12,-1.5)[matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=0.35,text height=1ex,nodes in empty cells]
+{
+1\& 1\& 1\& 0    \& \cdots&\&\&       \&        \\
+1\& 0\& 0\& \cdots&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \&        \\
+ \&  \&  \&      \&      \&\&\&       \& \vdots \\
+ \&  \&  \&      \&      \&\&\& \vdots\& 0      \\
+ \&  \&  \&      \&      \&\&\& 0     \& 1      \\
+ \&  \&  \&      \&      \&\&\& 1     \& 0      \\ %%%%%% 8
+ };
+\fill[gray,opacity=.35] (D-3-1.south west) -- (D-1-1.north west) -- (D-1-9.north east) -- (D-11-9.south east) -- (D-11-8.south west) -- (D-4-8.north west) -- (D-3-1.south west);
+\draw[opacity=0.35] (D-3-1.south west) -- (D-1-1.north west)--(D-1-9.north east)--(D-11-9.south east)--(D-11-8.south west);
+
+
+\matrix[draw,inner sep=0pt] (E) at (11,-2.5) [matrix of math nodes,ampersand replacement=\&,nodes={outer sep=0pt,minimum width=5mm,minimum height=5mm, anchor=center,},opacity=1,fill=gray,text height=1ex,nodes in empty cells]
+{
+1    \& 1\& 0\& 1\& \cdots&       \&  \&  \&        \\
+1    \& 1\& 1\&  \&      \&       \&  \&  \&        \\
+0    \& 0\&  \&  \&      \&       \&  \&  \&        \\
+1    \&  \&  \&  \&      \&       \&  \&  \&        \\
+\vdots&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&        \\
+     \&  \&  \&  \&      \&       \&  \&  \&\vdots  \\
+     \&  \&  \&  \&      \&       \&  \&  \& 1      \\
+     \&  \&  \&  \&      \&       \&  \& 0\& 0      \\
+     \&  \&  \&  \&      \& \cdots\& 0\& 0\& 0      \\
+};%
+
+
+\draw[] (E-6-5) node {\large\textcolor{blue}{$\boldsymbol{y_{i,j,r}}$}};
+\draw[] (E-7-5) node {\large\textcolor{blue}{detections}};
+
+%Trap
+\draw[] (C-1-1.north east) node[above left] {\textbf{Trap = 1}};
+\draw[] (C-1-9.north) node[above] {\textbf{$J$}};
+\draw[->, thick] ([yshift=7.5]C-1-1.north east) -- ([yshift=7.5]C-1-9.north west);
+
+%Ind
+\draw[] (E-1-1.west) node[left, yshift=2] {\textbf{Ind. = 1}};
+\draw[] (E-11-1.west) node[left, yshift=2] {\textbf{$n_{obs}$}};
+\draw[->, thick] ([xshift=-7.5]E-2-1.west) -- ([xshift=-7.5]E-10-1.west);
+
+\draw[] (E-11-9.south) node[below] {\textbf{Occassion = 1}};
+\draw[] (C-11-9.east) node[right, xshift=2ex] {\textbf{$K$}};
+\draw[->, thick] ([xshift=2ex]E-11-9.south east) -- ([xshift=2ex]C-11-9.south east);
+\end{tikzpicture}
+
+\end{document} 

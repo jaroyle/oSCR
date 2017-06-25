@@ -96,20 +96,18 @@ o.bear.b =   oSCR.fit(model = list(D ~ 1, p0 ~ b, sig ~ 1), scrFrame=bear.sf, ss
 o.bear.sex = oSCR.fit(model = list(D ~ 1, p0 ~ sex, sig ~ sex), scrFrame=bear.sf, ssDF=bear.ss)
 
 
+# Models with sex
 
-#oSCR data
+# rebuild oSCR data
 y3d <- beardata$y3d
 traps.df <-data.frame(X=beardata$trapmat[,1],Y=beardata$trapmat[,2])
 sex.df <- data.frame(sex=beardata$sex-1)
-bear.sf <- list(caphist=list(y3d),
+bear.sf <- make.scrFrame(caphist=list(y3d),
                 traps = list(traps.df),
                 indCovs = list(sex.df),
-                trapCovs = NULL,
-                type="scr")
-class(bear.sf) <- "scrFrame"
+                trapCovs = NULL)
  
 bear.ss <- make.ssDF(bear.sf, buffer=20, res=2)
-
 
 # secr data
 secr.traps <- as.matrix(cbind(c(1:dim(beardata$trapmat)[1]), beardata$trapmat * 1000))
@@ -125,10 +123,10 @@ secr.mask <- read.mask(data = bear.ss[[1]]*1000, spacing=2000)
  
 #### try sex effect on p0:
 s.bear.0 = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ 1, sigma ~ 1), hcov= "sex", mask = secr.mask)
-o.bear.0 = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1, sig ~ 1), ssDF=bear.ss)
+o.bear.0 = oSCR.fit( model = list(D ~ 1, p0 ~ 1, sig ~ 1), bear.sf, ssDF=bear.ss)
  
 s.bear.Sex = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ h2, sigma ~ 1), hcov= "sex", mask = secr.mask)
-o.bear.Sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex, sig ~ 1), ssDF=bear.ss)
+o.bear.Sex = oSCR.fit(model = list(D ~ 1, p0 ~ sex, sig ~ 1), bear.sf, ssDF=bear.ss)
 
 
 ##

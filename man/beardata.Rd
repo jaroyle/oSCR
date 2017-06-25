@@ -123,6 +123,20 @@ s.bear.Sex = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ h2, sigma ~ 1), hcov= "
 o.bear.Sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex, sig ~ 1), ssDF=bear.ss)
 
 
+##
+##
+## beardata has a habitat raster called "bearfood"
+##
+##
+
+#library(raster)
+#bearfood <-rasterFromXYZ(cbind(Sgrid, bearfood))
+plot(bearfood)
+points(traps.df,pch=20)
+title("Index of bear food")
+  
+
+
 ## maybe str(beardata) ; plot(beardata) ...
 }
 \keyword{datasets}

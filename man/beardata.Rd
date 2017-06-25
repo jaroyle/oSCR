@@ -12,7 +12,7 @@ Fort Drum bear data %%   ~~ data name/kind ... ~~
 \format{
   The format is:
 
-  List of 4
+  beardata is a List of 4
 
   $ trapmat  :'data.frame':	38 obs. of  2 variables:
 
@@ -31,6 +31,9 @@ Fort Drum bear data %%   ~~ data name/kind ... ~~
   .. ..$ : chr [1:4] "Session" "ID" "Occasion" "trapID"
 
   $ sex      : num [1:47] 1 1 2 1 1 1 1 2 1 2 ...
+
+  bearfood is a raster with [X,Y,bearfood]
+
 }
 \details{
 loads the Fort Drum beardata.

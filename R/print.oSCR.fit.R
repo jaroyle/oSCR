@@ -5,10 +5,10 @@ print.oSCR.fit <- function(x, burn=NULL, ...){
     }else{
       mod <- list(D~1,p0~1,sig~1,asu~1)
     }
-    tmpFit <- cbind(x$outStats[,3],
-                    x$outStats[,4],
-                    x$outStats[,3]/x$outStats[,4],
-                    2*(1 - pnorm(abs(x$outStats[,3]/x$outStats[,4]))))
+    tmpFit <- cbind(x$outStats[,2],
+                    x$outStats[,3],
+                    x$outStats[,2]/x$outStats[,3],
+                    2*(1 - pnorm(abs(x$outStats[,2]/x$outStats[,3]))))
     ord <- c(grep("p0.",x$outStats$parameters),
              grep("t.beta",x$outStats$parameters),
              grep("p.behav",x$outStats$parameters),

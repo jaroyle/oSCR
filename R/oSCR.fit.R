@@ -1641,8 +1641,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
           warning("Something went wrong! Try better starting values.")
         }
         }
-        outStats <- data.frame(parameters = pn, link = links, mle = myfit$estimate, 
-                               std.er = std.err, mle.tr = trans.mle, se.tr = trans.se)
+#        outStats <- data.frame(parameters = pn, link = links, mle = myfit$estimate, 
+#                               std.er = std.err, mle.tr = trans.mle, se.tr = trans.se)
+        outStats <- data.frame(parameters = pn, mle = myfit$estimate, std.er = std.err)
         VcV <- NULL
         if(DorN == "N") {
         ## write some code to return per session density 

@@ -54,7 +54,6 @@ format, with sessions coding for sex) and "sex" (sex of the individuals,
 #
 library("secr")
 library(oSCR)
-library("scrbook")
 data("beardata")
  
 #oSCR data

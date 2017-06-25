@@ -60,12 +60,11 @@ data("beardata")
 y3d <- beardata$y3d
 traps.df <-data.frame(X=beardata$trapmat[,1],Y=beardata$trapmat[,2])
 sex.df <- data.frame(sex=beardata$sex-1)
-bear.sf <- list(caphist=list(y3d),
+bear.sf <- make.scrFrame(caphist=list(y3d),
                 traps = list(traps.df),
-                indCovs = list(sex.df),
-                trapCovs = NULL,
-                type="scr")
-class(bear.sf) <- "scrFrame"
+                indCovs = NULL, 
+                trapCovs = NULL)
+ 
  
 bear.ss <- make.ssDF(bear.sf, buffer=20, res=2)
 
@@ -88,11 +87,25 @@ s.bear.sex = secr.fit(bear.cap, model = list(D ~ session, g0 ~ session, sigma ~ 
 #s.bear.h2 = secr.fit(bear.cap, model = list(D ~ 1, g0 ~ h2, sigma ~ h2), buffer = 20000)
  
 # fit a selection of models in oSCR NEW:
-# NOTE ARCHAIC NEEDS REDONE 
-o.bear.0 =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ 1,       sig ~ 1), ssDF=bear.ss)
-#o.bear.t =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ t,       sig ~ 1), ssDF=bear.ss)
-o.bear.b =   oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ b,       sig ~ 1), ssDF=bear.ss)
-o.bear.sex = oSCR.fit(bear.sf, model = list(D ~ 1, p0 ~ sex,     sig ~ sex), ssDF=bear.ss)
+o.bear.0 =   oSCR.fit(model = list(D ~ 1, p0 ~ 1, sig ~ 1),bear.sf, ssDF=bear.ss)
+o.bear.t =   oSCR.fit( model = list(D ~ 1, p0 ~ t, sig ~ 1), scrFrame=bear.sf, ssDF=bear.ss)
+o.bear.b =   oSCR.fit(model = list(D ~ 1, p0 ~ b, sig ~ 1), scrFrame=bear.sf, ssDF=bear.ss)
+o.bear.sex = oSCR.fit(model = list(D ~ 1, p0 ~ sex, sig ~ sex), scrFrame=bear.sf, ssDF=bear.ss)
+
+
+
+#oSCR data
+y3d <- beardata$y3d
+traps.df <-data.frame(X=beardata$trapmat[,1],Y=beardata$trapmat[,2])
+sex.df <- data.frame(sex=beardata$sex-1)
+bear.sf <- list(caphist=list(y3d),
+                traps = list(traps.df),
+                indCovs = list(sex.df),
+                trapCovs = NULL,
+                type="scr")
+class(bear.sf) <- "scrFrame"
+ 
+bear.ss <- make.ssDF(bear.sf, buffer=20, res=2)
 
 
 # secr data

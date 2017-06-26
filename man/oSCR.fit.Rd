@@ -95,21 +95,24 @@ Flexible likelihood analysis of the multi-session sex-structured (MSSS) spatial
 capture-recapture models
 }
 \examples{
-#Load the 'beardata'
-library("oSCR")
+# read in the data and manipulate accordingly
 data(beardata)
-tdf<- cbind(1:38, beardata$trapmat, matrix(1, nrow=38, ncol=8))
-edf<- beardata$edf
-edf[,1]<- 1
-data<- data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, 
-                 sex.col = NULL, tdf = list(tdf), K = c(8), ntraps = c(38),
-                 remove.zeros = TRUE, remove.extracaps = TRUE, sex.nacode = NULL, 
-                 tdf.sep = "/")
-scrFrame  <- make.scrFrame(caphist=data$y3d, traps=data$traplocs, trapCovs=NULL ,
-                           trapOperation=data$trapopp)
-sf <- data$scrFrame
-ssDF <- make.ssDF(sf, buffer=3, res = 0.5)
+colnames(beardata$trapmat) <- c("X","Y")
+beardata$sex.df <- data.frame(sex=beardata$sex-1)
 
-#fit the NULL model: 
-m0 <- oSCR.fit(Model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF)
+# create a 'encounters' data object (scrFrame)
+bear.sf <- make.scrFrame(caphist = list(beardata$y3d),
+                         traps   = list(beardata$trapmat),
+                         indCovs = list(beardata$sex.df))
+
+# create a spatial extent object (ssDF)
+bear.ss <- make.ssDF(scrFrame = bear.sf,        
+                     buffer = 3,           
+                     res = 0.5)
+
+# fit model SCR0
+bear.scr0 <- oSCR.fit(list(D ~ 1, p0 ~ 1, sig ~ 1), # SCR0
+                      bear.sf,                      # bear encounter data
+                      bear.ss,                      # fort drum study area
+                      trimS = 4)                    # local evaluation  
 }

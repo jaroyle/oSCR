@@ -28,12 +28,21 @@
 #' @param distmet The metric to use to measure pairwise distances. Options are \code{euc},
 #' which is standard Euclidean distance, or \code{ecol}, which is the Ecological distance model 
 #' of Royle \emph{et al.} 2013 used to compute least cost paths.
-#' @param directions NUmber of directions used in \link[gDistance]{costDistance}.
+#' @param directions Number of directions used in \link[gDistance]{costDistance}.
 #' @param PROJ A projection string specifying the coordinate reference system for use
 #' in the \link[gDistance]{costDistance} function.  
-#' @param rsfDF An \pkg{oSCR}-specific \emph{resource selection surface} data object. DAN.
-#' @param RSF DAN
-#' @param telemetry DAN
+#' @param rsfDF An \pkg{oSCR}-specific \emph{resource selection function} data object. 
+#' This can be the same object used for the \code{ssDF}.  When specified while making the
+#' \code{scrFrame} object (see \link[oSCR]{make.scrFrame}), \code{trapCovs} are generated for
+#' spatial attributes in the \code{rsfDF} that are not already listed as \code{trapCovs}. Provides
+#' covariates for 3rd order resource selection.
+#' @param RSF If \code{TRUE} then telemetry data are used to fit a resource selection function when
+#' an \code{rsfDF} is provided and the \code{telemetry} option is \code{ind} or \code{dep}.
+#' @param telemetry Choice of telemetry integration, either \code{none} [\emph{default}], \code{ind}, or \code{dep}.
+#' The latter 2 options specify whether the individuals in the telemetry and capture data sets
+#' are independent or dependent (i.e., same individuals in both).  When \code{dep} is specified, the \code{telemetry}
+#' object in the \code{scrFrame} must contain a \code{cap.tel} object (see \link[oSCR]{make.scrFrame})
+#' indicating where (i.e., row #) telemetred individuals appear in the capture history.
 #' @param se If \code{TRUE} standard errors are computed. If \code{FALSE}, standard
 #' errors or \emph{not} computed, but fitting is faster.
 #' @param predict If \code{TRUE} a model is \emph{not} fit and instead, the function

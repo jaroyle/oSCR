@@ -29,11 +29,14 @@ make.scrFrame(caphist, traps, indCovs = NULL, trapCovs = NULL, trapOperation = N
 
   \item{trapOperation}{A list of binary matrices with dimension \eqn{J x K} (trap-by-occasion), one for each session. The matrix denotes whether a trap was operational (1) or not (0) in each occasion. Traps with trapOperation equal to zero does not contribute to the likelihood.}
   
-  \item{telemetry}{A list with two objects containing data from collared individuals:
+  \item{telemetry}{A list with 2 or 3 objects containing data from collared individuals:
   
   1) \code{fixfreq}, a list of matrices with dimension \eqn{n.tel x nG} (collared individual-by-grid cell), one for each session.  The values are counts of the number of telemetry/GPS fixes within each grid cell of the rsfDF, as returned by the \code{telemetry.processor()} function.
   
   2) \code{indCovs}, a list containing individual-specific data, one for each session.  This is structured the same as the \code{indCovs} object for captured individuals, and currently only accommodates sex.
+  
+  3) \code{cap.tel} [optional], a list of vectors, one for each session.  Each vector indicates the row positions of collared individuals in the capture data so that likelihoods can be joined under the dependent specification.  If no collared individuals were observed in the capture data set then this object is not necessary (\code{NULL} by default).
+  
   }
   \item{rsfDF}{
   Similar to the \code{ssDF}, a list of data frames for each session containing the coordinates of the state-space pixels (labeled "X" and "Y") and covariate values used for fitting the resource selection function.  This can be exactly the same as the \code{ssDF}, or represent a grid with an even finer resolution (coarser resolution NOT recommended).

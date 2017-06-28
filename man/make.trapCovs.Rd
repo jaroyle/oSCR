@@ -78,21 +78,19 @@ for(i in 1:nrow(y)){
   y3d[cbind(i,jid,kid)]<- 1
 }
 
-# We have an important covariate which is time of trap check, AM or PM
-#   we put this into a matrix and treat it as a "trap*time covariate"
-am<- matrix( o$am.effect, nrow=J,ncol=K,byrow=TRUE)
-
-# To demo here is an example with 2 covariates:
-weird<-  list(am=list(am),am2=list(am))
-weird<- make.trapCovs(weird)
 
 # "to" is the trap operation matrix
 to<- matrix(1,nrow=121,ncol=K)
 colnames(traps)<- c("X","Y")
 
-# load peromyscus data (not yet available)
+#
+#
+# Example of make.trapCovs
+#
+#
+# We have an important covariate which is time of trap check, AM or PM
+#   we put this into a matrix and treat it as a "trap*time covariate"
 # o$am.effect is a vector of length 10 , binary indicator
-
 am<- matrix( o$am.effect, nrow=J,ncol=K,byrow=FALSE)
 # Here is an example with two covariates although not meaningful ones
 lol <-  list(am=list(am),am2=list(am*am))

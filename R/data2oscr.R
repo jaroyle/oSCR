@@ -1,5 +1,5 @@
 data2oscr <-
-function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
+function (edf, sess.col = NULL, id.col = NULL, occ.col = NULL, trap.col = NULL,
           sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL,
           remove.zeros = FALSE,
           remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
@@ -7,6 +7,10 @@ function (edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4,
 
     ## Some safety checks
     ##
+if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trapcol)){
+     cat("required information missing: sess, id, occ or trap",fill=TRUE)
+     return(NULL)
+ }
     if (is.null(K) | is.null(ntraps)) {
         cat("Must specify K and ntraps", fill = TRUE)
         return(NULL)

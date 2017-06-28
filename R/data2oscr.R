@@ -7,7 +7,7 @@ function (edf, sess.col = NULL, id.col = NULL, occ.col = NULL, trap.col = NULL,
 
     ## Some safety checks
     ##
-if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trapcol)){
+if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trap.col)){
      cat("required information missing: sess, id, occ or trap",fill=TRUE)
      return(NULL)
  }

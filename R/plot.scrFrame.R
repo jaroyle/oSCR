@@ -1,6 +1,6 @@
 plot.scrFrame<-function(scrFrame, ax=TRUE, jit=1){
   #op <- par(no.readonly=TRUE)
-  par(oma=c(0,0,0,0))
+  #par(oma=c(0,0,0,0))
   all.ind.xy <- list()
   mean.loc <- list()
   mu.x <- list()

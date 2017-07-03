@@ -2,7 +2,7 @@ Package: oSCR
 Type: Package
 Title: Multi-Session Sex-Structured Spatial Capture-Recapture Models
 Version: 0.40.1
-Date: 2017-05-31
+Date: 2017-07-01
 Authors@R: c(person("Chris", "Sutherland", email = "csuthy@gmail.com",role = c("aut", "cre")),
              person("Andy", "Royle", email = "jaroyle@gmail.com", role = "aut"),
              person("Dan", "Linden", email = "danlinden@gmail.com", role = "aut"))

@@ -3,7 +3,7 @@
 From SI 2017 workshop:
    1. include  time-varying  covariates  in TDF so they can be processed  with
    data2oscr
-   2. include dependent behaavioral response
+   2. include dependent behavioral response
    3. Beardata --> put TDF in the data not just trap locs
    4. make.scrFRame: traps out of order could be a problem!!
    5. include simulation function

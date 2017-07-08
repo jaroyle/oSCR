@@ -215,3 +215,88 @@ print.oSCR.modSel <- function(x){
     print(x)
   }
 }
+
+
+
+
+################################################################################
+# functions required for sub routines in get.real()
+
+get.err <- function(x, p, vcv, nms, err=1){
+  if(err==1){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr(x,nms));     rownames(out) <- NULL}    
+  if(err==2){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.M(x,nms));   rownames(out) <- NULL}     
+  if(err==3){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.F(x,nms));   rownames(out) <- NULL}    
+  if(err==4){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.Mms(x,nms)); rownames(out) <- NULL}
+  if(err==5){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.Fms(x,nms)); rownames(out) <- NULL}    
+  if(err==6){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.p(x,nms));   rownames(out) <- NULL}
+  if(err==7){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.sig(x,nms)); rownames(out) <- NULL}
+  return(out)
+}
+make.expr <- function(x,nms){
+  if(length(nms)==1){
+    expr <- "exp(d0)"
+  }else{  
+    expr <- c("exp(d0", paste0("+",nms[-1],"*",x),")")
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+make.expr.M <- function(x,nms){
+  if(length(nms)==1){
+    expr <- "(exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)"
+  }else{  
+    expr <- c("(exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", 
+              paste0("+",nms[-1],"*",x))
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+make.expr.F <- function(x,nms){
+  if(length(nms)==1){
+    expr <- "(1- exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)"
+  }else{  
+    expr <- c("(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", paste0("+",nms[-1],"*",x))
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+make.expr.Mms <- function(x,nms,i){
+  if(length(nms)==1){
+    expr <- paste0("exp(psi.",i,")/(1+exp(psi.",i,")) * exp(d0)")
+  }else{
+    expr <- c(paste0("exp(psi.",i,")/(1+exp(psi.",i,")) * exp(d0"), 
+              paste0("+",nms[-1],"*",x),")")
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+make.expr.Fms <- function(x,nms,i){
+  if(length(nms)==1){
+    expr <- paste0("(1- exp(psi.",i,")/(1+exp(psi.",i,"))) * exp(d0)")
+  }else{
+    expr <- c(paste0("(1- exp(psi.",i,")/(1+exp(psi.",i,"))) * exp(d0"), 
+              paste0("+",nms[-1],"*",x),")")
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+make.expr.p <- function(x,nms){
+  if(length(nms)==1){
+    expr <- "exp(p0)/(1+exp(p0))"
+  }else{
+    expr <- c("exp(p0", paste0("+",nms[-1],"*",x),") / (1+exp(p0", paste0("+",nms[-1],"*",x),")")
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+make.expr.sig <- function(x,nms){
+  if(length(nms)==1){
+    expr <- "exp(sig0)"
+  }else{
+    expr <- c("exp(sig0", paste0("+",nms[-1],"*",x),") / (1+exp(p0", paste0("+",nms[-1],"*",x),")")
+    expr <- paste0(expr,collapse="")
+  }
+  return(expr)
+}
+
+###############################################################

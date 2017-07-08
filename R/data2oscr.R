@@ -1,7 +1,7 @@
 data2oscr <-
 function (edf, sess.col = NULL, id.col = NULL, occ.col = NULL, trap.col = NULL,
           sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL,
-          remove.zeros = FALSE,
+          remove.zeros = FALSE, trapcov.names = NULL,
           remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
 {
 
@@ -89,7 +89,7 @@ if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trap.col)){
                 colnames(traplocs[[s]]) <- c("X", "Y")
                 xx <- tdf[[s]][, 4:ncol(tdf[[s]])]
                 is.trapcovs <- any(xx[1, ] == tdf.sep)
-                if (is.trapcovs) {
+                if (is.trapcovs){
                   xx.check <- (1:ncol(xx))[xx[1, ] == tdf.sep]
                   tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
                   trapcovs[[s]] <- as.matrix(xx[, (xx.check +
@@ -116,7 +116,7 @@ if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trap.col)){
               Xsex <- as.numeric(as.factor(as.character(Xsex))) -     1
               }
            xx<- cbind(Xid, Xsex)
-          usex.all <- xx[!duplicated(xx),]
+           usex.all <- xx[!duplicated(xx),]
         }
 
 

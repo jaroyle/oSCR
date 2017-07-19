@@ -284,7 +284,7 @@ make.expr.p <- function(x,nms){
   if(length(nms)==1){
     expr <- "exp(p0)/(1+exp(p0))"
   }else{
-    expr <- c("exp(p0",paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),")")
+    expr <- c("exp(p0",paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),"))")
     expr <- paste0(expr,collapse="")
   }
   return(expr)
@@ -293,7 +293,7 @@ make.expr.sig <- function(x,nms){
   if(length(nms)==1){
     expr <- "exp(sig0)"
   }else{
-    expr <- c("exp(sig0", paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),")")
+    expr <- c("exp(sig0", paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),"))")
     expr <- paste0(expr,collapse="")
   }
   return(expr)

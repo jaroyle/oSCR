@@ -23,5 +23,5 @@ plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
   if(!is.null(scrFrame))
      points(sf.xy, pch=15, cex=0.7, col=4)
   }   
-  #par(op)
+  par(op)
 }  

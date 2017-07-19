@@ -236,7 +236,7 @@ make.expr <- function(x,nms){
   if(length(nms)==1){
     expr <- "exp(d0)"
   }else{  
-    expr <- c("exp(d0", paste0("+",nms[-1],"*",x),")")
+    expr <- c("exp(d0", paste0("+",nms[-1],"*",x[-1]),")")
     expr <- paste0(expr,collapse="")
   }
   return(expr)
@@ -255,7 +255,7 @@ make.expr.F <- function(x,nms){
   if(length(nms)==1){
     expr <- "(1- exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)"
   }else{  
-    expr <- c("(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", paste0("+",nms[-1],"*",x))
+    expr <- c("(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", paste0("+",nms[-1],"*",x[-1]))
     expr <- paste0(expr,collapse="")
   }
   return(expr)
@@ -265,7 +265,7 @@ make.expr.Mms <- function(x,nms,i){
     expr <- paste0("exp(psi.",i,")/(1+exp(psi.",i,")) * exp(d0)")
   }else{
     expr <- c(paste0("exp(psi.",i,")/(1+exp(psi.",i,")) * exp(d0"), 
-              paste0("+",nms[-1],"*",x),")")
+              paste0("+",nms[-1],"*",x[-1]),")")
     expr <- paste0(expr,collapse="")
   }
   return(expr)
@@ -275,7 +275,7 @@ make.expr.Fms <- function(x,nms,i){
     expr <- paste0("(1- exp(psi.",i,")/(1+exp(psi.",i,"))) * exp(d0)")
   }else{
     expr <- c(paste0("(1- exp(psi.",i,")/(1+exp(psi.",i,"))) * exp(d0"), 
-              paste0("+",nms[-1],"*",x),")")
+              paste0("+",nms[-1],"*",x[-1]),")")
     expr <- paste0(expr,collapse="")
   }
   return(expr)
@@ -284,7 +284,7 @@ make.expr.p <- function(x,nms){
   if(length(nms)==1){
     expr <- "exp(p0)/(1+exp(p0))"
   }else{
-    expr <- c("exp(p0", paste0("+",nms[-1],"*",x),") / (1+exp(p0", paste0("+",nms[-1],"*",x),")")
+    expr <- c("exp(p0",paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),")")
     expr <- paste0(expr,collapse="")
   }
   return(expr)
@@ -293,7 +293,7 @@ make.expr.sig <- function(x,nms){
   if(length(nms)==1){
     expr <- "exp(sig0)"
   }else{
-    expr <- c("exp(sig0", paste0("+",nms[-1],"*",x),") / (1+exp(p0", paste0("+",nms[-1],"*",x),")")
+    expr <- c("exp(sig0", paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),")")
     expr <- paste0(expr,collapse="")
   }
   return(expr)

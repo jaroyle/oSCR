@@ -110,9 +110,9 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("t.beta.sex1",nms)] <- "p0.male"
       }
       if(any(grepl("t.beta.session",nms))){
+        id <- grep("t.beta.session",nms)
         for(i in 1:length(grep("t.beta.session",nms))){
-          id <- grep("t.beta.session",nms)[i]
-          nms[id] <- paste0("p0.session",i+1)
+          nms[id[i]] <- paste0("p0.session",i+1)
         }
       }
       id <- match(nms,names(pp))
@@ -145,9 +145,9 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("t.beta.sex1",nms)] <- "p0.male"
       }
       if(any(grepl("t.beta.session",nms))){
+        id <- grep("t.beta.session",nms)
         for(i in 1:length(grep("t.beta.session",nms))){
-          id <- grep("t.beta.session",nms)[i]
-          nms[id] <- paste0("p0.session",i+1)
+          nms[id[i]] <- paste0("p0.session",i+1)
         }
       }
       id <- match(nms,names(pp))

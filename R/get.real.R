@@ -24,7 +24,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       for(i in 1:length(model$ssDF)){
         if(!any(c("psi.constant","psi.1") %in% names(pp))){
           session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1))
+          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,d.factor=d.factor))
           pred <- do.call(rbind, tmp.ls)
           colnames(pred) <- c("estimate", "se", "lwr","upr")
           X <- model$ssDF[[i]]$X
@@ -34,9 +34,9 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           if("psi.constant" %*% names(pp)){
             session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
             sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3))
+            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3,d.factor=d.factor))
             pred1 <- do.call(rbind, tmp.ls)          
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=2))
+            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=2,d.factor=d.factor))
             pred2 <- do.call(rbind, tmp.ls)
             pred <- rbind(pred1,pred2)
             colnames(pred) <- c("estimate", "se", "lwr","upr")
@@ -47,9 +47,9 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           if("psi.1" %*% names(pp)){
             session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
             sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5))
+            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5,d.factor=d.factor))
             pred1 <- do.call(rbind, tmp.ls)          
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=4))
+            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=4,d.factor=d.factor))
             pred2 <- do.call(rbind, tmp.ls)
             pred <- rbind(pred1,pred2)
             colnames(pred) <- c("estimate", "se", "lwr","upr")
@@ -66,15 +66,15 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       nms[1] <- "d0"
       id <- match(nms,names(pp))
       if(!any(c("psi.constant","psi.1") %in% names(pp))){
-        tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1))
+        tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,d.factor=d.factor))
         pred <- do.call(rbind, tmp.ls)
         colnames(pred) <- c("estimate", "se", "lwr","upr")
       }else{
         if("psi.constant" %*% names(pp)){
           sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3))
+          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3,d.factor=d.factor))
           pred1 <- do.call(rbind, tmp.ls)          
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=2))
+          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=2,d.factor=d.factor))
           pred2 <- do.call(rbind, tmp.ls)
           pred <- rbind(pred1,pred2)
           colnames(pred) <- c("estimate", "se", "lwr","upr")
@@ -83,7 +83,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
           tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5))
           pred1 <- do.call(rbind, tmp.ls)          
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=4))
+          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=4,d.factor=d.factor))
           pred2 <- do.call(rbind, tmp.ls)
           pred <- rbind(pred1,pred2)
           colnames(pred) <- c("estimate", "se", "lwr","upr")

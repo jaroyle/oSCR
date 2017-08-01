@@ -31,7 +31,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           Y <- model$ssDF[[i]]$Y
           pred.list[[i]] <- data.frame(session,pred,X,Y)
         }else{
-          if("psi.constant" %*% names(pp)){
+          if("psi.constant" %in% names(pp)){
             session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
             sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
             tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3,d.factor=d.factor))
@@ -44,7 +44,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
             Y <- rep(model$ssDF[[i]]$Y,2)
             pred.list[[i]] <- data.frame(session,sex,pred,X,Y)
           }
-          if("psi.1" %*% names(pp)){
+          if("psi.1" %in% names(pp)){
             session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
             sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
             tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5,d.factor=d.factor))
@@ -70,7 +70,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         pred <- do.call(rbind, tmp.ls)
         colnames(pred) <- c("estimate", "se", "lwr","upr")
       }else{
-        if("psi.constant" %*% names(pp)){
+        if("psi.constant" %in% names(pp)){
           sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
           tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3,d.factor=d.factor))
           pred1 <- do.call(rbind, tmp.ls)          
@@ -79,7 +79,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           pred <- rbind(pred1,pred2)
           colnames(pred) <- c("estimate", "se", "lwr","upr")
         }
-        if("psi.1" %*% names(pp)){
+        if("psi.1" %in% names(pp)){
           sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
           tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5))
           pred1 <- do.call(rbind, tmp.ls)          

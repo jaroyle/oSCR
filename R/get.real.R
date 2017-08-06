@@ -22,6 +22,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
     if(is.null(newdata)){
       pred.list <- list()
       for(i in 1:length(model$ssDF)){
+        tmp.dm <- model.matrix(d.mod,model$ssDF[[i]])[,,drop=FALSE]
         if(!any(c("psi.constant","psi.1") %in% names(pp))){
           session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
           tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,d.factor=d.factor))

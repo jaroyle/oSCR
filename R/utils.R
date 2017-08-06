@@ -246,17 +246,17 @@ make.expr.M <- function(x,nms,d.factor){
     expr <- paste0("(exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)*",d.factor)
   }else{  
     expr <- c("(exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", 
-              paste0("+",nms[-1],"*",x))
+              paste0("+",nms[-1],"*",x),")")
     expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
   }
   return(expr)
 }
 make.expr.F <- function(x,nms,d.factor){
   if(length(nms)==1){
-    expr <- "(1- exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)"
+    expr <- "(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)"
     expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
   }else{  
-    expr <- c("(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", paste0("+",nms[-1],"*",x[-1]))
+    expr <- c("(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", paste0("+",nms[-1],"*",x[-1]),")")
     expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
   }
   return(expr)

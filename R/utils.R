@@ -222,84 +222,113 @@ print.oSCR.modSel <- function(x){
 ################################################################################
 # functions required for sub routines in get.real()
 
-get.err <- function(x, p, vcv, nms, err=1, d.factor=1){
-  if(err==1){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr(x,nms,d.factor));     rownames(out) <- NULL}    
-  if(err==2){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.M(x,nms,d.factor));   rownames(out) <- NULL}     
-  if(err==3){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.F(x,nms,d.factor));   rownames(out) <- NULL}    
-  if(err==4){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.Mms(x,nms,d.factor)); rownames(out) <- NULL}
-  if(err==5){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.Fms(x,nms,d.factor)); rownames(out) <- NULL}    
-  if(err==6){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.p(x,nms));            rownames(out) <- NULL}
-  if(err==7){ out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.sig(x,nms));          rownames(out) <- NULL}
+get.err <- function(x, p, vcv, nms, j, err=1, d.factor=1,ftype){
+  require("car")
+  if(err==1) out <- deltaMethod(object=p, vcov.=vcv, g=make.expr(x,nms,d.factor,ftype))     
+  if(err==2) out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.M(x,nms,j,d.factor,ftype))
+  if(err==3) out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.F(x,nms,j,d.factor,ftype))
+  if(err==4) out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.p(x,nms,ftype))
+  if(err==5) out <- deltaMethod(object=p, vcov.=vcv, g=make.expr.sig(x,nms,ftype))
+  rownames(out) <- NULL
   return(out)
 }
-make.expr <- function(x,nms,d.factor){
-  if(length(nms)==1){
-    expr <- paste0("exp(d0)*",d.factor)
-  }else{  
-    expr <- c("exp(d0", paste0("+",nms[-1],"*",x[-1]),")*",d.factor)
-    expr <- paste0(expr,collapse="")
-  }
-  return(expr)
-}
-make.expr.M <- function(x,nms,d.factor){
-  if(length(nms)==1){
-    expr <- paste0("(exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)*",d.factor)
-  }else{  
-    expr <- c("(exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", 
-              paste0("+",nms[-1],"*",x),")")
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }
-  return(expr)
-}
-make.expr.F <- function(x,nms,d.factor){
-  if(length(nms)==1){
-    expr <- "(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0)"
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }else{  
-    expr <- c("(1-exp(psi.constant)/(1+exp(psi.constant))) * exp(d0", paste0("+",nms[-1],"*",x[-1]),")")
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }
-  return(expr)
-}
-make.expr.Mms <- function(x,nms,i,d.factor){
-  if(length(nms)==1){
-    expr <- paste0("exp(psi.",i,")/(1+exp(psi.",i,")) * exp(d0)")
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }else{
-    expr <- c(paste0("exp(psi.",i,")/(1+exp(psi.",i,")) * exp(d0"), 
-              paste0("+",nms[-1],"*",x[-1]),")")
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }
-  return(expr)
-}
-make.expr.Fms <- function(x,nms,i,d.factor){
-  if(length(nms)==1){
-    expr <- paste0("(1- exp(psi.",i,")/(1+exp(psi.",i,"))) * exp(d0)")
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }else{
-    expr <- c(paste0("(1- exp(psi.",i,")/(1+exp(psi.",i,"))) * exp(d0"), 
-              paste0("+",nms[-1],"*",x[-1]),")")
-    expr <- paste0(c(expr,paste0("*",d.factor)),collapse="")
-  }
-  return(expr)
-}
-make.expr.p <- function(x,nms){
-  if(length(nms)==1){
-    expr <- "exp(p0)/(1+exp(p0))"
-  }else{
-    expr <- c("exp(p0",paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),"))")
-    expr <- paste0(expr,collapse="")
-  }
-  return(expr)
-}
-make.expr.sig <- function(x,nms){
-  if(length(nms)==1){
-    expr <- "exp(sig0)"
-  }else{
-    expr <- c("exp(sig0", paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),"))")
-    expr <- paste0(expr,collapse="")
-  }
-  return(expr)
-}
 
+#####################################################
+## making the expressions to pass to deltaMethod
+
+  #####################################
+  #No sex:
+  make.expr <- function(x,nms,d.factor,ftype){
+    if(length(nms)==1){
+      if(ftype=="r")  expr <- paste0("exp(d0) * ",d.factor)
+      if(ftype=="lp") expr <- paste0("d0 + log(",d.factor,")")
+    }else{  
+      if(ftype=="r")  expr <- c("exp(d0", paste0(" + ",nms[-1],"*",x[-1]),")*",d.factor)
+      if(ftype=="lp") expr <- c(paste0("d0*",x[1]), paste0(" + ",nms[-1],"*",x[-1]),"+log(",d.factor,")")
+    }
+    expr <- paste(expr,collapse="")
+    return(expr)
+  }
+
+  #####################################
+  #Sex (mixture):
+  
+  #male
+  make.expr.M <- function(x,nms,j,d.factor,ftype){
+    if(length(nms)==1){
+      if(ftype=="r")  expr <- paste0("(exp(psi.",j,")/(1+exp(psi.",j,"))) * exp(d0) * ",d.factor)
+      if(ftype=="lp") expr <- paste0("log((exp(psi.",j,")/(1+exp(psi.",j,"))) * ",d.factor,") + d0")
+    }else{
+      if(ftype=="r"){
+        expr <- paste(c(paste0("(exp(psi.",j,")/(1+exp(psi.",j,"))) * exp(d0*",x[1]), 
+                        paste0(" + ",nms[-1],"*",x[-1]),
+                        paste0(") * ", d.factor)), collapse = "")
+      }
+      if(ftype=="lp"){
+        expr <- paste(c(paste0("log((exp(psi.",j,")/(1+exp(psi.",j,"))) * ",d.factor,") + d0*",x[1]), 
+                        paste0(" + ",nms[-1],"*",x[-1])), collapse = "")
+      }
+    }
+    return(expr)
+  }
+  #female
+  make.expr.F <- function(x,nms,j,d.factor,ftype){
+    if(length(nms)==1){
+      if(ftype=="r")  expr <- paste0("(1-exp(psi.",j,")/(1+exp(psi.",j,"))) * exp(d0) * ",d.factor)
+      if(ftype=="lp") expr <- paste0("log((1-exp(psi.",j,")/(1+exp(psi.",j,"))) * ",d.factor,") + d0")
+    }else{
+      if(ftype=="r"){
+        expr <- paste(c(paste0("(1-exp(psi.",j,")/(1+exp(psi.",j,"))) * exp(d0*",x[1]), 
+                        paste0(" + ",nms[-1],"*",x[-1]),
+                        paste0(") * ",d.factor)), collapse = "")
+      }
+      if(ftype=="lp"){
+        expr <- paste(c(paste0("log((1-exp(psi.",j,")/(1+exp(psi.",j,"))) * ",d.factor,") + d0*",x[1]), 
+                        paste0(" + ",nms[-1],"*",x[-1])), collapse = "")
+      } 
+    }
+    return(expr)
+  }
+
+  #####################################
+  #Detection:
+  make.expr.p <- function(x,nms,ftype){
+    if(length(nms)==1){
+      if(ftype=="r")  expr <- "exp(p0)/(1+exp(p0))"
+      if(ftype=="lp") expr <- "p0"
+    }else{
+      if(ftype=="r"){
+        expr <- paste(c(paste0("exp(p0*",x[1]),
+                        paste0(" + ",nms[-1],"*",x[-1]),
+                        paste0(") / (1+exp(p0*",x[1]),
+                        paste0(" + ",nms[-1],"*",x[-1]),"))"), collapse = "")
+      }
+      if(ftype=="lp"){
+        expr <- paste(c(paste0("p0*",x[1]),
+                        paste0(" + ",nms[-1],"*",x[-1])), collapse = "")
+      }
+    }
+    return(expr)
+  }
+  
+  #####################################
+  #Sigma
+  make.expr.sig <- function(x,nms,ftype){
+    if(length(nms)==1){
+      expr <- "exp(sig0)"
+      if(ftype=="r")  expr <- "exp(sig0)"
+      if(ftype=="lp") expr <- "sig0"
+    }else{
+      expr <- c("exp(sig0", paste0("+",nms[-1],"*",x[-1]),") / (1+exp(p0", paste0("+",nms[-1],"*",x[-1]),"))")
+      if(ftype=="r"){
+        expr <- paste(c(paste0("exp(sig0*",x[1]),
+                        paste0(" + ",nms[-1],"*",x[-1]),")"), collapse = "")
+      }
+      if(ftype=="lp"){
+        expr <- paste(c(paste0("sig0*",x[1]),
+                        paste0(" + ",nms[-1],"*",x[-1])), collapse = "")
+      }
+    }
+    return(expr)
+  }
 ###############################################################

@@ -25,81 +25,109 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         tmp.dm <- model.matrix(d.mod,model$ssDF[[i]])[,,drop=FALSE]
         if(!any(c("psi.constant","psi.1") %in% names(pp))){
           session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,d.factor=d.factor))
-          pred <- do.call(rbind, tmp.ls)
+          tmp.ls <- apply(tmp.dm,1,
+                          function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,
+                                              d.factor=d.factor,ftype="r"))
+          pred1 <- do.call(rbind, tmp.ls)
+          tmp.ls <- apply(tmp.dm,1,
+                          function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,
+                                              d.factor=d.factor,ftype="lp"))
+          pred2 <- do.call(rbind, tmp.ls)
+          pred <- cbind(pred1[,1:2],                     #mle,se
+                        exp(pred2[,1] - 1.96*pred2[,2]), #lwr
+                        exp(pred2[,1] + 1.96*pred2[,2])) #upr
           colnames(pred) <- c("estimate", "se", "lwr","upr")
           X <- model$ssDF[[i]]$X
           Y <- model$ssDF[[i]]$Y
           pred.list[[i]] <- data.frame(session,pred,X,Y)
         }else{
-          if("psi.constant" %in% names(pp)){
-            session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
-            sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3,d.factor=d.factor))
-            pred1 <- do.call(rbind, tmp.ls)          
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=2,d.factor=d.factor))
-            pred2 <- do.call(rbind, tmp.ls)
-            pred <- rbind(pred1,pred2)
-            colnames(pred) <- c("estimate", "se", "lwr","upr")
-            X <- rep(model$ssDF[[i]]$X,2)
-            Y <- rep(model$ssDF[[i]]$Y,2)
-            pred.list[[i]] <- data.frame(session,sex,pred,X,Y)
-          }
-          if("psi.1" %in% names(pp)){
-            session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
-            sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5,d.factor=d.factor))
-            pred1 <- do.call(rbind, tmp.ls)          
-            tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=4,d.factor=d.factor))
-            pred2 <- do.call(rbind, tmp.ls)
-            pred <- rbind(pred1,pred2)
-            colnames(pred) <- c("estimate", "se", "lwr","upr")
-            X <- rep(model$ssDF[[i]]$X,2)
-            Y <- rep(model$ssDF[[i]]$Y,2)
-            pred.list[[i]] <- data.frame(session,sex,pred,X,Y)
-          }
+          session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
+          sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
+          if("psi.constant" %in% names(pp)) j <- "constant"
+          if("psi.1" %in% names(pp)) j <- i
+          tmp.ls <- apply(tmp.dm,1,
+                          function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                              err=3, d.factor=d.factor,ftype="r"))
+          pred1f <- do.call(rbind, tmp.ls)          
+          tmp.ls <- apply(tmp.dm,1,
+                          function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                              err=3, d.factor=d.factor,ftype="lp"))
+          pred2f <- do.call(rbind, tmp.ls)          
+          tmp.ls <- apply(tmp.dm,1,
+                          function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                              err=2, d.factor=d.factor,ftype="r"))
+          pred1m <- do.call(rbind, tmp.ls)          
+          tmp.ls <- apply(tmp.dm,1,
+                          function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                              err=2, d.factor=d.factor,ftype="lp"))
+          pred2m <- do.call(rbind, tmp.ls)          
+          pred <- cbind(rbind(pred1f[,1:2],pred1m[,1:2]),                             #mle,se
+                        exp(c(pred2f[,1],pred2m[,1]) - 1.96*c(pred2f[,2],pred2m[,2])), #lwr
+                        exp(c(pred2f[,1],pred2m[,1]) + 1.96*c(pred2f[,2],pred2m[,2]))) #upr
+          colnames(pred) <- c("estimate", "se", "lwr","upr")
+          X <- rep(model$ssDF[[i]]$X,2)
+          Y <- rep(model$ssDF[[i]]$Y,2)
+          pred.list[[i]] <- data.frame(session,sex,pred,X,Y)
         }
-     }
-     return(pred.list)
+      }
+      return(pred.list)
     }else{
       tmp.dm <- model.matrix(d.mod,newdata)[,,drop=FALSE]
       nms <- paste0("d.beta.",colnames(tmp.dm))
       nms[1] <- "d0"
       id <- match(nms,names(pp))
+      
       if(!any(c("psi.constant","psi.1") %in% names(pp))){
-        tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,d.factor=d.factor))
-        pred <- do.call(rbind, tmp.ls)
+        tmp.ls <- apply(tmp.dm,1,
+                        function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,
+                                            d.factor=d.factor,ftype="r"))
+        pred1 <- do.call(rbind, tmp.ls)
+        tmp.ls <- apply(tmp.dm,1,
+                        function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,
+                                            d.factor=d.factor,ftype="lp"))
+        pred2 <- do.call(rbind, tmp.ls)
+        pred <- cbind(pred1[,1:2],                     #mle,se
+                      exp(pred2[,1] - 1.96*pred2[,2]), #lwr
+                      exp(pred2[,1] + 1.96*pred2[,2])) #upr
         colnames(pred) <- c("estimate", "se", "lwr","upr")
+        pred <- cbind(pred,newdata)
       }else{
-        if("psi.constant" %in% names(pp)){
-          sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=3,d.factor=d.factor))
-          pred1 <- do.call(rbind, tmp.ls)          
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=2,d.factor=d.factor))
-          pred2 <- do.call(rbind, tmp.ls)
-          pred <- rbind(pred1,pred2)
-          colnames(pred) <- c("estimate", "se", "lwr","upr")
-        }
-        if("psi.1" %in% names(pp)){
-          sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=5))
-          pred1 <- do.call(rbind, tmp.ls)          
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=4,d.factor=d.factor))
-          pred2 <- do.call(rbind, tmp.ls)
-          pred <- rbind(pred1,pred2)
-          colnames(pred) <- c("estimate", "se", "lwr","upr")
-        }
+        sex <- rep(c("f","m"),each=nrow(newdata))
+        if("psi.constant" %in% names(pp)) j <- "constant"
+        if("psi.1" %in% names(pp)) j <- i
+        tmp.ls <- apply(tmp.dm,1,
+                        function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                            err=3, d.factor=d.factor,ftype="r"))
+        pred1f <- do.call(rbind, tmp.ls)          
+        tmp.ls <- apply(tmp.dm,1,
+                        function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                            err=3, d.factor=d.factor,ftype="lp"))
+        pred2f <- do.call(rbind, tmp.ls)          
+        tmp.ls <- apply(tmp.dm,1,
+                        function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                            err=2, d.factor=d.factor,ftype="r"))
+        pred1m <- do.call(rbind, tmp.ls)          
+        tmp.ls <- apply(tmp.dm,1,
+                        function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
+                                            err=2, d.factor=d.factor,ftype="lp"))
+        pred2m <- do.call(rbind, tmp.ls)          
+        pred <- cbind(rbind(pred1f[,1:2],pred1m[,1:2]),                              #mle,se
+                      exp(c(pred2f[,1],pred2m[,1]) - 1.96*c(pred2f[,2],pred2m[,2])), #lwr
+                      exp(c(pred2f[,1],pred2m[,1]) + 1.96*c(pred2f[,2],pred2m[,2]))) #upr
+        colnames(pred) <- c("estimate", "se", "lwr","upr")
+        pred <- cbind(pred,newdata,sex)
       }
       return(pred)
     }
   }
+
   if(type == "det"){
     p.mod <- update.formula(mods[[2]], NULL ~ .)
 
     if(is.null(newdata)){
       pred.list <- list()
       nt <- nrow(model$scrFrame$traps[[1]])
-      tmp.df <- data.frame(session=factor(rep(1:nt,2)),
+      tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
                            sex=factor(rep(c("0","1"),each=nt)))
       if(!is.null(model$scrFrame$trapCovs)){
         tmp.df <- data.frame(tmp.df,model$scrFrame$trapCovs[[1]][[1]])
@@ -111,31 +139,41 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("t.beta.sex1",nms)] <- "p0.male"
       }
       if(any(grepl("t.beta.session",nms))){
-        id <- grep("t.beta.session",nms)
-        for(i in 1:length(grep("t.beta.session",nms))){
-          nms[id[i]] <- paste0("p0.session",i+1)
+        for(i in 1:length(model$scrFrame$caphist)){
+          if(paste0("t.beta.session",i) %in% nms){
+            nms[nms%in%paste0("t.beta.session",i)] <- paste0("p0.session",i)
+          }
         }
       }
+      nms <- nms[-grep("session1",nms)]
+      print(nms)
       id <- match(nms,names(pp))
 
       for(i in 1:length(model$scrFrame$caphist)){
         pred.list[[i]] <- list()
         nt <- nrow(model$scrFrame$traps[[i]])
         for(k in 1:dim(model$scrFrame$caphist[[i]])[3]){
-          tmp.df <- data.frame(session=factor(rep(1:nt,2)),
+          tmp.df <- data.frame(session=factor(rep(i,nt), levels=1:length(model$scrFrame$caphist)),
                                sex=factor(rep(c("0","1"),each=nt)),
                                occasion=factor(rep(k,nt*2)))
           if(!is.null(model$scrFrame$trapCovs)){
             tmp.df <- data.frame(tmp.df,model$scrFrame$trapCovs[[i]][[k]])
           }
           tmp.dm <- model.matrix(p.mod,tmp.df)[,,drop=FALSE]
-          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=6))
-          pred <- do.call(rbind, tmp.ls)
+          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                       err=4,ftype="r"))
+          pred1 <- do.call(rbind, tmp.ls)
+          tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                       err=4,ftype="lp"))
+          pred2 <- do.call(rbind, tmp.ls)
+          pred <- cbind(pred1[,1:2],
+                        plogis(pred2[,1] - 1.96*pred2[,2]),
+                        plogis(pred2[,1] + 1.96*pred2[,2]))
           colnames(pred) <- c("estimate", "se", "lwr","upr")
           pred.list[[i]][[k]] <- data.frame(session=tmp.df$session,
-                                       occasion=tmp.df$occasion,
-                                       sex=tmp.df$sex,
-                                       pred)
+                                            occasion=tmp.df$occasion,
+                                            sex=tmp.df$sex,
+                                            pred)
         }
       }
     }else{
@@ -146,18 +184,28 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("t.beta.sex1",nms)] <- "p0.male"
       }
       if(any(grepl("t.beta.session",nms))){
-        id <- grep("t.beta.session",nms)
-        for(i in 1:length(grep("t.beta.session",nms))){
-          nms[id[i]] <- paste0("p0.session",i+1)
+        for(i in 1:length(model$scrFrame$caphist)){
+          if(paste0("t.beta.session",i) %in% nms){
+            nms[nms%in%paste0("t.beta.session",i)] <- paste0("p0.session",i)
+          }
         }
       }
+      nms <- nms[-grep("session1",nms)]
       id <- match(nms,names(pp))
-      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=6))
-      pred <- do.call(rbind, tmp.ls)
+      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                   err=4,ftype="r"))
+      pred1 <- do.call(rbind, tmp.ls)
+      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                   err=4,ftype="lp"))
+      pred2 <- do.call(rbind, tmp.ls)
+      pred <- cbind(pred1[,1:2],
+                    plogis(pred2[,1] - 1.96*pred2[,2]),
+                    plogis(pred2[,1] + 1.96*pred2[,2]))
       colnames(pred) <- c("estimate", "se", "lwr","upr")
       return(pred)
     }
   }
+  
   if(type == "sig"){
     s.mod <- update.formula(mods[[3]], NULL ~ .)
     nses <- length(model$scrFrame$caphist)
@@ -171,13 +219,19 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("sig.sex1",nms)] <- "sig.male"
       }
       nms[1] <- "sig0"
-      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=7))
-      pred <- do.call(rbind, tmp.ls)
+      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                   err=5, ftype="r"))
+      pred1 <- do.call(rbind, tmp.ls)
+      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                   err=5, ftype="lp"))
+      pred2 <- do.call(rbind, tmp.ls)
+      pred <- cbind(pred1[,1:2],                     #mle,se
+                    exp(pred2[,1] - 1.96*pred2[,2]), #lwr
+                    exp(pred2[,1] + 1.96*pred2[,2])) #upr
+      colnames(pred) <- c("estimate", "se", "lwr","upr")
       tmp.df2 <- data.frame(Session=factor(rep(1:nses,each=2)),
                             Sex = factor(rep(c("f","m"))))
-      colnames(pred) <- c("estimate", "se", "lwr","upr")
       pred <- data.frame(tmp.df2,pred)
-      return(pred)
     }else{
       tmp.df <- newdata
       tmp.dm <- model.matrix(s.mod,tmp.df)
@@ -186,10 +240,18 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("sig.sex1",nms)] <- "sig.male"
       }
       nms[1] <- "sig0"
-      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=7))
-      pred <- do.call(rbind, tmp.ls)
+      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                   err=5, ftype="r"))
+      pred1 <- do.call(rbind, tmp.ls)
+      tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
+                                                   err=5, ftype="lp"))
+      pred2 <- do.call(rbind, tmp.ls)
+      pred <- cbind(pred1[,1:2],                     #mle,se
+                    exp(pred2[,1] - 1.96*pred2[,2]), #lwr
+                    exp(pred2[,1] + 1.96*pred2[,2])) #upr
       colnames(pred) <- c("estimate", "se", "lwr","upr")
-      return(pred)
-    }  
+      pred <- data.frame(pred,newdata)
+    }
+    return(pred)
   }
 }

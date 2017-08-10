@@ -145,8 +145,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           }
         }
       }
-      nms <- nms[-grep("session1",nms)]
-      print(nms)
+      rmv <- grep("session1",nms)
+      if(length(rmv>0)) nms <- nms[-rmv]
       id <- match(nms,names(pp))
 
       for(i in 1:length(model$scrFrame$caphist)){
@@ -176,6 +176,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
                                             pred)
         }
       }
+      return(pred.list)
     }else{
       tmp.dm <- model.matrix(p.mod,newdata)[,,drop=FALSE]
       nms <- paste0("t.beta.",colnames(tmp.dm))

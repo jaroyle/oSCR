@@ -191,7 +191,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           }
         }
       }
-      nms <- nms[-grep("session1",nms)]
+      rmv <- grep("session1",nms)
+      if(length(rmv>0)) nms <- nms[-rmv]
       id <- match(nms,names(pp))
       tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
                                                    err=4,ftype="r"))
@@ -217,7 +218,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       tmp.dm <- model.matrix(s.mod,tmp.df)
       nms <- paste0("sig.",colnames(tmp.dm))
       if(any(grepl("sig.sex1",nms))){
-        nms[grep("sig.sex1",nms)] <- "sig.male"
+        nms[grep("sig.sex1",nms)] <- "sig.sexmale"
       }
       nms[1] <- "sig0"
       tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
@@ -238,7 +239,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       tmp.dm <- model.matrix(s.mod,tmp.df)
       nms <- paste0("sig.",colnames(tmp.dm))
       if(any(grepl("sig.sex1",nms))){
-        nms[grep("sig.sex1",nms)] <- "sig.male"
+        nms[grep("sig.sex1",nms)] <- "sig.sexmale"
       }
       nms[1] <- "sig0"
       tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,

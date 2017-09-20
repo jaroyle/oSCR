@@ -87,21 +87,29 @@ data2oscr <-
       }
       traplocs[[s]] <- as.matrix(tdf[[s]][, 2:3])
       colnames(traplocs[[s]]) <- c("X", "Y")
-      xx <- tdf[[s]][, 4:ncol(tdf[[s]])]
-      is.trapcovs <- any(xx[1, ] == tdf.sep)
-      if (is.trapcovs){
-        xx.check <- (1:ncol(xx))[xx[1, ] == tdf.sep]
-        tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
-        trapcovs[[s]] <- as.matrix(xx[, (xx.check + 1):ncol(xx)])
-        colnames(trapcovs[[s]]) <- tc.nams
-        trapopp[[s]] <- as.matrix(xx[, 1:(xx.check - 1)])
-        all.tcnames <- c(all.tcnames, tc.nams)  # Not used?
+      if(ncol(tdf[[s]])>3){
+        xx <- tdf[[s]][, 4:ncol(tdf[[s]])]
+        is.trapcovs <- any(xx[1, ] == tdf.sep)
+        if (is.trapcovs){
+          xx.check <- (1:ncol(xx))[xx[1, ] == tdf.sep]
+          tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
+          trapcovs[[s]] <- as.matrix(xx[, (xx.check + 1):ncol(xx)])
+          colnames(trapcovs[[s]]) <- tc.nams
+          trapopp[[s]] <- as.matrix(xx[, 1:(xx.check - 1)])
+          all.tcnames <- c(all.tcnames, tc.nams)  # Not used?
+        }else{
+          trapopp[[s]] <- as.matrix(xx[, 1:ncol(xx)])
+        }
+        occnames[[s]]<- 1:ncol(trapopp[[s]])#dimnames(trapopp[[s]])[[2]] <- not general
+      }else{
+        trapcovs[[s]] <- NULL
+        trapopp[[s]] <- matrix(1,nrow(tdf[[s]]),K[s])
+        occnames[[s]]<- 1:ncol(trapopp[[s]])
       }
-      else {
-        trapopp[[s]] <- as.matrix(xx[, 1:ncol(xx)])
-      }
-      occnames[[s]]<- 1:ncol(trapopp[[s]])#dimnames(trapopp[[s]])[[2]] <- not general
-      }
+    }
+    if(all(sapply(trapcovs,is.null))){
+      trapcovs <- NULL
+    }
     
     
     

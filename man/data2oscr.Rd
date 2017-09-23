@@ -10,7 +10,7 @@ for the R package 'secr' and convert them to list objects
 used by oSCR. 
 }
 \usage{
-data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = FALSE, remove.extracaps = FALSE, sex.nacode = NULL, tdf.sep = "/")
+data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = TRUE, remove.extracaps = TRUE, sex.nacode = NULL, tdf.sep = "/")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

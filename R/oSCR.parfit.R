@@ -16,7 +16,7 @@ oSCR.parfit <- function(mods, ncores=2,
                 as.formula(paste(mods[[2]][[model.number]])), #detection
                 as.formula(paste(mods[[3]][[model.number]])), #sigma
                 as.formula(paste(mods[[4]][[model.number]]))) #asu
-    
+    #start.vals <- 
     fm <- oSCR.fit(model = mod, scrFrame, ssDF, encmod, multicatch, theta, trimS, DorN, sexmod, 
                    costDF, distmet, directions, PROJ, rsfDF, RSF, telemetry, se, predict, start.vals, 
                    getStarts, pxArea, plotit, mycex, nlmgradtol, nlmstepmax, smallslow, print.level)

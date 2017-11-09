@@ -171,7 +171,7 @@ data2oscr <-
           usex[[s]] <- xx[!duplicated(xx[, c("individual",  "sex")]), c("individual", "sex")]
         }
       }else{
-        usex[[s]]<- usex.all
+        if(!is.null(sex.col)) usex[[s]]<- usex.all
       }
       
       

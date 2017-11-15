@@ -13,6 +13,7 @@
                      dd <- apply(e2dist(sxy,trpls[,c("X","Y")]),1,min)
                      ssDF[[i]] <- sxy[dd<=buffer,]
                      colnames(ssDF[[i]]) <- c("X","Y")
+                     ssDF[[i]]$Tr <- i
                     if(cont.cov==T)
                       ssDF[[i]]$cont <- runif(nrow(ssDF[[i]]), -1, 1)
                     if(fact.cov==T){

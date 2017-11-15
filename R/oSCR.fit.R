@@ -100,7 +100,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
   hessian <- ifelse(se, TRUE, FALSE)
   mmdm <- scrFrame$mmdm
   mmdm[is.na(mmdm)] <- mean(mmdm,na.rm=T)
-  
+  if(!"Tr" %in% colnames(ssDF[[1]])){
+    for(i in 1:length(ssDF)){
+      ssDF[[i]]$Tr <- i
+    }
+  }
+    
+    
   #ADD A CHECK FOR WHETHER TRIMS IS TOO SMALL
   #if((!is.null(trimS)) & (trimS < (0.6*mdm)))
   #  warning("The trimS value is smaller than half the max observed 

@@ -18,8 +18,7 @@ data2oscr <-
     if (!is.null(sex.col) & is.null(sex.nacode)) {
       ux <- length(unique(edf[, sex.col]))
       if (ux > 2) {
-        cat("error: more than 2 sex codes, no sex.nacode specified",
-            fill = TRUE)
+        cat("error: more than 2 sex codes, no sex.nacode specified", fill = TRUE)
         return(NULL)
       }
     }
@@ -27,8 +26,7 @@ data2oscr <-
       edf[edf[, sex.col] %in% sex.nacode, sex.col] <- NA
       ux <- length(unique(edf[, sex.col][!is.na(edf[, sex.col])]))
       if (ux > 2) {
-        cat("error: more than 2 sex codes, no sex.nacode specified",
-            fill = TRUE)
+        cat("error: more than 2 sex codes, no sex.nacode specified", fill = TRUE)
         return(NULL)
       }
     }
@@ -89,9 +87,9 @@ data2oscr <-
       colnames(traplocs[[s]]) <- c("X", "Y")
       if(ncol(tdf[[s]])>3){
         xx <- tdf[[s]][, 4:ncol(tdf[[s]])]
-        is.trapcovs <- any(xx[1, ] == tdf.sep)
+        is.trapcovs <- any(xx[1, ] == tdf.sep, na.rm = TRUE)
         if(is.trapcovs){
-          xx.check <- (1:ncol(xx))[xx[1, ] == tdf.sep]
+          xx.check <- which(xx[1, ] %in% tdf.sep)
           tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
           trapcovs[[s]] <- as.matrix(xx[, (xx.check + 1):ncol(xx)])
           colnames(trapcovs[[s]]) <- tc.nams
@@ -154,8 +152,9 @@ data2oscr <-
                   "occasion" = occid,
                   "trap" = trapid )
       for (obs in 1:nrow(xx)) {
-        y3d[xx[obs, "individual"], xx[obs, "trap"], xx[obs,
-                                                       "occasion"]] <- y3d[xx[obs, "individual"], xx[obs,
+        y3d[xx[obs, "individual"], 
+            xx[obs, "trap"], 
+            xx[obs, "occasion"]] <- y3d[xx[obs, "individual"], xx[obs,
                                                                                                      "trap"], xx[obs, "occasion"]] + 1
       }
       caphist[[s]] <- y3d
@@ -282,7 +281,8 @@ data2oscr <-
     }else{
       trapCovs <- NULL
     }
-    
+    indcovs <<- sex.oscr
+    caphist <<- caphist
     scrFrame <- make.scrFrame(caphist = caphist, 
                               indCovs = sex.oscr,
                               traps = traplocs, 

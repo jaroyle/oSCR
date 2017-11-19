@@ -270,19 +270,20 @@ data2oscr <-
             }
           }
           #need to think about how to add a check for auto vs. generated session values
-          if(any("session" %in% names(trapCov.list))){
-            colnames(tmp.df) <- c(nms) 
-          }else{
-            colnames(tmp.df) <- c("Session",nms)
-          }
+#          if(any("session" %in% names(trapCov.list))){
+#            colnames(tmp.df) <- c(nms) 
+#          }else{
+#            colnames(tmp.df) <- c("Session",nms)
+#          }
+          colnames(tmp.df) <- c("Session",nms)
           trapCovs[[s]][[k]] <- tmp.df
         }
       }
     }else{
       trapCovs <- NULL
     }
-    indcovs <<- sex.oscr
-    caphist <<- caphist
+    indcovs <- sex.oscr
+    caphist <- caphist
     scrFrame <- make.scrFrame(caphist = caphist, 
                               indCovs = sex.oscr,
                               traps = traplocs, 

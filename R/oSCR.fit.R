@@ -580,24 +580,30 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                   pars.n0, pars.sex), 2)
     pn <- c(names.p0, names.sig, names.beta.trap, names.beta.den, names.dist, 
             names.n0, names.sex)
-    if (!is.null(start.vals)) {
-      if (length(pv) == length(start.vals)) {
-        pv <- start.vals
-      }
-      else {
-        message(
-          "The number of starting values provided doesnt match the \n\n 
-           number of parameters in the model. Randomly generated values \n\n 
-           are being used. Use getStarts = T to get correct length.")
-      }
-    }
-    if (getStarts == TRUE) {
+    if(getStarts == TRUE) {
       oSCR.start <- list(parameters = pn, values = pv)
       return(oSCR.start)
     }
     
+    #use provided starting values
+    if(!is.null(start.vals)) {
+      #1. if unnamed vector then treat as a vector of correct length: 
+      if(is.null(names(start.vals))){
+        if(length(pv) == length(start.vals)){
+          pv <- start.vals
+        }else{message(
+          "The number of starting values provided doesnt match the \n\n 
+           number of parameters in the model. 'Best guess' values \n\n 
+           are being used. Use getStarts = T to get correct length.")
+        }
+      }else{
+      #2. match named vector (can be partial!)  
+        mch <- match(pn,names(start.vals))
+        pv[!is.na(mch)] <- start.vals[na.omit(mch)]
+      }
+    }
     #create the prevcap objects
-    if (pBehave) {
+    if(pBehave) {
       prevcap <- do.prevcap(scrFrame)
     }
 

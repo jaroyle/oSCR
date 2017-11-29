@@ -206,9 +206,9 @@ data2oscr <-
           sex.tmp <- as.numeric(as.factor(sex.tmp)) - 1
         sex.oscr[[s]] <- data.frame(sex = sex.tmp)
       }
-    }
-    else sex.oscr = NULL
-    
+    }else{
+      sex.oscr = NULL
+    } 
     
     # make the trapCovs
     if(!is.null(trapcov.names)){

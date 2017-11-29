@@ -241,11 +241,14 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
       }
     }
   }
-  
+  off.d <- is.offset(model[[1]])
   allvars.D <- all.vars(model[[1]])
-  dens.fx <- allvars.D[!allvars.D %in% c("D", "session")]
+  dens.fx <- allvars.D[!allvars.D %in% c("D", "session", off.d$name)]
+
+  off.p <- is.offset(model[[2]])
   allvars.T <- all.vars(model[[2]])
-  trap.fx <- allvars.T[!allvars.T %in% c("p0", "session", "sex", "t", "T", "b")]
+  prmv <- c("p0","session","sex", "t", "T", "b", off.p$name)
+  trap.fx <- allvars.T[!allvars.T %in% prmv]
   allvars.sig <- all.vars(model[[3]])
   allvars.dist <- all.vars(model[[4]])
   var.p0.1 <- "sex" %in% allvars.T

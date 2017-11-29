@@ -332,3 +332,17 @@ get.err <- function(x, p, vcv, nms, j, err=1, d.factor=1,ftype){
     return(expr)
   }
 ###############################################################
+  
+  
+  
+#####################################################
+## Handling offsets
+
+is.offset <- function(f){
+  off <- list()
+  off[["offset"]] <- "offset" %in% names(attributes(terms.formula(f)))
+  off[["pos"]] <- attributes(terms.formula(f))$offset 
+  off[["name"]] <- ifelse(is.null(off$pos),NA,all.vars(f)[off$pos])
+  return(off)
+}
+

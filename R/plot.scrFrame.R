@@ -1,6 +1,4 @@
 plot.scrFrame<-function(scrFrame, ax=TRUE, jit=1){
-  #op <- par(no.readonly=TRUE)
-  #par(oma=c(0,0,0,0))
   all.ind.xy <- list()
   mean.loc <- list()
   mu.x <- list()
@@ -43,5 +41,4 @@ plot.scrFrame<-function(scrFrame, ax=TRUE, jit=1){
     points(scrFrame$traps[[t]][,c("X","Y")], pch=3,cex=1)
     points(mu.x[[t]],mu.y[[t]],pch=21,cex=1.5,bg=clr)
   }  
-  #par(op)
 }

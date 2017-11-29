@@ -155,7 +155,7 @@ data2oscr <-
         y3d[xx[obs, "individual"], 
             xx[obs, "trap"], 
             xx[obs, "occasion"]] <- y3d[xx[obs, "individual"], xx[obs,
-                                                                                                     "trap"], xx[obs, "occasion"]] + 1
+                                                                  "trap"], xx[obs, "occasion"]] + 1
       }
       caphist[[s]] <- y3d
       nn[[s]] <- apply(y3d, c(1), sum)
@@ -246,7 +246,7 @@ data2oscr <-
           }else{
             if(ncol(tmp.covs)==1){
               #expand single covariates
-              tmp.covs <- matrix(rep(tmp.covs[,cov],K[i]),nrow=nrow(tmp.covs),ncol=K[i],byrow=F)
+              tmp.covs <- matrix(rep(tmp.covs[,paste0(cov,".1")],K[i]),nrow=nrow(tmp.covs),ncol=K[i],byrow=F)
               colnames(tmp.covs) <- paste0(cov,".",1:K[i])
             }else{
               tmp.covs <- as.matrix(tmp.covs)
@@ -270,11 +270,11 @@ data2oscr <-
             }
           }
           #need to think about how to add a check for auto vs. generated session values
-#          if(any("session" %in% names(trapCov.list))){
-#            colnames(tmp.df) <- c(nms) 
-#          }else{
-#            colnames(tmp.df) <- c("Session",nms)
-#          }
+          #          if(any("session" %in% names(trapCov.list))){
+          #            colnames(tmp.df) <- c(nms) 
+          #          }else{
+          #            colnames(tmp.df) <- c("Session",nms)
+          #          }
           colnames(tmp.df) <- c("Session",nms)
           trapCovs[[s]][[k]] <- tmp.df
         }

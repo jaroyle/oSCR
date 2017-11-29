@@ -1,7 +1,7 @@
 get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = NULL, 
                      d.factor=1){
 
-  
+  require(car)
   pp <- model$outStats$mle
   vcv <- solve(model$rawOutput$hessian)
   names(pp) <- paste(model$outStats$parameters)
@@ -127,16 +127,46 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
     if(is.null(newdata)){
       pred.list <- list()
       nt <- nrow(model$scrFrame$traps[[1]])
-      tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
-                           sex=factor(rep(c("0","1"),each=nt)))
-      if(!is.null(model$scrFrame$trapCovs)){
-        tmp.df <- data.frame(tmp.df,model$scrFrame$trapCovs[[1]][[1]])
+      if(all(c("b","sex") %in% all.vars(p.mod))){
+        tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                             sex=factor(rep(c("0","1"),each=nt)), b=rep(c(0,1),each=nt*2))
+        if(!is.null(model$scrFrame$trapCovs)){
+          tc <- model$scrFrame$trapCovs[[1]][[1]]
+          tmp.df <- data.frame(tmp.df,rbind(tc,tc,tc,tc))
+        }
+      }else{
+        if("sex" %in% all.vars(p.mod)){
+          tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                               sex=factor(rep(c("0","1"),each=nt)))
+          if(!is.null(model$scrFrame$trapCovs)){
+            tc <- model$scrFrame$trapCovs[[1]][[1]]
+            tmp.df <- data.frame(tmp.df,rbind(tc,tc))
+          }
+        }else{
+          if("b" %in% all.vars(p.mod)){
+            tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                                 b=rep(c(0,1),each=nt))
+            if(!is.null(model$scrFrame$trapCovs)){
+              tc <- model$scrFrame$trapCovs[[1]][[1]]
+              tmp.df <- data.frame(tmp.df,rbind(tc,tc))
+            }
+          }else{
+            tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)))
+            if(!is.null(model$scrFrame$trapCovs)){
+              tc <- model$scrFrame$trapCovs[[1]][[1]]
+              tmp.df <- data.frame(tmp.df,tc)
+            }
+          }
+        }
       }
       tmp.dm <- model.matrix(p.mod,tmp.df)[,,drop=FALSE]
       nms <- paste0("t.beta.",colnames(tmp.dm))
       nms[1] <- "p0"
       if(any(grepl("t.beta.sex1",nms))){
         nms[grep("t.beta.sex1",nms)] <- "p0.male"
+      }
+      if(any(grepl("t.beta.b",nms))){
+        nms[grep("t.beta.b",nms)] <- "p.behav"
       }
       if(any(grepl("t.beta.session",nms))){
         for(i in 1:length(model$scrFrame$caphist)){
@@ -153,11 +183,39 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         pred.list[[i]] <- list()
         nt <- nrow(model$scrFrame$traps[[i]])
         for(k in 1:dim(model$scrFrame$caphist[[i]])[3]){
-          tmp.df <- data.frame(session=factor(rep(i,nt), levels=1:length(model$scrFrame$caphist)),
-                               sex=factor(rep(c("0","1"),each=nt)),
-                               occasion=factor(rep(k,nt*2)))
-          if(!is.null(model$scrFrame$trapCovs)){
-            tmp.df <- data.frame(tmp.df,model$scrFrame$trapCovs[[i]][[k]])
+          if(all(c("b","sex") %in% all.vars(p.mod))){
+            tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                                 sex=factor(rep(c("0","1"),each=nt)), b=rep(c(0,1),each=nt*2),
+                                 occasion=factor(rep(k,nt*2)))
+            if(!is.null(model$scrFrame$trapCovs)){
+              tc <- model$scrFrame$trapCovs[[i]][[k]]
+              tmp.df <- data.frame(tmp.df,rbind(tc,tc,tc,tc))
+            }
+          }else{
+            if("sex" %in% all.vars(p.mod)){
+              tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                                   sex=factor(rep(c("0","1"),each=nt)), occasion=factor(rep(k,nt*2)))
+              if(!is.null(model$scrFrame$trapCovs)){
+                tc <- model$scrFrame$trapCovs[[i]][[k]]
+                tmp.df <- data.frame(tmp.df,rbind(tc,tc))
+              }
+            }else{
+              if("b" %in% all.vars(p.mod)){
+                tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                                     b=rep(c(0,1),each=nt), occasion=factor(rep(k,nt*2)))
+                if(!is.null(model$scrFrame$trapCovs)){
+                  tc <- model$scrFrame$trapCovs[[i]][[k]]
+                  tmp.df <- data.frame(tmp.df,rbind(tc,tc))
+                }
+              }else{
+                tmp.df <- data.frame(session=factor(rep(1,nt), levels=1:length(model$scrFrame$caphist)),
+                                     occasion=factor(rep(k,nt)))
+                if(!is.null(model$scrFrame$trapCovs)){
+                  tc <- model$scrFrame$trapCovs[[i]][[k]]
+                  tmp.df <- data.frame(tmp.df,tc)
+                }
+              }
+            }
           }
           tmp.dm <- model.matrix(p.mod,tmp.df)[,,drop=FALSE]
           tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
@@ -170,10 +228,10 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
                         plogis(pred2[,1] - 1.96*pred2[,2]),
                         plogis(pred2[,1] + 1.96*pred2[,2]))
           colnames(pred) <- c("estimate", "se", "lwr","upr")
-          pred.list[[i]][[k]] <- data.frame(session=tmp.df$session,
-                                            occasion=tmp.df$occasion,
-                                            sex=tmp.df$sex,
-                                            pred)
+          pred.list[[i]][[k]] <- data.frame(session=tmp.df$session,occasion=tmp.df$occasion)
+          if("sex" %in% all.vars(p.mod)) pred.list[[i]][[k]]$sex  <- tmp.df$sex
+          if("b" %in% all.vars(p.mod))   pred.list[[i]][[k]]$b    <- tmp.df$b
+          pred.list[[i]][[k]]$pred <- pred
         }
       }
       return(pred.list)
@@ -191,6 +249,9 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           }
         }
       }
+      if(any(grepl("t.beta.b",nms))){
+        nms[grep("t.beta.b",nms)] <- "p.behav"
+      }
       rmv <- grep("session1",nms)
       if(length(rmv>0)) nms <- nms[-rmv]
       id <- match(nms,names(pp))
@@ -204,6 +265,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
                     plogis(pred2[,1] - 1.96*pred2[,2]),
                     plogis(pred2[,1] + 1.96*pred2[,2]))
       colnames(pred) <- c("estimate", "se", "lwr","upr")
+      pred <- data.frame(newdata,as.data.frame(pred))
       return(pred)
     }
   }

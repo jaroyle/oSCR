@@ -249,6 +249,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
   allvars.T <- all.vars(model[[2]])
   prmv <- c("p0","session","sex", "t", "T", "b", off.p$name)
   trap.fx <- allvars.T[!allvars.T %in% prmv]
+  
   allvars.sig <- all.vars(model[[3]])
   allvars.dist <- all.vars(model[[4]])
   var.p0.1 <- "sex" %in% allvars.T
@@ -620,15 +621,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
         
       alpha0 <- array(0, dim = c(ns, hiK, 2))
       tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
-        if (pDot & !pTime) {
-            alpha0[, , ] <- tmpP
+      if(pDot & !pTime){
+        alpha0[ , , ] <- tmpP
+      }
+      if(pDot & pTime){
+        tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
+        for(s in 1:ns){
+          alpha0[s, , 1] <- tmpP + tmpT
         }
-        if (pDot & pTime) {
-            tmpT <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.t", names.p0)]])
-            for (s in 1:ns) {
-                alpha0[s, , 1] <- tmpP + tmpT
-            }
-        }
+      }
         if (pJustsesh & !pTime) {
             tmpSS <- c(0, pv[pn %in% names.p0[grep(fixed=TRUE,"p0.session",
                 names.p0)]])
@@ -660,7 +661,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
         alphsig <- model.matrix(model[[3]],scrFrame$sigCovs) %*% sig.beta
         alphsig <- 1/(2 * exp(alphsig)^2)
         
-        if (trap.covs) {
+        if(trap.covs){
             t.beta <- matrix(NA, ns, length(t.nms))
             if (any(paste0("session:", t.nms) %in% attr(terms(model[[2]]),
                 "term.labels"))) {
@@ -834,6 +835,17 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                   if (trap.covs) {
                     a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,]))
                   }
+             
+                  
+                  #add the offset term to the linear predictor:
+                  if(off.p$offset){
+                    offset.location <- which(colnames(scrFrame$trapCovs[[s]][[k]]) %in% off.p$name)
+                    offset.col <- scrFrame$trapCovs[[s]][[k]][,offset.location]
+                    a0 <- a0 + offset.col 
+                  }
+                  
+             
+             
                   if (encmod == "B")
                     probcap <- c(dead * plogis(a0[trimR[[s]][[i]][[k]]])) *
                       Kern[trimR[[s]][[i]][[k]], trimC[[s]][[i]] ]
@@ -1255,10 +1267,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 if (!is.na(sx[i])) {
 
 
-#                     if (multicatch)
-#                  Pm <- Pm1 <- Pm2 <- matrix(0, sum(trimR[[s]][[i]][[k]]) +                     1, sum(trimC[[s]][[i]]))
-#                if (!multicatch)
-#                  Pm <- Pm1 <- Pm2 <- tmpPm <- matrix(0, sum(trimR[[s]][[i]][[k]]), sum(trimC[[s]][[i]]))
 
                   lik.cond <- numeric(nG[s])
 
@@ -1280,17 +1288,22 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
 
 
                       if (pBehave) {
-                      a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i,
-                        , k])) + alpha0[s, k, sx[i], 2] * c(prevcap[[s]][i,
-                        , k])
+                      a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i,k])) + 
+                            alpha0[s, k, sx[i], 2] * c(prevcap[[s]][i, , k])
                     }
                     else {
                       a0 <- rep(alpha0[s, k, sx[i], 1], nrow(D[[s]]))
                     }
                     if (trap.covs) {
-                      a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s,
-                        ]))
+                      a0 <- a0 + (dm.trap[[s]][[k]] %*% c(t.beta[s, ]))
                     }
+                    #add the offset term to the linear predictor:
+                    if(off.p$offset){
+                      offset.location <- which(colnames(scrFrame$trapCovs[[s]][[k]]) %in% off.p$name)
+                      offset.col <- scrFrame$trapCovs[[s]][[k]][,offset.location]
+                      a0 <- a0 + offset.col 
+                    }
+                      
                     if (encmod == "B")
                       probcap <- c(dead*plogis(a0[trimR[[s]][[i]][[k]]])) *
                         exp(-alphsig[s, sx[i]] * D[[s]][trimR[[s]][[i]][[k]],
@@ -1326,16 +1339,12 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                         1])
                       probcap[1:length(probcap)] <- vvv
                     }
-#                    if (!is.null(scrFrame$trapOperation)) {
-#                      probcap <- probcap * scrFrame$trapOperation[[s]][trimR[[s]][[i]],k]
-#                    }
 
           if(is.matrix(probcap))
                lik.cond[trimC[[s]][[i]]]<- lik.cond[trimC[[s]][[i]]] + colSums(probcap)
           if(!is.matrix(probcap))
                lik.cond[trimC[[s]][[i]]]<- lik.cond[trimC[[s]][[i]]] + probcap
 
-               #####Pm[1:length(Pm)] <- Pm[1:length(Pm)] + probcap[1:length(probcap)]
 
            }
 
@@ -1348,7 +1357,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                   }
                   
                   lik.cond[trimC[[s]][[i]]] <- exp(lik.cond[trimC[[s]][[i]]])  ####colSums(Pm, na.rm = T))
-######            lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm,na.rm = T))
                   tmpPsi <- (sx[i] == 1) * (1 - psi.sex[s]) +
                     (sx[i] == 2) * psi.sex[s]
                   lik.marg[i] <- sum(lik.cond * pi.s) * tmpPsi
@@ -1358,11 +1366,6 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 }
                 else {
 
-
-#               if (multicatch)
-#                  Pm <- Pm1 <- Pm2 <- matrix(0, sum(trimR[[s]][[i]][[k]]) +                     1, sum(trimC[[s]][[i]]))
-#                if (!multicatch)
-#                  Pm <- Pm1 <- Pm2 <- tmpPm <- matrix(0, sum(trimR[[s]][[i]][[k]]),                     sum(trimC[[s]][[i]]))
 
                   lik.cond1<- lik.cond2 <- numeric(nG[s])
 

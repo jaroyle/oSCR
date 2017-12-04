@@ -101,7 +101,7 @@ data2oscr <-
           all.tcnames <- c(all.tcnames, tc.nams)  # Not used?
         }
         occnames[[s]]<- 1:K[s]#1:ncol(trapopp[[s]])#dimnames(trapopp[[s]])[[2]] <- not general
-        ########trapopp[[s]] <- matrix(1,nrow(xx),K[s])
+        trapopp[[s]] <- matrix(1,nrow(xx),K[s])
       }else{
         trapcovs[[s]] <- NULL
         trapopp[[s]] <- matrix(1,nrow(tdf[[s]]),K[s])

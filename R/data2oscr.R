@@ -89,7 +89,7 @@ data2oscr <-
         xx <- tdf[[s]][, 4:ncol(tdf[[s]])]
         is.trapcovs <- any(xx[1, ] == tdf.sep, na.rm = TRUE)
         if(is.trapcovs){
-          xx.check <- which(xx[1, ] %in% tdf.sep)
+          xx.check <- which(xx[1, ] == tdf.sep)
           tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
           trapcovs[[s]] <- as.matrix(xx[, (xx.check + 1):ncol(xx)])
           colnames(trapcovs[[s]]) <- tc.nams
@@ -101,7 +101,7 @@ data2oscr <-
           all.tcnames <- c(all.tcnames, tc.nams)  # Not used?
         }
         occnames[[s]]<- 1:K[s]#1:ncol(trapopp[[s]])#dimnames(trapopp[[s]])[[2]] <- not general
-        trapopp[[s]] <- matrix(1,nrow(xx),K[s])
+        #trapopp[[s]] <- matrix(1,nrow(xx),K[s])
       }else{
         trapcovs[[s]] <- NULL
         trapopp[[s]] <- matrix(1,nrow(tdf[[s]]),K[s])

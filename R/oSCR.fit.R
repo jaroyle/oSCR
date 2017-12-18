@@ -1288,7 +1288,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
 
 
                       if (pBehave) {
-                      a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i,k])) + 
+                      a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i,,k])) + 
                             alpha0[s, k, sx[i], 2] * c(prevcap[[s]][i, , k])
                     }
                     else {

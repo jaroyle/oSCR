@@ -11,6 +11,9 @@ if(require("RUnit", quietly = TRUE)) {
     }
     if( is_local() ) path <- getwd()
 
+  # Seem to have to do this to get this to work
+##path <- getwd()
+
     library(package=pkg, character.only = TRUE)
     if(!(exists("path") && file.exists(path)))
         path <- system.file("unitTests", package = pkg)

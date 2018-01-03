@@ -1,11 +1,11 @@
-data2oscr <- 
+data2oscr <-
   function(edf, sess.col = NULL, id.col = NULL, occ.col = NULL, trap.col = NULL,
            sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = TRUE,
-           trapcov.names = NULL, remove.extracaps = TRUE, sex.nacode = NULL, 
+           trapcov.names = NULL, remove.extracaps = TRUE, sex.nacode = NULL,
            tdf.sep = "/"){
-    
-    #tdf must be [NAME X Y] [optional: trap operation] [sep] [named trap covariates]  
-    
+
+    #tdf must be [NAME X Y] [optional: trap operation] [sep] [named trap covariates]
+
     ## Some safety checks
     if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trap.col)){
       cat("required information missing: sess, id, occ or trap",fill=TRUE)
@@ -33,17 +33,17 @@ data2oscr <-
     ##
     ## End of safety checks
     ##
-    
-    
+
+
     Xid <- factor(edf[, id.col])
     if (!is.numeric(Xid)) {
       Xid <- as.numeric(as.factor(as.character(Xid)))
     }
     nind<- max(Xid)
-    
+
     # convert to integer
     edf[,id.col]<- Xid
-    
+
     Xsess <- edf[, sess.col]
     # Note this assumes all sessions contained in EDF....possibly not?
     if (!is.numeric(Xsess)) {
@@ -52,7 +52,7 @@ data2oscr <-
     # account for traps with no captures and thus not appearing in EDF
     # this has to be done "by session"
     new.edf<- list()
-    
+
     nsess<- max(Xsess)
     if(nsess>1 & length(K) ==1){
       cat("Must have length(K) = nsessions",fill=TRUE)
@@ -66,8 +66,8 @@ data2oscr <-
       cat("length(tdf) != apparent number of sessions", fill=TRUE)
       return(NULL)
     }
-    
-    
+
+
     ### process the TDF information here
     all.tcnames <- NULL
     traplocs <- list(NULL)
@@ -75,7 +75,7 @@ data2oscr <-
     trapcovs <- list(NULL)
     trapnames<- list(NULL)
     occnames<-list(NULL)
-    
+
     for (s in 1:nsess){
       allnames <- tdf[[s]][, 1]
       trapnames[[s]]<- allnames
@@ -99,7 +99,9 @@ data2oscr <-
             trapopp[[s]] <- as.matrix(xx[, 1:(xx.check - 1)])
           }
           all.tcnames <- c(all.tcnames, tc.nams)  # Not used?
-        }
+        }else{
+            trapopp[[s]] <- as.matrix(xx) ## added 1/3/2018
+            }
         occnames[[s]]<- 1:K[s]#1:ncol(trapopp[[s]])#dimnames(trapopp[[s]])[[2]] <- not general
         #trapopp[[s]] <- matrix(1,nrow(xx),K[s])
       }else{
@@ -111,9 +113,9 @@ data2oscr <-
     if(all(sapply(trapcovs,is.null))){
       trapcovs <- NULL
     }
-    
-    
-    
+
+
+
     #####
     ## Process the EDF information here
     ##
@@ -125,41 +127,41 @@ data2oscr <-
       xx<- cbind(Xid, Xsex)
       usex.all <- xx[!duplicated(xx),]
     }
-    
-    
+
+
     caphist<- list()
     nn<-list()
     usex<- list()
     for(s in 1:nsess){
-      
-      
+
+
       if (any(is.na(match(edf[Xsess==s,occ.col],  occnames[[s]])))) {
         cat("some occassion names in EDF not in TDF", fill = TRUE)
         return(NULL)
       }
-      
+
       new.edf[[s]]<- data.frame(edf[Xsess==s,])
-      
+
       trapid<-  match(as.character(new.edf[[s]][,trap.col]), as.character(trapnames[[s]]) )
       ### levels(new.edf[[s]][,trap.col])<- unique(trapnames[[s]])
       #### levels(new.edf[[s]][,occ.col])<- unique(occnames[[s]])
       occid<- match(as.character(new.edf[[s]][,occ.col]), as.character(occnames[[s]]))
       ntraps[s]<- length(unique(tdf[[s]][,1]))
-      
+
       y3d<- array(0, c(nind, ntraps[s], K[s]) )
-      
+
       xx<- cbind( "individual" = new.edf[[s]][,id.col],
                   "occasion" = occid,
                   "trap" = trapid )
       for (obs in 1:nrow(xx)) {
-        y3d[xx[obs, "individual"], 
-            xx[obs, "trap"], 
+        y3d[xx[obs, "individual"],
+            xx[obs, "trap"],
             xx[obs, "occasion"]] <- y3d[xx[obs, "individual"], xx[obs,
                                                                   "trap"], xx[obs, "occasion"]] + 1
       }
       caphist[[s]] <- y3d
       nn[[s]] <- apply(y3d, c(1), sum)
-      
+
       if(remove.zeros==TRUE){
         if (!is.null(sex.col)) {
           Xsex <- new.edf[[s]][, sex.col]
@@ -172,14 +174,14 @@ data2oscr <-
       }else{
         if(!is.null(sex.col)) usex[[s]]<- usex.all
       }
-      
-      
+
+
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     for (s in 1:nsess) {
       if (remove.zeros)
         caphist[[s]] <- caphist[[s]][nn[[s]] > 0, , ,drop=F]
@@ -193,9 +195,9 @@ data2oscr <-
         cat("Some individuals in session", s, " captured > 1 time in a trap/occasion",
             fill = TRUE)
     }
-    
-    
-    
+
+
+
     if (!is.null(sex.col)) {
       sex.oscr <- list()
       for (s in 1:nsess) {
@@ -208,24 +210,24 @@ data2oscr <-
       }
     }else{
       sex.oscr = NULL
-    } 
-    
+    }
+
     # make the trapCovs
     if(!is.null(trapcov.names)){
       trapCovs <- list()
       trapCov.list <- list()
       levels.list <- list()
-      
+
       for(cov in trapcov.names){#covariate
         #create named list and track whether covariates are levels
         trapCov.list[[cov]] <- list()
         lev.tracker <- NULL
-        
+
         for(i in 1:length(tdf)){#session
           tmp.tdf <- tdf[[i]]
           tmp.ind <- which(colnames(tmp.tdf) %in% paste0(cov,".",1:K[i]))
           tmp.covs <- tmp.tdf[,tmp.ind,drop=FALSE]
-          
+
           #keep track of factor levels
           if(is.character(unlist(tmp.covs)))
             lev.tracker <- sort(unique(c(lev.tracker,unique(unlist(tmp.covs)))))
@@ -234,12 +236,12 @@ data2oscr <-
           if(is.numeric(unlist(tmp.covs)))
             lev.tracker <- NA
           levels.list[[cov]] <- lev.tracker
-          
+
           #some checks:
           # make sure columns are named correctly:
           if(any(duplicated(colnames(tmp.covs))))
             stop("Duplicate column names not allowed \n add .k to index occasions")
-          
+
           #make sure there are enough columns (single columns treated as time invariant)
           if(!(ncol(tmp.covs) %in% c(1,K))){
             stop("Each covariate must have either 1 or K columns")
@@ -251,13 +253,13 @@ data2oscr <-
             }else{
               tmp.covs <- as.matrix(tmp.covs)
             }
-          }        
-          trapCov.list[[cov]][[i]] <- tmp.covs 
+          }
+          trapCov.list[[cov]][[i]] <- tmp.covs
         }
       }
-      
+
       nms <- names(trapCov.list)
-      
+
       for(s in 1:length(tdf)){
         trapCovs[[s]] <- list()
         for(k in 1:K[s]){
@@ -271,7 +273,7 @@ data2oscr <-
           }
           #need to think about how to add a check for auto vs. generated session values
           #          if(any("session" %in% names(trapCov.list))){
-          #            colnames(tmp.df) <- c(nms) 
+          #            colnames(tmp.df) <- c(nms)
           #          }else{
           #            colnames(tmp.df) <- c("Session",nms)
           #          }
@@ -284,12 +286,12 @@ data2oscr <-
     }
     indcovs <- sex.oscr
     caphist <- caphist
-    scrFrame <- make.scrFrame(caphist = caphist, 
+    scrFrame <- make.scrFrame(caphist = caphist,
                               indCovs = sex.oscr,
-                              traps = traplocs, 
-                              trapCovs = trapCovs, 
+                              traps = traplocs,
+                              trapCovs = trapCovs,
                               trapOperation = trapopp)
-    
+
     list(edf = new.edf, y3d = caphist, sex = sex.oscr, traplocs = traplocs,
          trapopp = trapopp, trapcovs = trapcovs, scrFrame = scrFrame)
   }

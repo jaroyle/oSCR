@@ -1,4 +1,4 @@
-predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL, 
+predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
                           rsfDF = NULL, override.trim=FALSE) {
   library(sp)
   library(raster)
@@ -37,8 +37,8 @@ predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
   else {
     rs <- ssDF
   }
-  
-  out <- oSCR.fit2(scrFrame = sf, ssDF = ss, costDF = cs, 
+
+  out <- oSCR.fit2(scr.fit$model, scrFrame = sf, ssDF = ss, costDF = cs,
                    rsfDF = rs, start.vals = mles, predict = TRUE)
   nsess <- length(out$preds)
   r <- list()
@@ -52,12 +52,12 @@ predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
     tmp <- try(sp::points2grid(tmp))
     if( class(tmp) == "try-error") {
       cat("Cannot rasterize state-space",fill=TRUE)
-      pbar[[s]]<- cbind(out$ssDF[[s]][, c("X","Y")], 
+      pbar[[s]]<- cbind(out$ssDF[[s]][, c("X","Y")],
                         pbar = (1 - out$ss.bits[[s]][, "lik.cond"]))
     }
     else {
       pbar[[s]] <- rasterFromXYZ(
-                     cbind(out$ssDF[[s]][, c("X", "Y")], 
+                     cbind(out$ssDF[[s]][, c("X", "Y")],
                            pbar = (1 - out$ss.bits[[s]][, "lik.cond"])))
     }
     cat("Nhat: ", sum(n0) + nguys - 1, fill = TRUE)

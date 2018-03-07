@@ -17,9 +17,9 @@ fitList.oSCR <- function(x, rename=F, names = NULL, drop=NULL,drop.asu=FALSE){
     count.mods <- lapply(x, function(z)length(z$model))
     if(any(count.mods>3)){
       extract.fn <- function(z){
-        if(length(z$call$model)==4)
+        if(length(z$model)==4)
           tmp <- unlist(update.formula(formula(z$model[[4]]),NULL ~ .))
-        if(length(z$call$model)<5)
+        if(length(z$model)<4)
           tmp <- "."
         return(tmp)
       }

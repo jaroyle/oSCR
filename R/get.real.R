@@ -173,8 +173,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       if(any(grepl("t.beta.sex1",nms))){
         nms[grep("t.beta.sex1",nms)] <- "p0.male"
       }
-      if(any(grepl("t.beta.b",nms))){
-        nms[grep("t.beta.b",nms)] <- "p.behav"
+      if(any(grepl("\\bt.beta.b\\b",nms))){      #uses word boundary "\\b"
+        nms[grep("\\bt.beta.b\\b",nms)] <- "p.behav"
       }
       if(any(grepl("t.beta.session",nms))){
         for(i in 1:length(model$scrFrame$caphist)){
@@ -262,8 +262,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           }
         }
       }
-      if(any(grepl("t.beta.b",nms))){
-        nms[grep("t.beta.b",nms)] <- "p.behav"
+      if(any(grepl("\\bt.beta.b\\b",nms))){      #uses word boundary "\\b"
+        nms[grep("\\bt.beta.b\\b",nms)] <- "p.behav"
       }
       rmv1 <- grep("session1", nms)
       rmv2 <- grep("session1:", nms)

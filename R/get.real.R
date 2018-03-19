@@ -25,6 +25,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         tmp.dm <- model.matrix(d.mod,model$ssDF[[i]])[,,drop=FALSE]
         if(!any(c("psi.constant","psi.1") %in% names(pp))){
           session <- rep(paste0("session.",i),nrow(model$ssDF[[i]]))
+          nms <- gsub(":","_",nms)
+          names(pp) <- gsub(":","_",names(pp))
           tmp.ls <- apply(tmp.dm,1,
                           function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,
                                               d.factor=d.factor,ftype="r"))
@@ -45,6 +47,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           sex <- rep(c("f","m"),each=nrow(model$ssDF[[i]]))
           if("psi.constant" %in% names(pp)) j <- "constant"
           if("psi.1" %in% names(pp)) j <- i
+          nms <- gsub(":","_",nms)
+          names(pp) <- gsub(":","_",names(pp))
           tmp.ls <- apply(tmp.dm,1,
                           function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
                                               err=3, d.factor=d.factor,ftype="r"))
@@ -78,6 +82,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       id <- match(nms,names(pp))
       
       if(!any(c("psi.constant","psi.1") %in% names(pp))){
+        nms <- gsub(":","_",nms)
+        names(pp) <- gsub(":","_",names(pp))
         tmp.ls <- apply(tmp.dm,1,
                         function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,err=1,
                                             d.factor=d.factor,ftype="r"))
@@ -95,6 +101,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         sex <- rep(c("f","m"),each=nrow(newdata))
         if("psi.constant" %in% names(pp)) j <- "constant"
         if("psi.1" %in% names(pp)) j <- i
+        nms <- gsub(":","_",nms)
+        names(pp) <- gsub(":","_",names(pp))
         tmp.ls <- apply(tmp.dm,1,
                         function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms, j=j,
                                             err=3, d.factor=d.factor,ftype="r"))
@@ -175,8 +183,11 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
           }
         }
       }
-      rmv <- grep("session1",nms)
-      if(length(rmv>0)) nms <- nms[-rmv]
+      rmv1 <- grep("session1", nms)
+      rmv2 <- grep("session1:", nms)
+      rmv <- rmv1[which(!rmv1 %in% rmv2)]
+      if (length(rmv > 0)) 
+        nms <- nms[-rmv]
       id <- match(nms,names(pp))
 
       for(i in 1:length(model$scrFrame$caphist)){
@@ -218,6 +229,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
             }
           }
           tmp.dm <- model.matrix(p.mod,tmp.df)[,,drop=FALSE]
+          nms <- gsub(":","_",nms)
+          names(pp) <- gsub(":","_",names(pp))
           tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
                                                        err=4,ftype="r"))
           pred1 <- do.call(rbind, tmp.ls)
@@ -252,9 +265,14 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
       if(any(grepl("t.beta.b",nms))){
         nms[grep("t.beta.b",nms)] <- "p.behav"
       }
-      rmv <- grep("session1",nms)
-      if(length(rmv>0)) nms <- nms[-rmv]
+      rmv1 <- grep("session1", nms)
+      rmv2 <- grep("session1:", nms)
+      rmv <- rmv1[which(!rmv1 %in% rmv2)]
+      if (length(rmv > 0)) 
+        nms <- nms[-rmv]
       id <- match(nms,names(pp))
+      nms <- gsub(":","_",nms)
+      names(pp) <- gsub(":","_",names(pp))
       tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
                                                    err=4,ftype="r"))
       pred1 <- do.call(rbind, tmp.ls)
@@ -283,6 +301,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("sig.sex1",nms)] <- "sig.sexmale"
       }
       nms[1] <- "sig0"
+      nms <- gsub(":","_",nms)
+      names(pp) <- gsub(":","_",names(pp))
       tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
                                                    err=5, ftype="r"))
       pred1 <- do.call(rbind, tmp.ls)
@@ -304,6 +324,8 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
         nms[grep("sig.sex1",nms)] <- "sig.sexmale"
       }
       nms[1] <- "sig0"
+      nms <- gsub(":","_",nms)
+      names(pp) <- gsub(":","_",names(pp))
       tmp.ls <- apply(tmp.dm,1,function(x) get.err(x=x,p=pp,vcv=vcv,nms=nms,
                                                    err=5, ftype="r"))
       pred1 <- do.call(rbind, tmp.ls)

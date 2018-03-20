@@ -1,6 +1,14 @@
 get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = NULL, 
-                     d.factor=1){
+                     d.factor=1, N_sex = T){
 
+  if(!N_sex){
+    #remove psi parameters to get total N
+    psi.params <- grep("psi",fit$outStats$parameters)
+    model$outStats$parameters <- as.vector(as.character(model$outStats$parameters))
+    model$outStats <- model$outStats[-psi.params,]
+    model$rawOutput$hessian <- model$rawOutput$hessian[-psi.params,-psi.params]
+  }
+  
   require(car)
   pp <- model$outStats$mle
   vcv <- solve(model$rawOutput$hessian)

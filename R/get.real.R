@@ -3,7 +3,7 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
 
   if(!N_sex){
     #remove psi parameters to get total N
-    psi.params <- grep("psi",fit$outStats$parameters)
+    psi.params <- grep("psi",model$outStats$parameters)
     model$outStats$parameters <- as.vector(as.character(model$outStats$parameters))
     model$outStats <- model$outStats[-psi.params,]
     model$rawOutput$hessian <- model$rawOutput$hessian[-psi.params,-psi.params]

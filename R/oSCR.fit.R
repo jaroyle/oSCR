@@ -190,11 +190,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
   if (length(model) == 3) {
     model[[4]] <- formula(~1)
   }
-  if((length(labels(terms(model[[4]])))>0) & distmet=="euc"){
-    stop("Error: asu model specified but no 'dismet'. Use distmet=ecol.)")
-  }
   for (i in 1:4) {
     model[[i]] <- update.formula(model[[i]], NULL ~ .)
+  }
+  if((length(labels(terms(model[[4]])))>0) & distmet=="euc"){
+    stop("Error: asu model specified but no 'dismet'. Use distmet=ecol.)")
   }
   if (is.null(ssDF)) {
     message("Generating a state space based on traps")

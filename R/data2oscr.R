@@ -93,8 +93,8 @@ data2oscr <-
           tc.nams <- dimnames(xx)[[2]][(xx.check + 1):ncol(xx)]
           trapcovs[[s]] <- as.matrix(xx[, (xx.check + 1):ncol(xx)])
           colnames(trapcovs[[s]]) <- tc.nams
-          #if(xx[1, 1] == tdf.sep){ this returns NA instead of T/F (changed 30/5/2018)
-          if(xx[1, 1] %in% tdf.sep){
+          if(xx[1, 1] == tdf.sep){
+          #if(xx[1, 1] %in% tdf.sep){
             trapopp[[s]] <- matrix(1,nrow(xx),K[s])
           }else{
             trapopp[[s]] <- as.matrix(xx[, 1:(xx.check - 1)])

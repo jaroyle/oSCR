@@ -15,7 +15,7 @@ data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, sex.col = NU
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{edf}{
-NOT A LIST.
+MATRIX -- NOT A LIST.
 Encounter data file having basic information about session, individual, occasion,
 trap and (optional) sex.
 Note: if the session column indicates multiple sessions then the result
@@ -51,10 +51,12 @@ Optional columns: character symbol is any character symbol which indicates subse
  data file (EDF).
 }
   \item{K}{
-Optional vector number of occasions per session. If not provided this is deduced from the data. It is better to provide this.
+Vector number of occasions per session. K = c(8) for a single season
+ study with 8 occasions. 
 }
   \item{ntraps}{
-Optional vector number of traps per session. If not provided this is deduced from the data. It is better to provide it.
+Vector number of traps per session. ntraps = c(38) for a single season
+ study with 38 traps. 
 }
   \item{remove.zeros}{
 If TRUE then individuals that were never captured in a session are removed
@@ -62,7 +64,9 @@ from the session encounter history data. If FALSE then the resulting
  data structure preserves individual ID across sesions.  For example in
  a 2 session data set then output$y3d[[1]][7,,]  is the same individual
  as output$y3d[[2]][7,,].
-For fitting models in oSCR you should have remove.zeros=TRUE
+For fitting models in oSCR you should have remove.zeros=TRUE but if  you
+ want to fit open SCR models in JAGS you might use the remove.zeros =
+ FALSE option so that the rows are alighned properly. 
 
 }
 \item{trapcov.names}{
@@ -91,6 +95,7 @@ The EDF should be a single EDF with sessions differentiated by a column
 in the EDF.
 
 The TDF should be provided in list form. One element per session.
+
 
 }
 \value{

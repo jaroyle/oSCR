@@ -33,12 +33,20 @@ data2oscr <-
     ##
     ## End of safety checks
     ##
-    
-    
-    Xid <- factor(edf[, id.col])
-    if (!is.numeric(Xid)) {
-      Xid <- as.numeric(as.factor(as.character(Xid)))
-    }
+ # Suggested by Dan for better ordering of ID   
+    if(is.numeric(edf[,id.col])){
+      Xid <- as.integer(factor(as.character(edf[,id.col]),
+                     levels=sort(unique(as.numeric(as.character(edf[,id.col]))))))
+      } else {
+        Xid <- as.integer(factor(as.character(edf[,id.col])))
+      }
+#    Xid <- factor(edf[, id.col])
+#    if (!is.numeric(Xid)) {
+#      Xid <- as.numeric(as.factor(as.character(Xid)))
+#    }
+names(Xid)<- edf[,id.col]
+new.names<- unique(names(Xid[order(Xid)]))
+ 
     nind<- max(Xid)
     
     # convert to integer
@@ -160,6 +168,11 @@ data2oscr <-
             xx[obs, "occasion"]] <- y3d[xx[obs, "individual"], xx[obs,
                                                                   "trap"], xx[obs, "occasion"]] + 1
       }
+
+      ## would be better to use trap names too
+      dimnames(y3d)<- list(new.names, 1:ntraps[s], 1:K[s])
+      ##
+
       caphist[[s]] <- y3d
       nn[[s]] <- apply(y3d, c(1), sum)
       

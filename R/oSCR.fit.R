@@ -10,15 +10,16 @@
 #'  models (see \link{Details}).
 #' @param scrFrame An \pkg{oSCR}-specific \emph{capture history} data object (see \link[oSCR]{make.scrFrame}).
 #' @param ssDF An \pkg{oSCR}-specific \emph{state space} data object (see \link[oSCR]{make.ssDF}).
-#' @param encmod Choice of encounter model to use. Can choose either the binomial (\code{B}),
-#' Poisson (\code{P}), or complementary log-log (\code{CLOG}) encounter model. 
-#' @param multicatch If \code{TRUE}, the multinomial encounter model is used.
+#' @param encmod Choice of encounter model to use. Choices are binomial (\code{"B"}, default),
+#' Poisson (\code{"P"}), complementary log-log (\code{"CLOG"}), or multinomial (\code{"M"}) encounter model. 
+#' @param multicatch Choose \code{TRUE} to fit the multinomial encounter model. \strong{NB} while this will 
+#' still work, it is best to use the updated \code{enc} argument: \code{enc = "M"}. 
 #' @param theta A non-negative power value detemining the shape of the exponential
 #' encounter model. 
 #' @param trimS A non-negative value with the same distance units as \code{traps} and 
 #' \code{ssDF}. Only state space pixels within \code{trimS} of individual captures 
 #' are evaluated as plausible activity centers (i.e., performs \emph{local} 
-#' evaluation). Speeds up computation \strong{but} should be \eqn{>2 \times mmdm}
+#' evaluation). Speeds up computation \strong{but} should be \eqn{>3 \times mmdm}
 #' and wise to check sensitivity to \code{trimS} values.
 #' @param DorN Specify whether to fit the Poisson (\code{D}) or binomial (\code{N}) 
 #' density model. 
@@ -81,7 +82,7 @@
 
 oSCR.fit <-
 function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
-          encmod = c("B", "P", "CLOG")[1], multicatch = FALSE, theta = 2, 
+          encmod = c("B", "P", "CLOG","M")[1], multicatch = FALSE, theta = 2, 
           trimS = NULL, DorN = c("D", "N")[1], sexmod = c("constant", "session")[1], 
           costDF = NULL, distmet = c("euc", "user", "ecol")[1], directions = 8, 
           PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry = c("none","ind","dep")[1],
@@ -104,6 +105,10 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
     for(i in 1:length(ssDF)){
       ssDF[[i]]$Tr <- i
     }
+  }
+  if(encmod == "M"){
+    encmod <- "B"
+    multicatch <- TRUE
   }
     
     

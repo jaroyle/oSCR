@@ -345,4 +345,4 @@ is.offset <- function(f){
   off[["name"]] <- ifelse(is.null(off$pos),NA,all.vars(f)[off$pos])
   return(off)
 }
-
+  

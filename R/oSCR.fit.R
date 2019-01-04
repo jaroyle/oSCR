@@ -529,9 +529,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
     names.p0 <- tmp.p0.names
     pars.p0 <- rep(0, length(names.p0))
     
-    st.p0 <- qlogis(0.1*(sum(sapply(scrFrame$caphist,sum))/
-             sum(sapply(scrFrame$caphist,
-                        function(x) prod(dim(x)[c(1,3)])))))
+    if(encmod %in% c("B","CLOG")){
+      st.p0 <- qlogis(0.1*(sum(sapply(scrFrame$caphist,sum))/
+                           sum(sapply(scrFrame$caphist,function(x) prod(dim(x)[c(1,3)])))))
+    }
+    if(encmod  == "P"){
+      st.p0 <- log(mean(sapply(scrFrame$caphist,mean)))
+    }
     pars.p0[1] <- st.p0
     if (any(var.p0.1, var.p0.1, var.sig.1) && !anySex)
         stop("Sex defined in a model but no sex data provided.")
@@ -1293,7 +1297,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
 
 
                       if (pBehave) {
-                      a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i,,k])) + 
+                      a0 <- alpha0[s, k, sx[i], 1] * (1 - c(prevcap[[s]][i, ,k])) + 
                             alpha0[s, k, sx[i], 2] * c(prevcap[[s]][i, , k])
                     }
                     else {

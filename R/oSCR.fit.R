@@ -103,6 +103,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
   mmdm[is.na(mmdm)] <- mean(mmdm,na.rm=T)
   if(!"Tr" %in% colnames(ssDF[[1]])){
     for(i in 1:length(ssDF)){
+      ssDF[[i]] <- as.data.frame(ssDF[[i]])
       ssDF[[i]]$Tr <- i
     }
   }

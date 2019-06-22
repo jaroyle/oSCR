@@ -101,8 +101,20 @@ Chris Sutherland and Andy Royle
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+# Find optimal pbar and p2bar designs and simulate the performance of MLEs
 
- 
+# Set population size
+N <- 50
+D <- N/area
+
+# Define parameters (should pass these as arguments)
+ p0 <- 0.2                            #baseline encounter probability
+ sigma <- 0.8                         #scale factor of detection function
+ K <- 3                               # sampling occasions
+ lam0<- K*p0
+ # for the Poisson model this is approximately exp(beta0) = 0.2*3
+ # Simulator function needs modified to allow for the Poisson model.
+ # SCRdesign ONLY does the Poisson model.
 
 # Define the state-space as 13 by 13 units
 xlim <- c(0, 13)
@@ -122,25 +134,105 @@ ylim<-c(2,11)
 mytraps<- as.matrix( expand.grid(X = seq(xlim[1]+rr/2, xlim[2]-rr/2,rr),
                         Y = seq(ylim[1]+rr/2, ylim[2]-rr/2,rr))   )
 
-#CHANGE Qfn TO p2bar (temporary inconvenience here)
-
+#CHANGE TO p2bar
 Qfn<- p2bar.fn
 
  tmp1<- SCRdesign(statespace = myss, 
                       all.traps = mytraps, 
                       ntraps = 36, nn = 23, ndesigns = 2,
-                      sigma = 0.80, beta0 = log(0.6), crit = 1)
+                      sigma = 1.30, beta0 = log(lam0), crit = 1)
 
  tmp2<- SCRdesign(statespace = myss, 
                       all.traps = mytraps, 
                       ntraps = 36, nn = 23, ndesigns = 2,
-                      sigma = 0.80, beta0 = log(0.6), crit = 2)
+                      sigma = 1.30, beta0 = log(lam0), crit = 2)
 
 plot(myss)
 points(mytraps,pch=20)
 points(tmp1$Xlst[[1]],pch=20,col="red",cex=2)
 points(tmp2$Xlst[[1]],pch=20,col="green",cex=2)
 
+
+
+
+ 
+traps1<- tmp1$Xlst[[1]]
+traps2<- tmp2$Xlst[[1]]
+
+
+
+
+library(oSCR)
+#Create a simulator function
+simulator<- function(traps , nsim) {
+
+  simout1<- matrix(NA,nrow=nsim,ncol=7) #create empty matrix for output
+  colnames(simout1)<- c("p0","sig","d0","nind", "avg.caps","avg.spatial","mmdm")
+
+  for(sim in 1:nsim){
+    print(paste("Simulation Number", sim, sep = " ")) # keep track
+
+    # Generate home range centers
+    s <- cbind(runif(N, xlim[1], xlim[2]), runif(N, ylim[1],ylim[2]) )
+    rr <- 0.5
+
+    # Make the state space
+    myss <- expand.grid(X = seq(xlim[1]+rr/2, xlim[2]-rr/2,rr),
+                        Y = seq(ylim[1]+rr/2, ylim[2]-rr/2,rr))
+    cat("size of state-space: ", nrow(myss), " pixels", fill=TRUE)
+    myss$Tr <- 1
+    myss <- list(myss)
+    class(myss) <- "ssDF"
+
+    # individual-trap distance matrix
+    D <- e2dist(s,traps)
+
+    # Compute detection probabilities:
+    pmat <- p0*exp(-D*D/(2*sigma*sigma)) #p for all inds-traps p_ij
+    ntraps <- nrow(traps)
+    y <- array(0, dim=c(N, ntraps, K)) # empty 3D array (inds by traps by occ)
+
+    for(i in 1:N){# loop through each individual/activity center
+      for(j in 1:ntraps){# loop through each trap
+        y[i,j,1:K]<- rbinom(K, 1, pmat[i,j]) # y ~ binomial(p_ijk)
+
+      }
+    }
+
+    ncap <- apply(y,c(1), sum)       # sum of captures for each individual
+    y<- y[ncap>0,,]                  # reduce the y array to include only captured individuals
+
+    # Some summary information, that is actually printed for you later with "print(scrFrame)"
+    caps.per.ind.trap<- apply(y,c(1,2),sum) #shows # capts for each indv across all traps
+
+    # Make the SCRframe
+    colnames(traps)<- c("X","Y")
+    sf <- make.scrFrame(caphist=list(y), traps=list(traps))
+
+    plot(myss) # plot the state space
+    spiderplot(y = sf$caphist[[1]], traps, add=TRUE)
+
+    # Fit a basic model SCR0
+    out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame = sf, ssDF=myss, trimS = 4*sigma)
+
+    stats <- print(sf)[[1]]  # pulls avg caps, avg spatial caps, and mmdm
+    est <- out1$outStats$mle       # pulls p0, sigma, and d0 estimates from the model
+    simout1[sim,] <- c(plogis(est[1]), exp(est[2]), exp(est[3]), dim(y)[1], stats)
+
+  }
+  return(simout1)
+}
+
+# simulate pbar design
+simout1<- simulator(traps1 ,nsim=50)   # runs simulation on the first design
+# simulate p2bar design
+simout2<- simulator(traps2 ,nsim=50)   # runs simulation on the first design
+
+colMeans(simout1) #shows average values of the estimates
+colMeans(simout2)
+ 
+apply(simout1,2,sd) #calculates standard deviation of all the estimates
+apply(simout2,2,sd)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

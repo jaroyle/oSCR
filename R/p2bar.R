@@ -32,6 +32,9 @@ ntraps<- nrow(X)
  # Probability of being captured in exactly 1 trap, any trap
  p1time<- colSums(bling)
 
- p2bar <- mean( 1- p0times - p1time)  # pr cap 2 or more times
+ # p2bar = 1 minuts probability of being captured no times minus probability of being caught in exactly 1 trap
+    p2bar <- mean( 1- p0times - p1time)  # pr cap 2 or more times
+
+    # return both 1-pbar and 1-p2bar which we will minimize using SCRdesign
 c(1-pbar,1-p2bar)
 }

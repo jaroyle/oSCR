@@ -36,5 +36,5 @@ ntraps<- nrow(X)
     p2bar <- mean( 1- p0times - p1time)  # pr cap 2 or more times
 
     # return both 1-pbar and 1-p2bar which we will minimize using SCRdesign
-c(1-pbar,1-p2bar)
+c(1-pbar,1-p2bar, 1-(pbar+p2bar) )
 }

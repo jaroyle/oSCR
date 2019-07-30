@@ -92,7 +92,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
   
   ptm <- proc.time()
   starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
-  my.model.matrix <- function(form, data) {
+  my.model.matrix <- function(form, data){
     cont.arg <- lapply(data.frame(data[,sapply(data.frame(data), is.factor)]), 
                        contrasts, contrasts = FALSE) 
     mdm <- suppressWarnings(model.matrix(form, data, contrasts.arg = cont.arg))
@@ -327,13 +327,13 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
       }
       dm.trap[[s]] <- tmp.dm
       if (RSF) {
-        if (any(!tcovnms %in% names(rsfDF[[s]]))){
-          rsfMissing <- tcovnms[which(!tcovnms %in% names(rsfDF[[s]]))]
-          for (miss in 1:length(rsfMissing)) {
-            rsfDF[[s]][,rsfMissing[miss]] <- 0
-          }
-        }
-        dm.rsf[[s]] <- my.model.matrix(mod2, rsfDF[[s]])[ , -1, drop=FALSE]
+        #if (any(!tcovnms %in% names(rsfDF[[s]]))){
+        #  rsfMissing <- tcovnms[which(!tcovnms %in% names(rsfDF[[s]]))]
+        #  for (miss in 1:length(rsfMissing)) {
+        #    rsfDF[[s]][,rsfMissing[miss]] <- 0
+        #  }
+        #}
+        dm.rsf[[s]] <- model.matrix(mod2, rsfDF[[s]])[ , -1, drop=FALSE]
       }
     }
     if (any(paste0("session:", t.nms) %in% 
@@ -453,7 +453,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
     }
 
     if(distmet == "ecol"){
-      mod4 <- update(model[[4]], ~. - sex - session)
+      mod4 <- update(model[[4]], ~. - sex - session) #could change
       for (s in 1:ns) {
         dm.cost[[s]] <- model.matrix(mod4, as.data.frame(costDF[[s]]))
       }
@@ -467,11 +467,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
     }
     
 
-    if (!smallslow) {
+    if (!smallslow) {#Drsf can be made here instead (line 770)
         if (distmet == "euc") {
             for (s in 1:ns) {
-                D[[s]] <- e2dist(scrFrame$traps[[s]][, c("X",
-                  "Y")], ssDF[[s]][, c("X", "Y")])
+                D[[s]] <- e2dist(scrFrame$traps[[s]][, c("X", "Y")], 
+                                 ssDF[[s]][, c("X", "Y")])
             }
         }
     }
@@ -766,7 +766,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 }
             }
             if (telem){
-              # only Euclidean distance for telemetry fixes
+              # only Euclidean distance for telemetry fixes ALSO ADD COST ID distmet="ecol"
               Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
             }
             lik.marg <- rep(NA, nrow(Ys))

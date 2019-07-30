@@ -39,9 +39,9 @@
 #' covariates for 3rd order resource selection.
 #' @param RSF If \code{TRUE} then telemetry data are used to fit a resource selection function when
 #' an \code{rsfDF} is provided and the \code{telemetry} option is \code{ind} or \code{dep}.
-#' @param telemetry Choice of telemetry integration, either \code{none} [\emph{default}], \code{ind}, or \code{dep}.
+#' @param telemetry.type Choice of telemetry integration, either \code{none} [\emph{default}], \code{ind}, or \code{dep}.
 #' The latter 2 options specify whether the individuals in the telemetry and capture data sets
-#' are independent or dependent (i.e., same individuals in both).  When \code{dep} is specified, the \code{telemetry}
+#' are independent or dependent (i.e., same individuals in both).  When \code{dep} is specified, the \code{telemetry.type}
 #' object in the \code{scrFrame} must contain a \code{cap.tel} object (see \link[oSCR]{make.scrFrame})
 #' indicating where (i.e., row #) telemetred individuals appear in the capture history.
 #' @param se If \code{TRUE} standard errors are computed. If \code{FALSE}, standard
@@ -85,7 +85,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
           encmod = c("B", "P", "CLOG","M")[1], multicatch = FALSE, theta = 2, 
           trimS = NULL, DorN = c("D", "N")[1], sexmod = c("constant", "session")[1], 
           costDF = NULL, distmet = c("euc", "user", "ecol")[1], directions = 8, 
-          PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry = c("none","ind","dep")[1],
+          PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry.type = c("none","ind","dep")[1],
           se = TRUE, predict = FALSE, start.vals = NULL, getStarts = FALSE, pxArea = 1, 
           plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE, 
           print.level = 0){
@@ -211,7 +211,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
     if (is.null(rsfDF))
       stop("Error: Cannot fit RSF without rsfDF!")
   }
-  if (telemetry %in% c("ind","dep")) {
+  if (telemetry.type %in% c("ind","dep")) {
     if (is.null(scrFrame$telemetry)){
       stop("Error: No telemetry data in scrFrame!")
     }
@@ -794,7 +794,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
             }
             
             # some collared ind captured, so keep lik.cond for combining later
-            if (telemetry == "dep"){
+            if (telemetry.type == "dep"){
               lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
             }
             
@@ -911,7 +911,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
 #                lik.cond <- numeric(nG[s])
 #    lik.cond[trimC[[s]][[i]]] <- exp(colSums(Pm, na.rm = T))
                  
-                 if (telemetry == "dep"){
+                 if (telemetry.type == "dep"){
                    if (i %in% cap.tel){
                      lik.cond.tel[match(i,cap.tel),] <- lik.cond
                    }
@@ -944,7 +944,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                 #browser()
-                if (telemetry == "dep"){
+                if (telemetry.type == "dep"){
                   if (i <= length(cap.tel)){
                     # combine conditional likelihoods if some collared ind were captured
                     lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
@@ -1257,7 +1257,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
             }
             
             # some collared ind captured, so keep lik.cond for combining later
-            if (telemetry == "dep"){
+            if (telemetry.type == "dep"){
                 lik.cond.tel <- matrix(0,nrow=length(cap.tel),ncol=nG[s])
             }
             
@@ -1360,7 +1360,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
 
 
            #                  lik.cond <- numeric(nG[s])
-                  if (telemetry == "dep"){
+                  if (telemetry.type == "dep"){
                     if (i %in% cap.tel){
                       lik.cond.tel[match(i,cap.tel),] <- lik.cond
                     }
@@ -1536,7 +1536,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
                 #browser()
-                if (telemetry == "dep"){
+                if (telemetry.type == "dep"){
                   if (i <= length(cap.tel)){
                     # combine conditional likelihoods if some collared ind were captured
                     lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
@@ -1608,7 +1608,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                            ", asu", paste(model)[4], sep = " ")
         if (!anySex) {
           if (telem){
-            message("Telemetry: ",telemetry)
+            message("Telemetry: ",telemetry.type)
           }
           message("Using ll function 'msLL.nosex' \nHold on tight!")
           message(Sys.time())
@@ -1622,7 +1622,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
         }
         else {
           if (telem){
-            message("Telemetry: ",telemetry)
+            message("Telemetry: ",telemetry.type)
           }
           message("Using ll function 'msLL.sex' \nHold on tight!")
           message(Sys.time())
@@ -1709,7 +1709,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                                 ", asu", paste(model)[4], sep = " ")
           if (!anySex) {
             if (telem){
-              message("Telemetry: ",telemetry)
+              message("Telemetry: ",telemetry.type)
             }
             message("Using ll function 'msLL.nosex' \nHold on tight!")
             message(Sys.time())
@@ -1721,7 +1721,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
           }
           else {
             if (telem){
-              message("Telemetry: ",telemetry)
+              message("Telemetry: ",telemetry.type)
             }
             message("Using ll function 'msLL.sex' \nHold on tight!")
             message(Sys.time())

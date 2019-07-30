@@ -2,7 +2,7 @@ data2oscr <-
   function(edf, sess.col = NULL, id.col = NULL, occ.col = NULL, trap.col = NULL,
            sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = TRUE,
            trapcov.names = NULL, remove.extracaps = TRUE, sex.nacode = NULL,
-           tdf.sep = "/"){
+           tdf.sep = "/", rsfDF = rsfDF, telemetry = telemetry){
     
     #tdf must be [NAME X Y] [optional: trap operation] [sep] [named trap covariates]
     
@@ -309,7 +309,9 @@ new.names<- unique(names(Xid[order(Xid)]))
                               indCovs = sex.oscr,
                               traps = traplocs,
                               trapCovs = trapCovs,
-                              trapOperation = trapopp)
+                              trapOperation = trapopp,
+                              rsfDF = rsfDF,
+                              telemetry = telemetry)
     
     list(edf = new.edf, y3d = caphist, sex = sex.oscr, traplocs = traplocs,
          trapopp = trapopp, trapcovs = trapcovs, scrFrame = scrFrame)

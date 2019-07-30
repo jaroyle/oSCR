@@ -2,7 +2,7 @@ spiderplot <- function(scrFrame = NULL, session=1, y=NULL,
                         traplocs=NULL, add=FALSE, return.stats=FALSE){
     
     if(!is.null(scrFrame)){
-      traplocs <- scrFrame$trps[[session]]
+      traplocs <- scrFrame$traps[[session]]
       y <- scrFrame$caphist[[session]]
     }
       

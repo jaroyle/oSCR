@@ -3,6 +3,28 @@ predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
   library(sp)
   library(raster)
   mles <- scr.fit$rawOutput$estimate
+
+  if(is.null(scrFrame)) {
+    sf <- scr.fit$scrFrame
+  }else{
+    sf <- scrFrame
+  }
+  if(is.null(ssDF)) {
+    ss <- scr.fit$ssDF
+  }else{
+    ss <- ssDF
+  }
+  if(is.null(costDF)) {
+    cs <- scr.fit$costDF
+  }else{
+    cs <- costDF
+  }
+  if(is.null(rsfDF)) {
+    rs <- scr.fit$rsfDF
+  }else{
+    rs <- ssDF
+  }
+  
   call <- scr.fit$call
   oSCR.fit2 <- oSCR.fit
   call.fix <- names(call)[!names(call) %in% c("", "scrFrame", "ssDF", "costDF", "rsfDF")]
@@ -13,33 +35,17 @@ predict.oSCR <- function (scr.fit, scrFrame = NULL, ssDF = NULL, costDF = NULL,
       formals(oSCR.fit2)[[call.fix[i]]] <- call[[call.fix[i]]]
     }
   }
-  if(is.null(scrFrame)) {
-    sf <- scr.fit$scrFrame
-  }
-  else {
-    sf <- scrFrame
-  }
-  if(is.null(ssDF)) {
-    ss <- scr.fit$ssDF
-  }
-  else {
-    ss <- ssDF
-  }
-  if(is.null(costDF)) {
-    cs <- scr.fit$costDF
-  }
-  else {
-    cs <- costDF
-  }
-  if(is.null(rsfDF)) {
-    rs <- scr.fit$rsfDF
-  }
-  else {
-    rs <- ssDF
-  }
+  
+
+  # oSCR.fit2 <- oSCR.fit
+  # formals(oSCR.fit2)[["model"]] <- scr.fit$model
+  # formals(oSCR.fit2)[["scrFrame"]] <- "sf"
+  # formals(oSCR.fit2)[["ssDF"]] <- "ss"
+  # formals(oSCR.fit2)[["costDF"]] <- "cs"
+  # formals(oSCR.fit2)[["rsfDF"]] <- "rs"
 
   out <- oSCR.fit2(scr.fit$model, scrFrame = sf, ssDF = ss, costDF = cs,
-                   rsfDF = rs, start.vals = mles, predict = TRUE)
+                   rsfDF = rs, start.vals = mles, predict = TRUE, se=FALSE)
   nsess <- length(out$preds)
   r <- list()
   total <- list()

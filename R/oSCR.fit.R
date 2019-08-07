@@ -90,6 +90,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
           plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE, 
           print.level = 0){
   
+  
+  #match.arg(encmod) will set encmod to "B"
+  
   ptm <- proc.time()
   starttime <- format(Sys.time(), "%H:%M:%S %d %b %Y")
   my.model.matrix <- function(form, data){
@@ -1667,6 +1670,11 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
         }
         std.err <- rep(rep(NA, length(pv)))
         trans.se <- rep(NA, length(pv))
+        
+        #add this:
+        # tryCatch(covMat <- solve(fm$hessian), 
+        #          error = function(x) stop(simpleError("Hessian is singular. Try providing starting values or using fewer covariates.")))
+        
         if("hessian" %in% names(myfit)) {
           if(sum(myfit$hessian) != 0){
           #Need a check for this error and return mles and a warning

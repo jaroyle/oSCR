@@ -130,8 +130,16 @@ make.scrFrame <- function(caphist, traps, indCovs=NULL, trapCovs=NULL, sigCovs=N
         max.dist <- c(max.dist, max(0, dist(traps[[i]][where, c("X", "Y")]), na.rm = T))
     }
   }
-  mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
-  mdm <- max(max.dist,na.rm=T)
+  l1 <- length(max.dist)
+  l2 <- length(max.dist[max.dist > 0])
+  if(l1==0 | l2==0){
+    mmdm <- 0
+    mdm <- 0
+  }else{
+    mmdm <- mean(max.dist[max.dist > 0], na.rm = T)
+    mdm <- max(max.dist,na.rm=T)
+  }
+  
 
   #telemetry
   if(!is.null(telemetry)){

@@ -1,4 +1,4 @@
-library(oSCR)
+#library(oSCR)
 library(kofnGA)
 source("R/scrdesignOF.R")
 source("R/scrdesignGA.R")

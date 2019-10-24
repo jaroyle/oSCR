@@ -21,7 +21,7 @@ plot.scrdesign <- function(scrdesign, which=4){
     abline(v=c(scrdesign$sigma,2*scrdesign$sigma), lty=c(1,2), col=2)  
   }
   if(which==4){
-    mm <- max(dist(scrdesign$alltraps))
+    mm <- max(dist(scrdesign$alltraps))+2
     plot(scrdesign$des)
     plot(scrdesign$statespace, asp=1, pch=16, cex=0.1, 
          col="grey", axes=F, xlab="", ylab="")

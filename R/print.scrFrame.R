@@ -21,7 +21,11 @@ print.scrFrame <- function(scrFrame){
       if (sum(where) > 1)
         max.dist <- c(max.dist, max(0, dist(scrFrame$traps[[i]][where, c("X", "Y")]), na.rm = T))
     }
-    mmdm.session[i] <- mean(max.dist[max.dist > 0], na.rm = T)
+    if(length(max.dist[max.dist > 0])>0){
+      mmdm.session[i] <- mean(max.dist[max.dist > 0], na.rm = T)
+    }else{
+      mmdm.session[i] <- 0
+    }
   }
   caphist.dimensions <- rbind(caphist.dimensions,
                               ave.caps,

@@ -28,7 +28,7 @@ scrdesignGA <- function(statespace = NULL,
                 verbose = verbose,
                 ...,
                 alltraps = alltraps,
-                statespace = SS,
+                statespace = statespace,
                 beta0 = beta0,
                 sigma = sigma,
                 crit=crit)

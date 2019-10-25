@@ -1,11 +1,10 @@
 \name{collapse.k}
 \alias{collapse.k}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Reduce capture histories to a single (k=1) count.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Reduce capture histories to a single (k=1) count.
 }
 \usage{
 collapse.k(scrFrame)
@@ -13,33 +12,20 @@ collapse.k(scrFrame)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{scrFrame}{
-%%     ~~Describe \code{scrFrame} here~~
+An scrFrame.
 }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+\item{scrFRame}{An edited scrFrame with counts and k=1.}
 }
 \references{
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+Chris Sutherland
 }
 \examples{
 data("rbs_ecography")
@@ -57,11 +43,7 @@ rbs.data <- data2oscr(edf = rbs.edf, #the EDF
                       tdf.sep = "/", #char used separator
                       sex.nacode = "U") #unknown sex code
 scrFrame <- rbs.data$scrFrame
-rbs2 <- collapse.k(scrFrame = scrFrame)
-rbs.ss <- make.ssDF(rbs2,3,1)
-f3 <- oSCR.fit(list(~1,~offset(log(effort)),~1), rbs2, rbs.ss, encmod = "P")
-
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+reduced.rbs <- collapse.k(scrFrame = scrFrame)
+rbs.ss <- make.ssDF(reduced.rbs,3,1)
+fit <- oSCR.fit(list(~1,~offset(log(effort)),~1), reduced.rbs, rbs.ss, encmod = "P")
+}

@@ -23,7 +23,7 @@ collapse.k <- function(scrFrame){
     }
   }else{
     scrFrame$trapCovs <- list()
-    for(i in 1:length(scrFrame$trapCovs)){
+    for(i in 1:length(scrFrame$caphist)){
       eff <- apply(scrFrame$trapOperation[[i]],1,sum)
       effdf <- data.frame(effort = eff)
       scrFrame$trapCovs[[i]] <- list(effdf)

@@ -182,7 +182,7 @@ new.names<- unique(names(Xid[order(Xid)]))
           if (!is.numeric(Xsex)) {
             Xsex <- as.numeric(as.factor(as.character(Xsex))) - 1
           }
-          xx<- cbind(xx, "sex" = Xsex)
+          xx<- as.data.frame(cbind(xx, "sex" = Xsex))
           usex[[s]] <- xx[!duplicated(xx[, c("individual",  "sex")]), c("individual", "sex")]
         }
       }else{

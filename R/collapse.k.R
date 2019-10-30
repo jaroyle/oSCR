@@ -1,6 +1,6 @@
 collapse.k <- function(scrFrame){
   
-  scrFrame$caphist <- sapply(scrFrame$caphist,
+  scrFrame$caphist <- lapply(scrFrame$caphist,
                              function(x) apply(x,c(1,2),sum))
   for(i in 1:length(scrFrame$caphist)){
     ch <- scrFrame$caphist[[i]]

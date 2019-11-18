@@ -24,9 +24,11 @@ See below %%  ~~ If necessary, more details than the description above ~~
 }
 \references{
 Royle, J. Andrew, Richard B. Chandler, Catherine C. Sun, and Angela
-K. Fuller. "Integrating resource selection information with spatial
-capture-recapture." Methods in Ecology and Evolution 4, no. 6 (2013):
+K. Fuller. 2013. "Integrating resource selection information with spatial
+capture-recapture." Methods in Ecology and Evolution 4(6):
 520-530.
+
+Linden, D. W., Sirén, A. P. K., and Pekins, P. J. 2018. "Integrating telemetry data into spatial capture–recapture modifies inferences on multi‐scale resource selection." Ecosphere 9(4):e02203. 10.1002/ecs2.2203 
 }
 \author{
 Andy Royle, Dan Linden 
@@ -253,16 +255,12 @@ library(oSCR)
 # 
 data("nybears")
 attach(nybears)
-# Note: 8/21/2016 some of the data objects in this data object are not correct and
-#  will be updated at a later date, but the elements used here are correct.
-colnames(teldata2)<- c("ind","X","Y")
-colnames(ssgrid)<- c("X","Y")
+fixes <- teldata[,c("animalid","X_UTM","Y_UTM")]
+colnames(fixes)<- c("ind","X","Y")
 
-ntraps<- length(trap2raster)
-# nybears$traplocs is wrong... gotta do this:
-traplocs <- ssgrid[trap2raster,]
 ntraps <- nrow(traplocs)
-
+traplocs <- traplocs/10000
+colnames(traplocs) <- c("X","Y")
 trapCovs <- list(z=list(data.frame(z=matrix(elevation[trap2raster],ntraps,K))))
 trapCovs <- make.trapCovs(trapCovs)
 ssDF <- rsfDF <- data.frame(ssgrid,z=elevation)

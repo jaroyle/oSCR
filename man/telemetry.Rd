@@ -68,7 +68,7 @@ plot(r)
 ###
 ### Set some parameter values
 ###
-alpha0 <- -1
+alpha0 <- -2
 sigma<- 2
 alpha2<- 1   # This is the effect of the covariate on resource selection
 Ntel<-4      # number of individuals with telemetry devices
@@ -78,18 +78,54 @@ Nfixes<-20   # number of telemetry fixes per individual. Note: these
 ### home range usage. 
 N<- 100      # population size
 
+#seed <- sample(1:999,1)
+#set.seed(seed)
+
 # Simulate activity centers of all N individuals in the population
 Sid<- sample(1:1600,N,replace=TRUE)
 # and coordinates
 S<-gr[Sid,]
+
+## Now lets simulate some SCR data:
+
+# Make a trap array
+X<- cbind( sort(rep( seq(5,35,5),7)), rep( seq(5,35,5),7))
+ntraps<-nrow(X)
+raster.point<-rep(NA,nrow(X))
+# This just maps the trap locations to the raster cells
+for(j in 1:nrow(X)){ 
+  raster.point[j]<- (1:1600)[ (X[j,1]==gr[,1]) & (X[j,2] == gr[,2])]
+}
+points(X,pch=20,cex=2)
+
+# Hazard model is used. This seems the most sensible. 
+D<- e2dist(S,X) ## N x ntraps
+Zmat<- matrix(z[raster.point],nrow=N,ncol=ntraps,byrow=TRUE) # note make dims the same
+loglam<- alpha0 -(1/(2*sigma*sigma))*D*D + alpha2*Zmat
+p<- 1-exp(-exp(loglam))
+# Now simulate SCR data
+K<- 10
+y<-matrix(NA,nrow=N,ncol=ntraps)
+for(i in 1:N){
+  y[i,]<- rbinom(ntraps,K,p[i,])
+}
+
+# Subset data to captured individuals
+cap<-apply(y,1,sum)>0
+y<-y[cap,]
+gr<-as.matrix(gr)
+# Average capture location
+sbar<- (n%*%gr)/as.vector(n%*%rep(1,nrow(gr)))
+
 # Now draw centers of telemetered individuals
 # We have to draw telemetry guys interior (i.e., the study area) or else make up more landscape --
 # because we can't have truncated telemetry observations. 
-
 poss.tel<- S[,1]>5 & S[,1]<35 & S[,2]>5 & S[,2]<35
-# tel.guys<-sample(Sid[poss.tel],Ntel)
-tel.guys<- Sid[c(2,5,13,22)] #which s for telemetry guys (these 4 purposely selected)
-cap.tel <- c(1,3,7,14)   #which row in capture history for each telemetry guy
+
+# Need to account for capture so that dependent models can be explored
+tel.guys.id <- sort(sample(which(cap & poss.tel),Ntel))
+tel.guys <- Sid[tel.guys.id] #which s for telemetry guys (these 4 purposely selected)
+cap.tel <- match(tel.guys.id,which(cap))   #which row in capture history for each telemetry guy
 sid<-tel.guys
 stel<-gr[sid,]
 
@@ -110,36 +146,7 @@ for(i in 1:Ntel){
   image(1:40,1:40,(img),col=terrain.colors(10))
 }
 
-## Now lets simulate some SCR data:
 
-# Make a trap array
-X<- cbind( sort(rep( seq(5,35,5),7)), rep( seq(5,35,5),7))
-ntraps<-nrow(X)
-raster.point<-rep(NA,nrow(X))
-# This just maps the trap locations to the raster cells
-for(j in 1:nrow(X)){ 
-  raster.point[j]<- (1:1600)[ (X[j,1]==gr[,1]) & (X[j,2] == gr[,2])]
-}
-points(X,pch=20,cex=2)
-
-# Hazard model is used. This seems the most sensible. 
-D<- e2dist(S,X) ## N x ntraps
-Zmat<- matrix(z[raster.point],nrow=N,ncol=ntraps,byrow=TRUE) # note make dims the same
-loglam<- alpha0 -(1/(2*sigma*sigma))*D*D + alpha2*Zmat
-p<- 1-exp(-exp(loglam))
-# Now simulate SCR data
-K<- 3
-y<-matrix(NA,nrow=N,ncol=ntraps)
-for(i in 1:N){
-  y[i,]<- rbinom(ntraps,K,p[i,])
-}
-
-# Subset data to captured individuals
-cap<-apply(y,1,sum)>0
-y<-y[cap,]
-gr<-as.matrix(gr)
-# Average capture location
-#sbar<- crossprod(t(n), gr)/as.vector(crossprod(t(n), matrix(1,nrow=nrow(gr),ncol=1)))
 
 plot(S,pch=15,col="lightgray")
 points(stel,pch=15,col=c("green","blue","purple","orange"))
@@ -185,8 +192,9 @@ telemetry <- list(fixfreq=list(n),indCovs=list(data.frame(sex=c(0,1,0,1))),
 # Create the scrFrame 
 sftel <- make.scrFrame(caphist = list(y.arr),
                        traps = list(data.frame(X=X[,1],Y=X[,2])), 
-                       trapCovs = trapCovs,
+                       #trapCovs = trapCovs,
                        telemetry = telemetry,
+                       rsfDF = list(rsfDF),
                        indCovs = list(data.frame(sex=sex.cap))
 )
 

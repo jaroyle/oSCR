@@ -68,12 +68,12 @@ plot(r)
 ###
 ### Set some parameter values
 ###
-alpha0 <- -2
+alpha0 <- -2.3
 sigma<- 2
 alpha2<- 1   # This is the effect of the covariate on resource selection
 Ntel<-4      # number of individuals with telemetry devices
 nsim<-100
-Nfixes<-20   # number of telemetry fixes per individual. Note: these
+Nfixes<-40   # number of telemetry fixes per individual. Note: these
 ### should probably be regarded as indepedent locations of
 ### home range usage. 
 N<- 100      # population size
@@ -104,7 +104,7 @@ Zmat<- matrix(z[raster.point],nrow=N,ncol=ntraps,byrow=TRUE) # note make dims th
 loglam<- alpha0 -(1/(2*sigma*sigma))*D*D + alpha2*Zmat
 p<- 1-exp(-exp(loglam))
 # Now simulate SCR data
-K<- 10
+K<- 5
 y<-matrix(NA,nrow=N,ncol=ntraps)
 for(i in 1:N){
   y[i,]<- rbinom(ntraps,K,p[i,])

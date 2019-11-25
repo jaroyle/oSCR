@@ -28,7 +28,7 @@ K. Fuller. 2013. "Integrating resource selection information with spatial
 capture-recapture." Methods in Ecology and Evolution 4(6):
 520-530.
 
-Linden, D. W., Sirén, A. P. K., and Pekins, P. J. 2018. "Integrating telemetry data into spatial capture–recapture modifies inferences on multi‐scale resource selection." Ecosphere 9(4):e02203. 10.1002/ecs2.2203 
+Linden, D. W., Siren, A. P. K., and Pekins, P. J. 2018. "Integrating telemetry data into spatial capture-recapture modifies inferences on multi-scale resource selection." Ecosphere 9(4):e02203. 10.1002/ecs2.2203 
 }
 \author{
 Andy Royle, Dan Linden 
@@ -68,7 +68,7 @@ plot(r)
 ###
 ### Set some parameter values
 ###
-alpha0 <- -2.3
+alpha0 <- -1.5
 sigma<- 2
 alpha2<- 1   # This is the effect of the covariate on resource selection
 Ntel<-4      # number of individuals with telemetry devices
@@ -76,15 +76,15 @@ nsim<-100
 Nfixes<-40   # number of telemetry fixes per individual. Note: these
 ### should probably be regarded as indepedent locations of
 ### home range usage. 
-N<- 100      # population size
+N<- 50      # population size
 
-#seed <- sample(1:999,1)
-#set.seed(seed)
+n.iter <- 100
+seeds <- sample(1:9999,n.iter)
+fit.sim <- list()
+fit.sim[[1]] <- fit.sim[[2]] <- data.frame(
+  iter=1:n.iter,seed=seeds,p0.Int=NA,sig.Int=NA,t.beta.z=NA,d0.Int=NA,psi=NA
+)
 
-# Simulate activity centers of all N individuals in the population
-Sid<- sample(1:1600,N,replace=TRUE)
-# and coordinates
-S<-gr[Sid,]
 
 ## Now lets simulate some SCR data:
 
@@ -98,13 +98,24 @@ for(j in 1:nrow(X)){
 }
 points(X,pch=20,cex=2)
 
+for (iter in 1:n.iter){
+  
+#seed <- sample(1:9999,1)  #710
+set.seed(seeds[iter])
+  
+# Simulate activity centers of all N individuals in the population
+Sid<- sample(1:1600,N,replace=TRUE)
+# and coordinates
+S<-gr[Sid,]
+  
+
 # Hazard model is used. This seems the most sensible. 
 D<- e2dist(S,X) ## N x ntraps
 Zmat<- matrix(z[raster.point],nrow=N,ncol=ntraps,byrow=TRUE) # note make dims the same
 loglam<- alpha0 -(1/(2*sigma*sigma))*D*D + alpha2*Zmat
 p<- 1-exp(-exp(loglam))
 # Now simulate SCR data
-K<- 5
+K<- 3
 y<-matrix(NA,nrow=N,ncol=ntraps)
 for(i in 1:N){
   y[i,]<- rbinom(ntraps,K,p[i,])
@@ -115,7 +126,7 @@ cap<-apply(y,1,sum)>0
 y<-y[cap,]
 gr<-as.matrix(gr)
 # Average capture location
-sbar<- (n%*%gr)/as.vector(n%*%rep(1,nrow(gr)))
+#sbar<- (n%*%gr)/as.vector(n%*%rep(1,nrow(gr)))
 
 # Now draw centers of telemetered individuals
 # We have to draw telemetry guys interior (i.e., the study area) or else make up more landscape --
@@ -197,6 +208,8 @@ sftel <- make.scrFrame(caphist = list(y.arr),
                        rsfDF = list(rsfDF),
                        indCovs = list(data.frame(sex=sex.cap))
 )
+# spatial recaptures
+table(apply(y,1,function(x){length(which(x>0))}))
 
 ###########################
 #     Model fitting       #
@@ -214,6 +227,14 @@ fit2 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                  rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
                  trimS = 7.5,
                  model=list(D~1,p0~z,sigma~1,path~1))
+
+data.frame(fit1=fit1$coef.mle,fit2=fit2$coef.mle)
+
+fit.sim[[1]][iter,] <- c(iter,seeds[iter],fit1$coef.mle[,2])
+fit.sim[[2]][iter,] <- c(iter,seeds[iter],fit2$coef.mle[,2])
+
+gc()
+}
 
 # Now we use the telemetry information again (RSF = TRUE) but assume dependence
 # between data since some collared guys were captured

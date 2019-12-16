@@ -5,13 +5,14 @@
 \title{Main fitting function in \pkg{oSCR}}
 \usage{
 oSCR.fit(model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~ 1), scrFrame, ssDF,
-  encmod = c("B", "P", "CLOG")[1], multicatch = FALSE, theta = 2,
-  trimS = NULL, DorN = c("D", "N")[1], sexmod = c("constant",
-  "session")[1], costDF = NULL, distmet = c("euc", "user", "ecol")[1],
-  directions = 8, PROJ = NULL, rsfDF = NULL, RSF = FALSE,
-  telemetry = c("none", "ind", "dep")[1], se = TRUE, predict = FALSE,
-  start.vals = NULL, getStarts = FALSE, pxArea = 1, plotit = F,
-  mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE,
+  encmod = c("B", "P", "CLOG", "M")[1], multicatch = FALSE,
+  theta = 2, trimS = NULL, DorN = c("D", "N")[1],
+  sexmod = c("constant", "session")[1], costDF = NULL,
+  distmet = c("euc", "user", "ecol")[1], directions = 8, PROJ = NULL,
+  rsfDF = NULL, RSF = FALSE, telemetry.type = c("none", "ind",
+  "dep")[1], se = TRUE, predict = FALSE, start.vals = NULL,
+  getStarts = FALSE, pxArea = 1, plotit = F, mycex = 1,
+  nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE,
   print.level = 0)
 }
 \arguments{
@@ -25,10 +26,11 @@ formulae desribe, in order, the \emph{density} model (\code{D~}), the \emph{dete
 
 \item{ssDF}{An \pkg{oSCR}-specific \emph{state space} data object (see \link[oSCR]{make.ssDF}).}
 
-\item{encmod}{Choice of encounter model to use. Can choose either the binomial (\code{B}),
-Poisson (\code{P}), or complementary log-log (\code{CLOG}) encounter model.}
+\item{encmod}{Choice of encounter model to use. Choices are binomial (\code{"B"}, default),
+Poisson (\code{"P"}), complementary log-log (\code{"CLOG"}), or multinomial (\code{"M"}) encounter model.}
 
-\item{multicatch}{If \code{TRUE}, the multinomial encounter model is used.}
+\item{multicatch}{Choose \code{TRUE} to fit the multinomial encounter model. \strong{NB} while this will 
+still work, it is best to use the updated \code{enc} argument: \code{enc = "M"}.}
 
 \item{theta}{A non-negative power value detemining the shape of the exponential
 encounter model.}
@@ -36,7 +38,7 @@ encounter model.}
 \item{trimS}{A non-negative value with the same distance units as \code{traps} and 
 \code{ssDF}. Only state space pixels within \code{trimS} of individual captures 
 are evaluated as plausible activity centers (i.e., performs \emph{local} 
-evaluation). Speeds up computation \strong{but} should be \eqn{>2 \times mmdm}
+evaluation). Speeds up computation \strong{but} should be \eqn{>3 \times mmdm}
 and wise to check sensitivity to \code{trimS} values.}
 
 \item{DorN}{Specify whether to fit the Poisson (\code{D}) or binomial (\code{N}) 
@@ -65,9 +67,9 @@ covariates for 3rd order resource selection.}
 \item{RSF}{If \code{TRUE} then telemetry data are used to fit a resource selection function when
 an \code{rsfDF} is provided and the \code{telemetry} option is \code{ind} or \code{dep}.}
 
-\item{telemetry}{Choice of telemetry integration, either \code{none} [\emph{default}], \code{ind}, or \code{dep}.
+\item{telemetry.type}{Choice of telemetry integration, either \code{none} [\emph{default}], \code{ind}, or \code{dep}.
 The latter 2 options specify whether the individuals in the telemetry and capture data sets
-are independent or dependent (i.e., same individuals in both).  When \code{dep} is specified, the \code{telemetry}
+are independent or dependent (i.e., same individuals in both).  When \code{dep} is specified, the \code{telemetry.type}
 object in the \code{scrFrame} must contain a \code{cap.tel} object (see \link[oSCR]{make.scrFrame})
 indicating where (i.e., row #) telemetred individuals appear in the capture history.}
 
@@ -104,25 +106,21 @@ Flexible likelihood analysis of the multi-session sex-structured (MSSS) spatial
 capture-recapture models
 }
 \examples{
-# read in the data and manipulate accordingly
+#Load the 'beardata'
+library("oSCR")
 data(beardata)
-colnames(beardata$trapmat) <- c("X","Y")
-beardata$sex.df <- data.frame(sex=beardata$sex-1)
+tdf<- cbind(1:38, beardata$trapmat, matrix(1, nrow=38, ncol=8))
+edf<- beardata$edf
+edf[,1]<- 1
+data<- data2oscr(edf, sess.col = 1, id.col = 2, occ.col = 3, trap.col = 4, 
+                 sex.col = NULL, tdf = list(tdf), K = c(8), ntraps = c(38),
+                 remove.zeros = TRUE, remove.extracaps = TRUE, sex.nacode = NULL, 
+                 tdf.sep = "/")
+scrFrame  <- make.scrFrame(caphist=data$y3d, traps=data$traplocs, trapCovs=NULL ,
+                           trapOperation=data$trapopp)
+sf <- data$scrFrame
+ssDF <- make.ssDF(sf, buffer=3, res = 0.5)
 
-# create a 'encounters' data object (scrFrame)
-bear.sf <- make.scrFrame(caphist = list(beardata$y3d),
-                         traps   = list(beardata$trapmat),
-                         indCovs = list(beardata$sex.df))
-
-# create a spatial extent object (ssDF)
-bear.ss <- make.ssDF(scrFrame = bear.sf,        
-                     buffer = 3,           
-                     res = 0.5)
-
-# fit model SCR0
-bear.scr0 <- oSCR.fit(list(D ~ 1, p0 ~ 1, sig ~ 1), # SCR0
-                      bear.sf,                      # bear encounter data
-                      bear.ss,                      # fort drum study area
-                      trimS = 4)                    # local evaluation  
+#fit the NULL model: 
+m0 <- oSCR.fit(Model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF)
 }
-

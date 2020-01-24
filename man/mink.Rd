@@ -4,27 +4,17 @@
 \title{
 American mink \emph{Neovison vison} data.}
 \description{
-The mink data is the data analyzed by Fuller \emph{et al.} (2016) in their \emph{Ecological Applications} paper.
+The mink data is the data analyzed by Fuller \emph{et al.} (2016) in their \emph{Ecological Applications} paper, with 2 objects illustrating fitted models.
 }
 \usage{data("mink")}
 \format{
-  The format is:
- chr "mink"
+The data include 5 lists, \code{mink.sf} (scrFrame), \code{mink.cs} (cost surface), \code{mink.ss} (state-space object), \code{Mecol} (ecological distance model fit object; see Examples), and \code{mEuc} (Euclidean distance model fit object; see Examples).
 }
 \details{
-  mink.sf = scrFrame
-
-  mink.cs = cost surface DF
-
-  mink.ss = state-space object
-
-  Mecol = ecological distance model fit object (see Examples)
-
-  Meuc = Euclidean distance model fit object (see Examples)
 %%  ~~ If necessary, more details than the __description__ above ~~
 }
 \source{
-Fuller AK, Sutherland CS, Royle JA, Hare MP. \emph{Estimating population density and connectivity of American mink using spatial capture–recapture}. Ecological Applications. 2016 Jun 1;26(4):1125-35.
+Fuller AK, Sutherland CS, Royle JA, Hare MP. \emph{Estimating population density and connectivity of American mink using spatial capture?recapture}. Ecological Applications. 2016 Jun 1;26(4):1125-35.
 }
 \references{
 %%  ~~ possibly secondary sources and usages ~~

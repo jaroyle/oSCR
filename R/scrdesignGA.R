@@ -21,10 +21,16 @@ scrdesignGA <- function(statespace = NULL,
 
   if(is.null(statespace)) stop("Must supply a 'statespace' object (coords of the study area)")
   if(is.null(alltraps))   stop("Must supply a 'alltraps' object (coords of all possible trap locations)")
-
+  
+  statespace <- data.frame(statespace)
+  
+  if(ncol(statespace)==2){
+    statespace$density <- 1 / nrow(statespace)
+  } 
+  
   des <- kofnGA(n = nrow(alltraps), 
                 k = ntraps, 
-                OF = scrdesignOF, 
+                OF = scrdesignOF,
                 verbose = verbose,
                 ...,
                 alltraps = alltraps,

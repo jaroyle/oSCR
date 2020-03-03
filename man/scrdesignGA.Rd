@@ -8,7 +8,8 @@ Function for generating optimal SCR sampling designs.
 Given any SCR-sensible objective function, \code{scrdesignGA()} uses implements a genetic algorithm to solve a \emph{k-of-n} problem. In the context of SCR, and for a given objective function and landscpae, the function finds the best subset of sampling locations (\emph{k})from all possible sampling locations (\emph{n}).    
 }
 \usage{
-scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9, beta0 = -0.6, sigma = 2, crit = 1, N = 100, verbose = 1, ...)
+scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9, beta0 = -0.6, 
+            sigma = 2, crit = 1, N = 100, verbose = 1, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -66,14 +67,28 @@ scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9, beta0 = -0.6, sigma 
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+#load required libraries
 library(kofnGA)
+
+#load pakistan data
 data(pakistan)
+
+#look at pakistan data
 plot(pakSS, asp=1, pch=16, cex=0.25, col="grey")
 points(pakTT, pch=3, cex=1.2)
 
-test_design <- scrdesignGA(statespace = pakSS, alltraps = pakTT,
-                           ntraps=25, beta0 = 0.2, sigma=3, crit=2,
-                           popsize = 10, ngen=50, keepbest=5)
+#find op[timal design]
+test_design <- scrdesignGA(statespace = pakSS, 
+                           alltraps = pakTT,
+                           ntraps=25, 
+                           beta0 = 0.2, 
+                           sigma=3, 
+                           crit=2,
+                           popsize = 10, 
+                           ngen=50, 
+                           keepbest=5)
+
+#inspect optimal design and GA diaGNOSTICS
 par(mfrow=c(1,3))
 plot(test_design, which=4)
 }

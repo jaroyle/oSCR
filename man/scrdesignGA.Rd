@@ -66,28 +66,16 @@ scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9, beta0 = -0.6, sigma 
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+library(kofnGA)
+data(pakistan)
+plot(pakSS, asp=1, pch=16, cex=0.25)
+points(pakTT, pch=16, col="grey")
 
-## The function is currently defined as
-function (statespace = NULL, alltraps = NULL, ntraps = 9, beta0 = -0.6, 
-    sigma = 2, crit = 1, N = 100, verbose = 1, ...) 
-{
-    if (is.null(statespace)) 
-        stop("Must supply a 'statespace' object (coords of the study area)")
-    if (is.null(alltraps)) 
-        stop("Must supply a 'alltraps' object (coords of all possible trap locations)")
-    des <- kofnGA(n = nrow(alltraps), k = ntraps, OF = scrdesignOF, 
-        verbose = verbose, ..., alltraps = alltraps, statespace = statespace, 
-        beta0 = beta0, sigma = sigma, crit = crit)
-    optimaltraps <- alltraps[des$bestsol, ]
-    scrdesign <- list(des = des, statespace = statespace, alltraps = alltraps, 
-        optimaltraps = optimaltraps, sigma = sigma, beta0 = beta0)
-    class(scrdesign) <- "scrdesign"
-    return(scrdesign)
-  }
-}
+test_design <- scrdesignGA(statespace = pakSS, alltraps = pakTT,
+                           ntraps=25, beta0 = 0.2, sigma=3, crit=2,
+                           popsize = 100, ngen=10, keepbest=25)
+plot(test_design)
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")

@@ -68,8 +68,8 @@ scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9, beta0 = -0.6, sigma 
 \examples{
 library(kofnGA)
 data(pakistan)
-plot(pakSS, asp=1, pch=16, cex=0.25)
-points(pakTT, pch=16, col="grey")
+plot(pakSS, asp=1, pch=16, cex=0.25, col="grey")
+points(pakTT, pch=3, cex=1.2)
 
 test_design <- scrdesignGA(statespace = pakSS, alltraps = pakTT,
                            ntraps=25, beta0 = 0.2, sigma=3, crit=2,

@@ -19,6 +19,7 @@ scrdesignOF <- function(v,          #subset/k index
   dmat <- e2dist(traps, statespace[,1:2])        #distance matrix (add non-euc here)
   pmat <- p0*exp(-dmat*dmat/(2*sigma*sigma))     #x-by-s detection
   pcaptmat <- 1-exp(-pmat)                       #Pr(cap in ) from Poisson (hazard)  
+  
   pnotcaptmat <- 1-pcaptmat                      #Pr(y=0) 
   pnotcapt <- exp(apply(log(pnotcaptmat),2,sum)) #not capt in any trap
   pcapt <- 1 - pnotcapt                          #capt in any trap
@@ -30,7 +31,7 @@ scrdesignOF <- function(v,          #subset/k index
 
 
   # crit 2: p2bar
-    ##WAS THIS:
+  ##WAS THIS:
   #p0times <- 1-pbar
   #capattrapj <- pcaptmat
   #bb <- pcaptmat/(pnotcaptmat)

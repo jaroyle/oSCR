@@ -73,10 +73,10 @@ points(pakTT, pch=16, col="grey")
 
 test_design <- scrdesignGA(statespace = pakSS, alltraps = pakTT,
                            ntraps=25, beta0 = 0.2, sigma=3, crit=2,
-                           popsize = 100, ngen=10, keepbest=25)
-plot(test_design)
+                           popsize = 10, ngen=50, keepbest=5)
+par(mfrow=c(1,3))
+plot(test_design, which=4)
+}
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ ~methods }% use one of  RShowDoc("KEYWORDS")
+\keyword{ ~design }% __ONLY ONE__ keyword per line

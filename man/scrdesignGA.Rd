@@ -21,7 +21,7 @@ A discretized representation of the study area (state-space), defined as a conve
 A two-column dataframe, labelled X and Y accordingly, comprised of all possible trapping locations. These  locations should be user-defined after accounting for logistic constraints, primarily accessibility. Design   generation then relies on subsetting these locations.
 }
   \item{ntraps}{
-The number of traps available for constructing the design. More traps will allow for a larger sample size, providing more data to an SCR model, resulting in improvement in terms of bias and       precision of estimates.
+The number of traps available for constructing the design. More traps will allow for a larger sample size, providing more data to an SCR model, resulting in improvement in terms of bias and precision of estimates.
 }
   \item{beta0}{
 The probability of encounter of an individual across occassions at its activtiy center, specified here as the logaritm of baseline detection probability (\code{p0}) multiplied by the number of sampling occasions, i.e., \code{log(p0*K)}.
@@ -69,7 +69,6 @@ zero (no display).
 
 }
 
-}
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
@@ -97,7 +96,7 @@ The value of the encounter probability across sampling occasions, as originally 
 
 }
 \references{
-TBD 😄
+TBD
 }
 \author{
 %% For Chris to add
@@ -110,7 +109,6 @@ For best designs, \code{ngen} should be ~\code{1500}+. Further, the \code{kofnGA
 
 \seealso{
 For more details on the particulars of the \code{kofnGA} genetic algorithm, see the help file for: \code{\link[kofnGA:kofnGA]{kofnGA::kofnGA()}}. The help file for \code{kofnGA} also provides information on specifying the parallel evaluation of that function, which can also be used here for \code{scrdesignGA}.
-
 }
 \examples{
 

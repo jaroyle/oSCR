@@ -4,16 +4,35 @@
 \alias{oSCR.fit}
 \title{Main fitting function in \pkg{oSCR}}
 \usage{
-oSCR.fit(model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~ 1), scrFrame, ssDF,
-  encmod = c("B", "P", "CLOG", "M")[1], multicatch = FALSE,
-  theta = 2, trimS = NULL, DorN = c("D", "N")[1],
-  sexmod = c("constant", "session")[1], costDF = NULL,
-  distmet = c("euc", "user", "ecol")[1], directions = 8, PROJ = NULL,
-  rsfDF = NULL, RSF = FALSE, telemetry.type = c("none", "ind",
-  "dep")[1], se = TRUE, predict = FALSE, start.vals = NULL,
-  getStarts = FALSE, pxArea = 1, plotit = F, mycex = 1,
-  nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE,
-  print.level = 0)
+oSCR.fit(
+  model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~ 1),
+  scrFrame,
+  ssDF,
+  encmod = c("B", "P", "CLOG", "M")[1],
+  multicatch = FALSE,
+  theta = 2,
+  trimS = NULL,
+  DorN = c("D", "N")[1],
+  sexmod = c("constant", "session")[1],
+  costDF = NULL,
+  distmet = c("euc", "user", "ecol")[1],
+  directions = 8,
+  PROJ = NULL,
+  rsfDF = NULL,
+  RSF = FALSE,
+  telemetry.type = c("none", "ind", "dep")[1],
+  se = TRUE,
+  predict = FALSE,
+  start.vals = NULL,
+  getStarts = FALSE,
+  pxArea = 1,
+  plotit = F,
+  mycex = 1,
+  nlmgradtol = 1e-06,
+  nlmstepmax = 10,
+  smallslow = FALSE,
+  print.level = 0
+)
 }
 \arguments{
 \item{model}{A list with 4 components describing the SCR model. The model 
@@ -27,7 +46,7 @@ formulae desribe, in order, the \emph{density} model (\code{D~}), the \emph{dete
 \item{ssDF}{An \pkg{oSCR}-specific \emph{state space} data object (see \link[oSCR]{make.ssDF}).}
 
 \item{encmod}{Choice of encounter model to use. Choices are binomial (\code{"B"}, default),
-Poisson (\code{"P"}), complementary log-log (\code{"CLOG"}), or multinomial (\code{"M"}) encounter model.}
+Poisson (\code{"P"}), complementary log-log (\code{"CLOG"}), or multicatch (\code{"M"}) encounter model.}
 
 \item{multicatch}{Choose \code{TRUE} to fit the multinomial encounter model. \strong{NB} while this will 
 still work, it is best to use the updated \code{enc} argument: \code{enc = "M"}.}
@@ -81,7 +100,7 @@ returns estimated population size, and data objects necessary to create a map
 of realized density and posterior distributions of activity centers.}
 
 \item{start.vals}{A vector of starting values in the order they appear in the 
-model.}
+model. Can provide a named vector to supply values only for specific parameters.}
 
 \item{getStarts}{If \code{TRUE}, the function returns a list with two objects 
 to help define starting values: a names objects, and a corresponding vector of

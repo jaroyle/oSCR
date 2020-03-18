@@ -52,6 +52,9 @@ new.names<- unique(names(Xid[order(Xid)]))
     # convert to integer
     edf[,id.col]<- Xid
     
+    # sort by new id.col (this is IMPORTANT to ensure individual attributes sorted properly)
+    edf <- edf[order(edf[,id.col]),]
+    
     Xsess <- edf[, sess.col]
     # Note this assumes all sessions contained in EDF....possibly not?
     if (!is.numeric(Xsess)) {

@@ -15,20 +15,18 @@ scrdesignOF <- function(v,          #subset/k index
   traps <- alltraps[v,]
   ntraps <- nrow(traps)
   
-  p0 <- exp(beta0)                               #lambda0
-  dmat <- e2dist(traps, statespace[,1:2])        #distance matrix (add non-euc here)
-  pmat <- p0*exp(-dmat*dmat/(2*sigma*sigma))     #x-by-s detection
-  pcaptmat <- 1-exp(-pmat)                       #Pr(cap in ) from Poisson (hazard)  
+  p0 <- exp(beta0)                                #lambda0
+  dmat <- e2dist(traps, statespace[,1:2])         #distance matrix (add non-euc here)
+  pmat <- p0*exp(-dmat*dmat/(2*sigma*sigma))      #x-by-s detection
   
-  pnotcaptmat <- 1-pcaptmat                      #Pr(y=0) 
-  pnotcapt <- exp(apply(log(pnotcaptmat),2,sum)) #not capt in any trap
-  pcapt <- 1 - pnotcapt                          #capt in any trap
+  p_iscapt_mat <- 1-exp(-pmat)                      #Pr(cap) from Poisson (hazard)
+  p_nocapt_mat <- 1-p_iscapt_mat                    #Pr(cap) from Poisson (hazard)
+  p_nocapt <- exp(apply(log(p_nocapt_mat),2,sum)) #not capt in any trap
+  p_iscapt <- 1 - p_nocapt                          #capt in any trap
 
   # crit 1: pbar
-  #pbar <- mean(pcapt)                           ##was this?
-  pbar <- sum(pcapt * statespace$pr.density)     ##is this right?
+  pbar <- sum(p_iscapt * statespace$pr.density)
   crit1 <- -pbar
-
 
   # crit 2: p2bar
   ##WAS THIS:
@@ -40,13 +38,13 @@ scrdesignOF <- function(v,          #subset/k index
   #p1time <- apply(bling,2,sum) * statespace$pr.density ##this right?
   #p2bar <- mean( 1- p0times - p1time)  # pr cap 2 or more times
 
+  # crit 2: p2bar
   ##NOW THIS:
-  p0times <- 1 - pcapt
-  bb <- (1-pnotcaptmat)/(1-pcaptmat)
-  bling <- matrix(pnotcapt, ncol=length(pnotcapt), nrow=ntraps, byrow=TRUE)*bb
+  bb <- p_iscapt_mat/p_nocapt_mat
+  bling <- matrix(p_nocapt, ncol=length(p_nocapt), nrow=ntraps, byrow=TRUE)*bb
   p1time <- apply(bling,2,sum)
   
-  p2bar <- sum((1 - p0times - p1time) * statespace$pr.density)
+  p2bar <- sum((1 - p_nocapt - p1time) * statespace$pr.density)
   crit2 <- -p2bar
 
   # crit 3: pbar + p2bar (add weighting?)

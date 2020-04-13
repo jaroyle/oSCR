@@ -11,7 +11,7 @@
 #' @param scrFrame An \pkg{oSCR}-specific \emph{capture history} data object (see \link[oSCR]{make.scrFrame}).
 #' @param ssDF An \pkg{oSCR}-specific \emph{state space} data object (see \link[oSCR]{make.ssDF}).
 #' @param encmod Choice of encounter model to use. Choices are binomial (\code{"B"}, default),
-#' Poisson (\code{"P"}), complementary log-log (\code{"CLOG"}), or multinomial (\code{"M"}) encounter model. 
+#' Poisson (\code{"P"}), complementary log-log (\code{"CLOG"}), or multicatch (\code{"M"}) encounter model. 
 #' @param multicatch Choose \code{TRUE} to fit the multinomial encounter model. \strong{NB} while this will 
 #' still work, it is best to use the updated \code{enc} argument: \code{enc = "M"}. 
 #' @param theta A non-negative power value detemining the shape of the exponential
@@ -50,7 +50,7 @@
 #' returns estimated population size, and data objects necessary to create a map 
 #' of realized density and posterior distributions of activity centers.
 #' @param start.vals A vector of starting values in the order they appear in the 
-#' model.
+#' model. Can provide a named vector to supply values only for specific parameters.
 #' @param getStarts If \code{TRUE}, the function returns a list with two objects 
 #' to help define starting values: a names objects, and a corresponding vector of
 #' default starting values.

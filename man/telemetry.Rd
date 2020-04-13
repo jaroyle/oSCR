@@ -9,7 +9,7 @@ This is an R script that demonstrates how to integrate telemetry data
 with SCR models using oSCR...%%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-telemetry()  # returns NULL
+?telemetry
 }
 %- maybe also 'usage' for other objects documented here.
 \details{
@@ -46,7 +46,10 @@ Andy Royle, Dan Linden
 
 
 library(oSCR)
-library(scrbook)
+library(tidyr)
+library(ggplot2)
+library(ggthemes)
+library(RColorBrewer)
 
 # test telemetry data
 # based on code from supplement of Royle et al (2013) - MEE
@@ -54,16 +57,16 @@ library(scrbook)
 ## the following block of code makes up a covariate as a spatially correlated
 ## noise field, with an exponential spatial correlation function
 set.seed(1234)
-gr<-expand.grid(1:40,1:40)
-Dmat<-as.matrix(dist(gr))
-V<-exp(-Dmat/5)
+gr <- expand.grid(X = 1:40, Y = 1:40)
+Dmat <- as.matrix(dist(gr))
+V <- exp(-Dmat / 5)
 # Below change to matrix multiplication
-z<-as.vector( crossprod( t(chol(V)), rnorm(1600) ) )
-spatial.plot(gr,z,cx=3)
-library(raster)
-r<- rasterFromXYZ(cbind(gr, z))
-plot(r)
+z <- as.vector(crossprod(t(chol(V)), rnorm(1600)))
+# create the state-space dataframe
+ssDF <- data.frame(gr,z=z)
 
+ss.plot <- ggplot(ssDF,aes(x=X,y=Y)) + coord_equal() + theme_minimal()
+ss.plot + geom_tile(aes(fill=z)) + scale_fill_viridis_c()
 
 ###
 ### Set some parameter values
@@ -72,36 +75,41 @@ alpha0 <- -1.5
 sigma<- 2
 alpha2<- 1   # This is the effect of the covariate on resource selection
 Ntel<-4      # number of individuals with telemetry devices
-nsim<-100
+
 Nfixes<-40   # number of telemetry fixes per individual. Note: these
 ### should probably be regarded as indepedent locations of
 ### home range usage. 
 N<- 50      # population size
 
-n.iter <- 100
-seeds <- sample(1:9999,n.iter)
-fit.sim <- list()
-fit.sim[[1]] <- fit.sim[[2]] <- data.frame(
-  iter=1:n.iter,seed=seeds,p0.Int=NA,sig.Int=NA,t.beta.z=NA,d0.Int=NA,psi=NA
-)
+# n.iter <- 5
+# seeds <- sample(1:9999,n.iter)
+#  fit.sim <- list()
+#  fit.sim[[1]] <- fit.sim[[2]] <- data.frame(
+#    iter=1:n.iter,seed=seeds,p0.Int=NA,sig.Int=NA,t.beta.z=NA,d0.Int=NA,psi=NA
+#  )
 
 
 ## Now lets simulate some SCR data:
 
 # Make a trap array
-X<- cbind( sort(rep( seq(5,35,5),7)), rep( seq(5,35,5),7))
-ntraps<-nrow(X)
-raster.point<-rep(NA,nrow(X))
+X <- expand.grid(X = seq(5, 35, 5), Y = seq(5, 35, 5))
+ntraps <- nrow(X)
+raster.point <- rep(NA, nrow(X))
 # This just maps the trap locations to the raster cells
-for(j in 1:nrow(X)){ 
-  raster.point[j]<- (1:1600)[ (X[j,1]==gr[,1]) & (X[j,2] == gr[,2])]
+for (j in 1:nrow(X)) {
+  raster.point[j] <- (1:1600)[(X[j, 1] == gr[, 1]) &
+                                (X[j, 2] == gr[, 2])]
 }
-points(X,pch=20,cex=2)
+#points(X,pch=20,cex=2)
+ss.plot + geom_point(data=X,pch=3,size=4)
 
-for (iter in 1:n.iter){
-  
+
+#for (iter in 1:n.iter){
+
 #seed <- sample(1:9999,1)  #710
-set.seed(seeds[iter])
+#set.seed(seeds[iter])
+#set.seed(7267)
+set.seed(9933)
   
 # Simulate activity centers of all N individuals in the population
 Sid<- sample(1:1600,N,replace=TRUE)
@@ -116,17 +124,16 @@ loglam<- alpha0 -(1/(2*sigma*sigma))*D*D + alpha2*Zmat
 p<- 1-exp(-exp(loglam))
 # Now simulate SCR data
 K<- 3
-y<-matrix(NA,nrow=N,ncol=ntraps)
+y<-array(NA,dim=c(N,ntraps)) #,K))
 for(i in 1:N){
-  y[i,]<- rbinom(ntraps,K,p[i,])
-}
+  #for(k in 1:K){
+    #y[i,,k]<- rbinom(ntraps,1,p[i,])
+    y[i,]<- rbinom(ntraps,K,p[i,])
+}#}
 
 # Subset data to captured individuals
 cap<-apply(y,1,sum)>0
-y<-y[cap,]
-gr<-as.matrix(gr)
-# Average capture location
-#sbar<- (n%*%gr)/as.vector(n%*%rep(1,nrow(gr)))
+y<-y[cap,] #y[cap,,]
 
 # Now draw centers of telemetered individuals
 # We have to draw telemetry guys interior (i.e., the study area) or else make up more landscape --
@@ -139,32 +146,51 @@ tel.guys <- Sid[tel.guys.id] #which s for telemetry guys (these 4 purposely sele
 cap.tel <- match(tel.guys.id,which(cap))   #which row in capture history for each telemetry guy
 sid<-tel.guys
 stel<-gr[sid,]
+tel.X <- data.frame(which(apply(y,c(1,2),sum)[cap.tel,]>0,arr.ind=T))
+tel.X[,c("X","Y")] <- X[tel.X$col,]; tel.X <- tel.X[order(tel.X$row),]
+tel.X <- data.frame(tel.X,s=stel[tel.X$row,])
 
 # Make a matrix to store RSF data (telemetry fixes)
-n<-matrix(NA,nrow=Ntel,ncol=1600)
+nfix<-matrix(NA,nrow=Ntel,ncol=1600)
 
 # for each telemetered guy simulate a number of fixes.
 # note that nfix = 0 for most of the landscape pixels
-par(mfrow=c(3,3))
+#par(mfrow=c(3,3))
 lammat<-matrix(NA,nrow=Ntel,ncol=1600)
 for(i in 1:Ntel){
   d<- Dmat[sid[i],]
   lam<- exp(1 - (1/(2*sigma*sigma))*d*d + alpha2* z)
-  n[i,]<-rmultinom(1,Nfixes,lam/sum(lam))
-  par(mar=c(3,3,3,6))
+  nfix[i,]<-rmultinom(1,Nfixes,lam/sum(lam))
+  #par(mar=c(3,3,3,6))
   lammat[i,]<-lam
-  img<- matrix(lam,nrow=40,ncol=40,byrow=FALSE)
-  image(1:40,1:40,(img),col=terrain.colors(10))
+  #img<- matrix(lam,nrow=40,ncol=40,byrow=FALSE)
+  #image(1:40,1:40,(img),col=terrain.colors(10))
 }
+# Average fix location (matches activity centers)
+(sbar <- (nfix%*%as.matrix(gr))/as.vector(nfix%*%rep(1,nrow(gr))))
+stel
+
+lamDF <- pivot_longer(
+  data.frame(gr,t(lammat)),-c(1:2),names_to="ind",values_to="lam")
+# plot lambdas by collared individual
+ss.plot + geom_tile(data=lamDF,aes(fill=lam)) +
+  scale_fill_viridis_c(direction = -1) + facet_wrap(~ind)
 
 
+ss.plot +
+  # activity centers of all N
+  geom_point(data=S,pch=15,col="gray",size=4) +
+  # activity centers of collared Ntel
+  geom_point(data=stel,aes(col=factor(1:4)),size=4,pch=15) +
+  # trap locations
+  geom_point(data=X,pch=3,size=4,alpha=0.5) +
+  # trap of captures for Ntel
+  geom_point(data=tel.X,aes(color=factor(row)),size=4,pch=22,stroke=1.5) +
+  geom_segment(data=tel.X,aes(x=X,y=Y,xend=s.X,yend=s.Y,col=factor(row)),
+               lwd=1.25) +
+  scale_color_brewer(palette="Set1") + theme(legend.position="none")
 
-plot(S,pch=15,col="lightgray")
-points(stel,pch=15,col=c("green","blue","purple","orange"))
-points(X,pch=3,col="red")
-for(j in 1:Ntel){
-  points(X[which(y[cap.tel[j],]>0),,drop=FALSE],pch=22,col=c("green","blue","purple","orange")[j])
-}
+
 
 # Set up the data for oSCR
 library(oSCR)
@@ -172,17 +198,16 @@ library(oSCR)
 #   didn't have telemetry data)
 trapCovs <- list(z=list(data.frame(z=matrix(z[raster.point],ntraps,K))))
 trapCovs <- make.trapCovs(trapCovs)
-# Set up the ssDF and the rsfDF
-ssDF <- data.frame(X=gr[,1],Y=gr[,2],z=z)
-rsfDF <- data.frame(X=gr[,1],Y=gr[,2],z=z)
+# Set up the rsfDF (matches ssDF)
+rsfDF <- ssDF
 # Simulate sex of individuals 
-sex.cap <- rbinom(nrow(y),1,.5)
+sex.cap <- rbinom(dim(y)[1],1,.5)
 
 # 
 # Distribute the binomial captures (n x ntraps) among the K surveys
 # ...could also simply simulate binary captures (n x ntraps x K)
 # Should  only be done when time effects are not important
-y.arr <- array(0,dim=c(nrow(y),ntraps,K))
+y.arr <- array(0,dim=c(dim(y)[1],ntraps,K))
 for(i in 1:nrow(y)){
   for(j in 1:ntraps){
     which.K <- sample(1:K,y[i,j])
@@ -196,20 +221,21 @@ for(i in 1:nrow(y)){
 # individuals were also captured -- this vector includes the row position
 # in the capture history array for each collared individual.  If some
 # collared individuals were not captured, they should be sorted last,
-# possibly by assigning uniqe IDs with additional characters (e.g., 99 or XX).
-telemetry <- list(fixfreq=list(n),indCovs=list(data.frame(sex=c(0,1,0,1))),
+# possibly by assigning unique IDs with additional characters (e.g., 99 or XX).
+telemetry <- list(fixfreq=list(nfix),
+                  #indCovs=list(data.frame(sex=c(0,1,0,1))),
                   cap.tel=list(cap.tel))
 
 # Create the scrFrame 
 sftel <- make.scrFrame(caphist = list(y.arr),
-                       traps = list(data.frame(X=X[,1],Y=X[,2])), 
-                       #trapCovs = trapCovs,
+                       traps = list(X), 
+                       trapCovs = trapCovs,
                        telemetry = telemetry,
-                       rsfDF = list(rsfDF),
-                       indCovs = list(data.frame(sex=sex.cap))
+                       #indCovs = list(data.frame(sex=sex.cap)),
+                       rsfDF = list(rsfDF)
 )
 # spatial recaptures
-table(apply(y,1,function(x){length(which(x>0))}))
+table(apply(apply(y,1:2,sum),1,function(x){length(which(x>0))}))
 
 ###########################
 #     Model fitting       #
@@ -218,14 +244,15 @@ table(apply(y,1,function(x){length(which(x>0))}))
 # fit the SCR model with NO telemetry integration (z from traps only)
 fit1 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                  #rsfDF=list(rsfDF),RSF=TRUE,
-                 trimS=7.5,
+                 trimS=sftel$mdm,
                  model=list(D~1,p0~z,sigma~1,path~1))
 
 # Next we use the telemetry information to inform about both beta.z (RSF=TRUE) and
 # also 'sigma', assuming independence between data (captures vs. collars)
 fit2 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                  rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
-                 trimS = 7.5,
+                 #start.vals = fit1$coef.mle$mle,
+                 trimS=sftel$mdm,
                  model=list(D~1,p0~z,sigma~1,path~1))
 
 data.frame(fit1=fit1$coef.mle,fit2=fit2$coef.mle)
@@ -240,15 +267,34 @@ gc()
 # between data since some collared guys were captured
 fit3 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                 rsfDF=list(rsfDF),RSF=TRUE,telemetry="dep",
-                trimS = 7.5,
+                trimS=sftel$mdm,
                 model=list(D~1,p0~z,sigma~1,path~1))
 
 # Here we fit the SCR model with RSF = FALSE, which only uses the
 # telemetry data to inform about 'sigma' NOT the RSF parameters
 fit4 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                   rsfDF=list(rsfDF),RSF=FALSE,telemetry="ind",
-                  trimS = 7.5,
+                 trimS=sftel$mdm,
                   model=list(D~1,p0~z,sigma~1,path~1))
+
+
+pred2 <- predict.oSCR(fit2)
+pred3 <- predict.oSCR(fit3)
+
+pred.s2 <- pivot_longer(
+  data.frame(gr,t(pred2$preds[[1]][cap.tel,])),-c(1:2),names_to="ind",values_to="Pr(s)")
+
+# plot lambdas by collared individual
+ss.plot + geom_tile(data=pred.s2,aes(fill=`Pr(s)`)) +
+  scale_fill_viridis_c(direction = -1) + facet_wrap(~ind)
+
+
+pred.s3 <- pivot_longer(
+  data.frame(gr,t(pred3$preds[[1]][cap.tel,])),-c(1:2),names_to="ind",values_to="Pr(s)")
+
+# plot lambdas by collared individual
+ss.plot + geom_tile(data=pred.s3,aes(fill=`Pr(s)`)) +
+  scale_fill_viridis_c(direction = -1) + facet_wrap(~ind)
 
 
 #

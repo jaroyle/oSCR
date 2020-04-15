@@ -13,8 +13,8 @@ NY black bear data set
     \item{\code{y2d}}{A matrix of capture data for 33 individuals at 103 traps.}
     \item{\code{traplocs}}{A matrix of UTM coordinates for 103 traps.}
     \item{\code{K}}{The number (5) of trapping occasions/surveys used to collect capture data.}
-    \item{\code{ss}}{A data frame of UTM coordinates for the 4,329 state-space pixels, each 1 km x 1 km, buffering the trap array by ~10 km.}
-    \item{\code{elevation}}{A vector of standardized elevation values for the 4,329 state-space pixels.}
+    \item{\code{ss}}{A data frame of UTM coordinates for the 4,341 state-space pixels, each 1 km x 1 km, buffering the trap array by ~10 km.}
+    \item{\code{elevation}}{A vector of standardized elevation values for the 4,341 state-space pixels.}
     \item{\code{teldata}}{A data frame of GPS locational data for 3 individual bears, including the animal ID, date, time, and coordinates in both lat/lon and UTM.}
       }
 }

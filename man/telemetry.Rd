@@ -363,7 +363,7 @@ sftel <- make.scrFrame(caphist = list(y.arr),
                        indCovs = list(data.frame(sex=sex.cap))
                        )
 
-# fit the SCR model with telemetry integration
+# fit the SCR model with telemetry integration; "SCR+p(z)+RSF" in Royle et al. 2013)
 fit <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                 rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
                 model=list(D~1,p0~z,sigma~1,path~1))

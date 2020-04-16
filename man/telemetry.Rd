@@ -46,7 +46,7 @@ Andy Royle, Dan Linden
 }
 \examples{
 
-
+library(oSCR)
 library(tidyverse)
 
 # test telemetry data
@@ -184,7 +184,6 @@ ss.plot +
 
 
 # Set up the data for oSCR
-library(oSCR)
 # Set up the rsfDF (matches ssDF)
 rsfDF <- ssDF
 
@@ -289,6 +288,8 @@ ss.plot + geom_tile(data=pred.s3,aes(fill=`Pr(s)`)) +
 # Now fit a model to the NY bear data
 #
 #
+library(oSCR)
+library(tidyverse)
 
 data("nybears")
 ls(nybears)
@@ -340,7 +341,7 @@ oSCR.dat <- data2oscr(edf = edf,
 
 sftel <- oSCR.dat$scrFrame
 
-# fit the SCR model with telemetry integration; "SCR+p(z)+RSF" in Royle et al. 2013)
+# fit the SCR model with telemetry integration; "SCR+RSF" in Royle et al. 2013)
 fit <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                 rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
                 model=list(D~1,p0~z,sigma~1,path~1))

@@ -47,11 +47,7 @@ Andy Royle, Dan Linden
 \examples{
 
 
-library(oSCR)
-library(tidyr)
-library(ggplot2)
-library(ggthemes)
-library(RColorBrewer)
+library(tidyverse)
 
 # test telemetry data
 # based on code from supplement of Royle et al (2013) - MEE
@@ -64,22 +60,21 @@ Dmat <- as.matrix(dist(gr))
 V <- exp(-Dmat / 5)
 # below change to matrix multiplication
 z <- as.vector(crossprod(t(chol(V)), rnorm(1600)))
-# create the state-space dataframe
-ssDF <- data.frame(gr,z=z)
 
+# create the state-space dataframe and plot it
+ssDF <- data.frame(gr,z=z)
 ss.plot <- ggplot(ssDF,aes(x=X,y=Y)) + coord_equal() + theme_minimal()
 ss.plot + geom_tile(aes(fill=z)) + scale_fill_viridis_c()
 
 ###
 ### set some parameter values
 ###
-alpha0 <- -1.5
-sigma<- 2
-alpha2<- 1   # This is the effect of the covariate on resource selection
-Ntel<-4      # number of individuals with telemetry devices
-
-Nfixes<-40   # number of telemetry fixes per individual. 
-N<- 50      # population size
+alpha0 <- -1.5  # log(encounter rate)
+sigma<- 2       # movement scale
+alpha2<- 1      # effect of covariate on resource selection
+Ntel<-4         # number of individuals with telemetry devices
+Nfixes<-40      # number of telemetry fixes per individual
+N<- 50          # population size
 
 #
 # simulating multiple realizations of capture/telemetry data
@@ -114,7 +109,7 @@ Sid<- sample(1:1600,N,replace=TRUE)
 S<-gr[Sid,]
   
 # Hazard model is used. This seems the most sensible. 
-D<- e2dist(S,X) ## N x ntraps
+D<- oSCR::e2dist(S,X) ## N x ntraps
 Zmat<- matrix(z[raster.point],nrow=N,ncol=ntraps,byrow=TRUE) # note make dims the same
 loglam<- alpha0 -(1/(2*sigma*sigma))*D*D + alpha2*Zmat
 p<- 1-exp(-exp(loglam))
@@ -141,10 +136,6 @@ tel.guys <- Sid[tel.guys.id] #which s for telemetry guys (these 4 purposely sele
 cap.tel <- match(tel.guys.id,which(cap))   #which row in capture history for each telemetry guy
 sid <- tel.guys
 stel <- gr[sid,]
-# collection of capture locations and s for each collared guy
-tel.X <- data.frame(which(apply(y,c(1,2),sum)[cap.tel,]>0,arr.ind=T))
-tel.X[,c("X","Y")] <- X[tel.X$col,]; tel.X <- tel.X[order(tel.X$row),]
-tel.X <- data.frame(tel.X,s=stel[tel.X$row,])
 
 # Make a matrix to store RSF data (telemetry fixes)
 nfix<-matrix(NA,nrow=Ntel,ncol=1600)
@@ -169,27 +160,31 @@ lamDF <- pivot_longer(
 ss.plot + geom_tile(data=lamDF,aes(fill=lam)) +
   scale_fill_viridis_c(direction = -1) + facet_wrap(~ind)
 
+# collection of capture locations and s for each n
+caps.X <- data.frame(which(apply(y,c(1,2),sum)>0,arr.ind=T))
+caps.X[,c("X","Y")] <- X[caps.X$col,]; caps.X <- caps.X[order(caps.X$row),]
+caps.X <- data.frame(caps.X,s=S[cap,][caps.X$row,])
+caps.X$tel <- match(caps.X$row,cap.tel)
+
 # plot the capture data, emphasis on collared guys
 ss.plot +
   # activity centers of all N
   geom_point(data=S,pch=15,col="gray",size=4) +
   # activity centers of collared Ntel
   geom_point(data=stel,aes(col=factor(1:4)),size=4,pch=15) +
-  # trap locations
-  geom_point(data=X,pch=3,size=4,alpha=0.5) +
+  # trap of captures for n
+  geom_point(data=caps.X,col="gray",size=4,pch=16) +
+  geom_segment(data=caps.X,aes(x=X,y=Y,xend=s.X,yend=s.Y),col="gray",lwd=1.25) +
   # trap of captures for Ntel
-  geom_point(data=tel.X,aes(color=factor(row)),size=4,pch=22,stroke=1.5) +
-  geom_segment(data=tel.X,aes(x=X,y=Y,xend=s.X,yend=s.Y,col=factor(row)),
-               lwd=1.25) +
-  scale_color_brewer(palette="Set1") + theme(legend.position="none")
+  geom_point(data=caps.X,aes(color=factor(tel)),size=4,pch=16) +
+  geom_segment(data=caps.X,aes(x=X,y=Y,xend=s.X,yend=s.Y,col=factor(tel)),lwd=1.25) +
+  # trap locations
+  geom_point(data=X,pch=3,size=3,alpha=0.55) +
+  scale_color_brewer(palette="Set1") + labs(color="ID")
 
 
 # Set up the data for oSCR
 library(oSCR)
-# The habitat variable "z" is used as a trapCov (as it would even if you
-#   didn't have telemetry data)
-trapCovs <- list(z=list(data.frame(z=matrix(z[raster.point],ntraps,K))))
-trapCovs <- make.trapCovs(trapCovs)
 # Set up the rsfDF (matches ssDF)
 rsfDF <- ssDF
 
@@ -218,7 +213,7 @@ telemetry <- list(fixfreq=list(nfix),
 # Create the scrFrame 
 sftel <- make.scrFrame(caphist = list(y.arr),
                        traps = list(X), 
-                       trapCovs = trapCovs,
+                       #trapCovs = trapCovs,
                        telemetry = telemetry,
                        rsfDF = list(rsfDF)
 )
@@ -239,12 +234,13 @@ fit1 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
 # also 'sigma', assuming independence between data (captures vs. collars)
 fit2 <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
                  rsfDF=list(rsfDF),RSF=TRUE,telemetry="ind",
-                 #start.vals = fit1$coef.mle$mle,
                  trimS=sftel$mdm,
                  model=list(D~1,p0~z,sigma~1,path~1))
 
-data.frame(fit1=fit1$coef.mle,fit2=fit2$coef.mle)
+data.frame(fit1=fit1$outStats,fit2=fit2$outStats[,2:3],
+           truth = c(alpha0,log(sigma),alpha2,log(N/1600)))
 
+# storing the simulations comparing fits
 #fit.sim[[1]][iter,] <- c(iter,seeds[iter],fit1$coef.mle[,2])
 #fit.sim[[2]][iter,] <- c(iter,seeds[iter],fit2$coef.mle[,2])
 #}
@@ -287,25 +283,6 @@ ss.plot + geom_tile(data=pred.s3,aes(fill=`Pr(s)`)) +
 
 
 #
-# Same models but no trapcovs. They are made internally from the rsfDF when provided
-# to make.scrFrame.  Note: it is mandatory for rsfDF to be provided to
-# oSCR.fit AND make.scrFrame (may be changed in the future).
-#
-sftel <- make.scrFrame(caphist = list(y.arr),
-                       traps = list(data.frame(X=X[,1],Y=X[,2])), 
-                       trapCovs = NULL, rsfDF=list(rsfDF),
-                       telemetry = telemetry,
-                       indCovs = list(data.frame(sex=sex.cap))
-)
-
-# fit the SCR model with telemetry integration
-fit2b <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
-                 rsfDF=list(rsfDF),RSF=TRUE,
-                 trimS=sftel$mdm,
-                 model=list(D~1,p0~z,sigma~1,path~1))
-
-
-#
 #---------------------------------------------------------------------------#
 # 
 #
@@ -314,15 +291,17 @@ fit2b <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",
 #
 
 data("nybears")
+ls(nybears)
 
 # capture data
-y <- nybears$y2d
-n <- nrow(y)
+edf <- nybears$edf
 K <- nybears$K
-# rescale coordinates so each unit = 10km
-traplocs <- nybears$traplocs/1e4
-colnames(traplocs) <- c("X","Y")
-ntraps <- nrow(traplocs)
+# rescale spatial coordinates so each unit = 10km
+tdf <- nybears$tdf
+tdf[,2:3] <- tdf[,2:3]/1e4
+colnames(tdf)[2:3] <- c("X","Y")
+ntraps <- nrow(tdf)
+
 ss <- nybears$ss/1e4
 colnames(ss) <- c("X","Y")
 
@@ -333,18 +312,7 @@ fixes[,c("X","Y")] <- fixes[,c("X","Y")]/1e4
 
 # create the state space and RSF surfaces with covariate
 ssDF <- rsfDF <- data.frame(ss,z=nybears$elevation)
-# simulate sex
-sex.cap <- rbinom(n,1,.5)
 
-# distribute the binomial captures (n x ntraps) among the K surveys
-# under assumption that k does not matter
-y.arr <- array(0,dim=c(n,ntraps,K))
-for(i in 1:n){
-  for(j in 1:ntraps){
-    which.K <- sample(1:K,y[i,j])
-    y.arr[i,j,which.K] <- 1
-  }
-}
 
 # thin the fixes, given that hourly fix rate contains too much dependence
 kp<- seq(1,nrow(fixes),length=0.10*nrow(fixes)) #keep x% of fixes
@@ -356,12 +324,21 @@ nfix <- telemetry.processor(list(rsfDF),list(fixes.thin))$nfreq
 # create the telemetry object for oSCR (note, nfix already a list)
 telemetry <- list(fixfreq=nfix, indCovs=list(data.frame(sex=c(0,1,0))))
 
-# create the scrFrame
-sftel <- make.scrFrame(caphist = list(y.arr),
-                       traps = list(traplocs), 
-                       telemetry = telemetry, rsfDF = list(rsfDF),
-                       indCovs = list(data.frame(sex=sex.cap))
-                       )
+# create the scrFrame from data2oscr
+oSCR.dat <- data2oscr(edf = edf,
+                      sess.col = 1,
+                      id.col   = 2,
+                      occ.col  = 3,
+                      trap.col = 4,
+                      sex.col  = 5,
+                      tdf = list(tdf),
+                      K = K,
+                      ntraps = ntraps,
+                      rsfDF = list(rsfDF),
+                      telemetry = telemetry
+                      )
+
+sftel <- oSCR.dat$scrFrame
 
 # fit the SCR model with telemetry integration; "SCR+p(z)+RSF" in Royle et al. 2013)
 fit <- oSCR.fit(scrFrame=sftel,ssDF=list(ssDF),DorN="D",encmod="CLOG",

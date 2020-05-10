@@ -5,7 +5,22 @@ oSCR.parfit <- function(mods, ncores=2,
                         PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry = c("none","ind","dep")[1],
                         se = TRUE, predict = FALSE, start.vals = NULL, getStarts = FALSE, pxArea = 1, 
                         plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE, 
-                        print.level = 0){
+                        print.level = 0, test.covs=TRUE){
+  
+  if(test.covs){
+    for(model.number in 1:nrow(mods)){
+      mod <- list(as.formula(paste(mods[[1]][[model.number]])), #density
+                  as.formula(paste(mods[[2]][[model.number]])), #detection
+                  as.formula(paste(mods[[3]][[model.number]])), #sigma
+                  as.formula(paste(mods[[4]][[model.number]])))
+      tmp <- oSCR.fit(mod,scrFrame, ssDF, encmod, multicatch, theta = 2, 
+                      trimS = NULL, DorN = c("D", "N")[1], sexmod = c("constant", "session")[1], 
+                      costDF = NULL, distmet = c("euc", "user", "ecol")[1], directions = 8, 
+                      PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry = c("none","ind","dep")[1],
+                      se = TRUE, predict = FALSE, start.vals = NULL, getStarts = TRUE)
+    }
+  }
+  
   library(doParallel)
   wd <- getwd()
   par.wrap <- function(model.number, mods,

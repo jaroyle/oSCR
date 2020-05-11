@@ -1,4 +1,4 @@
-plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
+plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE, spider=FALSE){
   if(!collapse){
   for(i in 1:length(ssDF)){
     ss.xy <- ssDF[[i]][,c("X","Y")]
@@ -6,6 +6,9 @@ plot.ssDF <- function(ssDF, scrFrame=NULL, collapse=FALSE){
     if(!is.null(scrFrame)){
       sf.xy <- scrFrame$traps[[i]][,c("X","Y")]  
       points(sf.xy, pch=15, cex=0.7, col=4)
+      if(spider & !is.null(scrFrame)){
+        spiderplot(scrFrame=scrFrame,session=i,add = TRUE)
+      }
     }
   }}    
   if(collapse){

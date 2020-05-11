@@ -1,5 +1,5 @@
 spiderplot <- function(scrFrame = NULL, session=1, y=NULL, 
-                        traplocs=NULL, add=FALSE, return.stats=FALSE){
+                       traplocs=NULL, add=FALSE, return.stats=FALSE){
     
     if(!is.null(scrFrame)){
       traplocs <- scrFrame$traps[[session]]

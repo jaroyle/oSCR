@@ -29,7 +29,7 @@
    }
 
    if(!is.null(scrFrame$telemetry)){
-     telemetry <- scrFrame$telemetry
+     telemetry <- scrFrame$telemetry[subs]
    }else{
      telemetry <- NULL
    }

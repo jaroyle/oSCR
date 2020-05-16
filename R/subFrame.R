@@ -15,11 +15,11 @@
      trapCovs <- NULL
    }
    
-   if(!is.null(scrFrame$trapCovs)){
-     sigCovs <- scrFrame$sigCovs[subs,,drop=FALSE]
-     sigCovs$session <- factor(1:nrow(sigCovs))
+   if(!is.null(scrFrame$sigCovs)){
+     pick.rows <- scrFrame$sigCovs$session %in% subs
+     sigCovs <- scrFrame$sigCovs[pick.rows,,drop=FALSE]
    }else{
-     sigCovs <- NULL
+     sigCovs <- data.frame(session = factor(1:length(subs)))
    }
    
    if(!is.null(scrFrame$trapOperation)){

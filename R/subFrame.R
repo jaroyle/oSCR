@@ -29,7 +29,23 @@
    }
 
    if(!is.null(scrFrame$telemetry)){
-     telemetry <- scrFrame$telemetry
+     
+      fixfreq <- scrFrame$telemetry$fixfreq[subs]
+     
+     if(!is.null(scrFrame$telemetry$indCovs)){
+        indCovs.tel <- scrFrame$telemetry$indCovs[subs]
+     } else{
+        indCovs.tel <- NULL
+     }
+     if(!is.null(scrFrame$telemetry$cap.tel)){
+        cap.tel <- scrFrame$telemetry$cap.tel[subs]
+     } else{
+        cap.tel <- NULL
+     }
+     telemetry <- list(fixfreq=fixfreq,
+                       indCovs=indCovs.tel,
+                       cap.tel=cap.tel)
+     
    }else{
      telemetry <- NULL
    }

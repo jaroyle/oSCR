@@ -90,7 +90,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
           plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE, 
           print.level = 0){
   
-  
+
   #match.arg(encmod) will set encmod to "B"
   
   ptm <- proc.time()
@@ -944,13 +944,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 probs <- t(exp(rsf.lam0 - alphsig[s] * Drsf[[s]]^theta))
                 denom <- rowSums(probs)
                 probs <- t(probs/denom)
+                log.probs <- log(probs)
+                log.probs[probs==0] <- 0
                 
-                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
+                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log.probs) * as.vector(pi.s) )
                 #browser()
                 if (telemetry.type == "dep"){
                   if (i <= length(cap.tel)){
                     # combine conditional likelihoods if some collared ind were captured
-                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
+                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log.probs) + lik.cond.tel[i,]
                     #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
                     lik.cond.tot[is.na(lik.cond.tot)] <- 0
                     lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])
@@ -1537,13 +1539,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                 probs <- t(exp(rsf.lam0 - alphsig[s, sxtel[i]] * Drsf[[s]]^theta))
                 denom <- rowSums(probs)
                 probs <- t(probs/denom)
+                log.probs <- log(probs)
+                log.probs[probs==0] <- 0
                 
-                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log(probs)) * as.vector(pi.s) )
+                lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log.probs) * as.vector(pi.s) )
                 #browser()
                 if (telemetry.type == "dep"){
                   if (i <= length(cap.tel)){
                     # combine conditional likelihoods if some collared ind were captured
-                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log(probs)) + lik.cond.tel[i,]
+                    lik.cond.tot <- (Ytels[i,,drop=F] %*% log.probs) + lik.cond.tel[i,]
                     #lik.cond.tot[trimC[[s]][[cap.tel[i]]]] <- exp(lik.cond.tot[trimC[[s]][[cap.tel[i]]]])
                     lik.cond.tot[is.na(lik.cond.tot)] <- 0
                     lik.cond.tot[lik.cond.tot != 0] <- exp(lik.cond.tot[lik.cond.tot != 0])

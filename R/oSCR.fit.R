@@ -939,14 +939,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
               } else {
                 rsf.lam0 <- 0
               }
+              tol <- 1e-25 #prevent numerical overflow
+              
               for (i in 1:nrow(Ytels)){
                 
                 probs <- t(exp(rsf.lam0 - alphsig[s] * Drsf[[s]]^theta))
                 denom <- rowSums(probs)
                 probs <- t(probs/denom)
-                log.probs <- log(probs)
-                log.probs[probs==0] <- 0
-                
+                log.probs <- log((1-2*tol)*probs + tol)
+
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log.probs) * as.vector(pi.s) )
                 #browser()
                 if (telemetry.type == "dep"){
@@ -1534,13 +1535,15 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
               } else {
                 rsf.lam0 <- 0
               }
+              tol <- 1e-25 #prevent numerical overflow
+              
               for (i in 1:nrow(Ytels)){
                 
                 probs <- t(exp(rsf.lam0 - alphsig[s, sxtel[i]] * Drsf[[s]]^theta))
                 denom <- rowSums(probs)
                 probs <- t(probs/denom)
                 log.probs <- log(probs)
-                log.probs[probs==0] <- 0
+                log.probs <- log((1-2*tol)*probs + tol)
                 
                 lik.marg.tel[i] <- sum( exp(Ytels[i,,drop=F] %*% log.probs) * as.vector(pi.s) )
                 #browser()

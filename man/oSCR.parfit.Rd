@@ -70,8 +70,7 @@ data<- sim.SCR.ms(sessions=2, sex=TRUE, sex.ratio=0.5, N = 100, K = 3,
 # Note: In practice, allowing for model-specific starting values will probably
 # be necessary to avoid crashes. Not done yet.
 
-fmL <- oSCR.parfit( mods=mods, data=data, ncores=4)
- 
+fmL <- oSCR.parfit(mods=mods, scrFrame=data$sf, ssDF=data$ssDF, ncores=4)
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

@@ -9,10 +9,10 @@ oSCR.parfit <- function(mods, ncores=2,
   
   if(test.covs){
     for(model.number in 1:nrow(mods)){
-      mod <- list(as.formula(paste(mods[[1]][[model.number]])), #density
-                  as.formula(paste(mods[[2]][[model.number]])), #detection
-                  as.formula(paste(mods[[3]][[model.number]])), #sigma
-                  as.formula(paste(mods[[4]][[model.number]])))
+      mod <- list(as.formula(paste(mods[[1]][[model.number]], collapse = " ")), #density
+                  as.formula(paste(mods[[2]][[model.number]], collapse = " ")), #detection
+                  as.formula(paste(mods[[3]][[model.number]], collapse = " ")), #sigma
+                  as.formula(paste(mods[[4]][[model.number]], collapse = " ")))
       tmp <- oSCR.fit(mod,scrFrame, ssDF, encmod, multicatch, theta = 2, 
                       trimS = NULL, DorN = c("D", "N")[1], sexmod = c("constant", "session")[1], 
                       costDF = NULL, distmet = c("euc", "user", "ecol")[1], directions = 8, 
@@ -27,10 +27,10 @@ oSCR.parfit <- function(mods, ncores=2,
                        scrFrame, ssDF, encmod, multicatch, theta, trimS, DorN, sexmod, 
                        costDF, distmet, directions, PROJ, rsfDF, RSF, telemetry, se, predict, start.vals, 
                        getStarts, pxArea, plotit, mycex, nlmgradtol, nlmstepmax, smallslow, print.level){
-    mod <- list(as.formula(paste(mods[[1]][[model.number]])), #density
-                as.formula(paste(mods[[2]][[model.number]])), #detection
-                as.formula(paste(mods[[3]][[model.number]])), #sigma
-                as.formula(paste(mods[[4]][[model.number]]))) #asu
+    mod <- list(as.formula(paste(mods[[1]][[model.number]], collapse = " ")), #density
+                as.formula(paste(mods[[2]][[model.number]], collapse = " ")), #detection
+                as.formula(paste(mods[[3]][[model.number]], collapse = " ")), #sigma
+                as.formula(paste(mods[[4]][[model.number]], collapse = " "))) #asu
     #start.vals <- 
     fm <- oSCR.fit(model = mod, scrFrame, ssDF, encmod, multicatch, theta, trimS, DorN, sexmod, 
                    costDF, distmet, directions, PROJ, rsfDF, RSF, telemetry, se, predict, start.vals, 

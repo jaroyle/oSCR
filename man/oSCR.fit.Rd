@@ -30,6 +30,7 @@ oSCR.fit(
   mycex = 1,
   nlmgradtol = 1e-06,
   nlmstepmax = 10,
+  nlm
   smallslow = FALSE,
   print.level = 0
 )
@@ -115,6 +116,8 @@ default starting values.}
 \item{nlmgradtol}{The \code{gradtol} value passed to \code{\link{nlm}}.}
 
 \item{nlmstepmax}{The \code{stepmax} value passed to \code{\link{nlm}}.}
+
+\item{nlmiterlim}{The \code{iterlim} value passed to \code{\link{nlm}}.}
 
 \item{smallslow}{Not used yet.}
 

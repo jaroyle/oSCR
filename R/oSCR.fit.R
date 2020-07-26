@@ -60,6 +60,7 @@
 #' @param mycex Not used.
 #' @param nlmgradtol The \code{gradtol} value passed to \code{\link{nlm}}.
 #' @param nlmstepmax The \code{stepmax} value passed to \code{\link{nlm}}.
+#' @param nlmiterlim The \code{iterlim} value passed to \code{\link{nlm}}.
 #' @param print.level The \code{print.level} value passed to \code{\link{nlm}}.
 #' @examples
 #' #Load the 'beardata'
@@ -87,8 +88,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
           costDF = NULL, distmet = c("euc", "user", "ecol")[1], directions = 8, 
           PROJ = NULL, rsfDF = NULL, RSF = FALSE, telemetry.type = c("none","ind","dep")[1],
           se = TRUE, predict = FALSE, start.vals = NULL, getStarts = FALSE, pxArea = 1, 
-          plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, smallslow = FALSE, 
-          print.level = 0){
+          plotit = F, mycex = 1, nlmgradtol = 1e-06, nlmstepmax = 10, nlmiterlim = 200,
+          smallslow = FALSE, print.level = 0){
   
 
   #match.arg(encmod) will set encmod to "B"
@@ -1629,7 +1630,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                      nlm(msLL.nosex, p = pv, pn = pn, D = D, nG = nG, nK = nK,
                          hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                          hessian = hessian, print.level = print.level, 
-                         iterlim = 200))
+                         iterlim = nlmiterlim))
         }
         else {
           if (telem){
@@ -1643,7 +1644,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
                      nlm(msLL.sex, scrFrame=scrFrame, p = pv, pn = pn, D = D, nG = nG, nK = nK,
                          hiK = hiK, dm.den = dm.den, dm.trap = dm.trap,
                          hessian = hessian, print.level = print.level, 
-                         iterlim = 200))
+                         iterlim = nlmiterlim))
         }
         links <- rep(NA, length(pn))
         pars <- myfit$estimate

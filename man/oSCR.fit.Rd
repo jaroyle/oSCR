@@ -30,7 +30,7 @@ oSCR.fit(
   mycex = 1,
   nlmgradtol = 1e-06,
   nlmstepmax = 10,
-  nlm
+  nlmiterlim = 200,
   smallslow = FALSE,
   print.level = 0
 )

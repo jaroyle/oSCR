@@ -1,1 +1,18 @@
 exportPattern("^[[:alpha:]]+")
+
+exportClasses(scrFrame,
+              ssDF,
+              scrdesign,
+              oSCR.fit,
+              oSCR.fitList,
+              oSCR.modSel,
+              oSCR.ma.coef)
+
+S3method(print, scrFrame)
+S3method(print, oSCR.fit)
+S3method(print, oSCR.fitList)
+S3method(print, oSCR.modSel)
+S3method(print, oSCR.ma.coef)
+S3method(plot, scrFrame)
+S3method(plot, ssDF)
+S3method(plot, scrdesign)

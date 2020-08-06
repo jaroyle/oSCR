@@ -37,7 +37,7 @@ ma.coef <- function(ms){
   rownames(ma.coef) <- NULL
   colnames(ma.coef) <- c("Parameter", "Estimate", paste("Std. Error",sep=""), 
                          "Estimate*", paste("Std. Error*",sep=""), "RVI")
-  class(ma.coef) <- c("ma.coef")
+  class(ma.coef) <- c("oSCR.ma.coef")
   return(ma.coef)
 }
 

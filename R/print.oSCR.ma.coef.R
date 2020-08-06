@@ -1,4 +1,4 @@
-print.ma.coef <- function(ma){
+print.oSCR.ma.coef <- function(ma){
   class(ma) <- "data.frame"
   nums <- vapply(ma, is.numeric, FUN.VALUE = logical(1))
   ma[,nums] <- round(ma[,nums], digits = 2)

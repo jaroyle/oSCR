@@ -16,7 +16,11 @@ get.real <- function(model, type = c("dens", "det", "sig", "all")[1], newdata = 
   names(pp)[grep("p0.(Intercept)",names(pp),fixed=T)] <- "p0"
   names(pp)[grep("d0.(Intercept)",names(pp),fixed=T)] <- "d0"
   names(pp)[grep("sig.(Intercept)",names(pp),fixed=T)] <- "sig0"
-  
+  if("psi1" %in% names(pp)){#old naming psi1 -> psi.1
+    ln <- length(names(pp)[grep("psi",names(pp),fixed=T)])
+    names(pp)[grep("psi",names(pp),fixed=T)] <- paste("psi.",1:ln, sep="")
+  }
+
   mods <- model$model
   
   if(type == "dens"){

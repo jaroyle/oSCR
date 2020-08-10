@@ -585,7 +585,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
         }
         if (sexmod == "session") {
             pars.sex <- rep(0, ns)
-            names.sex <- paste("psi", 1:ns, sep = "")
+            names.sex <- paste("psi.", 1:ns, sep = "")
         }
     }
     else {

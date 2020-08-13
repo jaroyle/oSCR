@@ -2,7 +2,7 @@
 \alias{telemetry}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Integration of telemtry data with SCR data%%  ~~function to do ... ~~
+Integration of telemetry data with SCR data%%  ~~function to do ... ~~
 }
 \description{
 This is an R script that demonstrates how to integrate telemetry data

@@ -83,7 +83,7 @@ K<-dim(beardata$y3d)[3]
 ntraps<-dim(beardata$y3d)[2]
 traplocs<- as.matrix(beardata$trapmat)
 par(mfrow=c(1,1))
-temp <- spiderplot(beardata$y3d,beardata$trapmat)
+temp <- spiderplot(y = beardata$y3d,traplocs = beardata$trapmat)
 
  
 # Fit a basic model
@@ -146,7 +146,7 @@ par(mfrow=c(1,1))
 plot(pred$r[[1]])   # pred is a list, one for each session, $r is a raster 
 points(tdf[,2:3],pch=20)
 title("Realized density")
-null <- spiderplot(beardata$y3d,beardata$trapmat, add=TRUE)
+null <- spiderplot(y = beardata$y3d, traplocs = beardata$trapmat, add=TRUE)
 
 # Conditional probability of capture (ESA is area-weighted sum of this)
 par(mar=c(3,3,3,6))

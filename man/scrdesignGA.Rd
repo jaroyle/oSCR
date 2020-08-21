@@ -8,8 +8,8 @@ Generating near-optimal sampling designs for spatial capture-recapture.
 Given any SCR-sensible objective function, \code{scrdesignGA()} implements a genetic algorithm to solve this \emph{k-of-n} design problem. In the context of SCR, and for a given objective function and landscape, the function finds the best subset of sampling locations \emph{(k)} from all possible sampling locations \emph{(n)} . The arguments of this function that are related to the biology of the species should be parameterized using the values that are expected, preferrably informed by previous research.
 }
 \usage{
-scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9, 
-            beta0 = -0.2*5, sigma = 2, N = 100, crit = 1, 
+scrdesignGA(statespace = NULL, alltraps = NULL, fixedtraps = NULL,
+            ntraps = 9, beta0 = -0.2*5, sigma = 2, N = 100, crit = 1, 
             verbose = 1, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -18,7 +18,10 @@ scrdesignGA(statespace = NULL, alltraps = NULL, ntraps = 9,
 A discretized representation of the study area (state-space), defined as a convex hull around the trapping extent with an additional buffer of approximately \code{3*sigma} to ensure the incorporation of the activity centers of all individuals that could be captured.
 }
   \item{alltraps}{
-A two-column dataframe, labelled X and Y accordingly, comprised of all possible trapping locations. These  locations should be user-defined after accounting for logistic constraints, primarily accessibility. Design   generation then relies on subsetting these locations.
+A two-column dataframe, labelled X and Y accordingly, comprised of all possible trapping locations. These  locations should be user-defined after accounting for logistic constraints, primarily accessibility. Design generation then relies on subsetting these locations.
+}
+  \item{fixedtraps}{
+A two-column dataframe, labelled X and Y accordingly, comprised of any fixed sampling locations (e.g., an existing grid around which an optimal design is to be found). The algorithm will find \code{k} \emph{additional} locations conditional on the location of these fixed sampling points.
 }
   \item{ntraps}{
 The number of traps available for constructing the design. More traps will allow for a larger sample size, providing more data to an SCR model, resulting in improvement in terms of bias and precision of estimates.

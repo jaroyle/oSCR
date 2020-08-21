@@ -1,5 +1,6 @@
 scrdesignOF <- function(v,          #subset/k index 
                         alltraps,   #all possible trap locations
+                        fixedtraps, #any existing traps
                         statespace, #the statespace
                         N = 100,    #popsize
                         sigma,      #estimate of sigma
@@ -13,6 +14,8 @@ scrdesignOF <- function(v,          #subset/k index
 
   statespace$pr.density <- statespace$density/sum(statespace$density)
   traps <- alltraps[v,]
+  traps <- rbind(traps,fixedtraps)
+  rownames(traps) <- NULL
   ntraps <- nrow(traps)
   
   p0 <- exp(beta0)                                #lambda0

@@ -10,7 +10,8 @@
 # crit: which criterion to use
 
 scrdesignGA <- function(statespace = NULL,
-                        alltraps = NULL, 
+                        alltraps = NULL,
+                        fixedtraps = NULL,
                         ntraps = 9, 
                         beta0 = -0.6, 
                         sigma = 2, 
@@ -34,11 +35,14 @@ scrdesignGA <- function(statespace = NULL,
                 verbose = verbose,
                 ...,
                 alltraps = alltraps,
+                fixedtraps = fixedtraps,
                 statespace = statespace,
                 beta0 = beta0,
                 sigma = sigma,
                 crit=crit)
-  optimaltraps <- alltraps[des$bestsol,]
+  optimaltraps <- rbind(alltraps[des$bestsol,],fixedtraps)
+  optimaltraps$fixed <- c(rep("no",k),
+                          rep("yes",ifelse(is.null(fixedtraps),0,nrow(fixedtraps))))
   scrdesign <- list(des=des, statespace=statespace, alltraps=alltraps, optimaltraps=optimaltraps, 
                     sigma=sigma, beta0=beta0)
   class(scrdesign) <- "scrdesign"

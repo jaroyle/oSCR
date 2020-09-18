@@ -16,10 +16,14 @@ collapse.k <- function(scrFrame){
       scrFrame$trapCovs[[i]] <- list(scrFrame$trapCovs[[i]][[1]])
       eff <- apply(scrFrame$trapOperation[[i]],1,sum)
       scrFrame$trapCovs[[i]][[1]]$effort <- eff
+      if(any(eff==0)){
+        message("At least one trap has zero effort, these should be removed.")
+      }
+      scrFrame$trapCovs[[i]][[1]]$log.effort <- log(eff)
       vartrap[i] <- all(eff == eff[1])
     }
     if(!varocc | any(vartrap == FALSE)){
-      message("Important: Traps have uequal effort, use 'offset(log(effort))' is detection model.\n")
+      message("Important: Traps have uequal effort, use 'offset(log.effort)' in detection model.\n")
     }
   }else{
     scrFrame$trapCovs <- list()

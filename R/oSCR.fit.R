@@ -79,7 +79,7 @@
 #' ssDF <- make.ssDF(sf, buffer=3, res = 0.5)
 #'
 #' #fit the NULL model: 
-#' m0 <- oSCR.fit(Model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF)
+#' m0 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF)
 
 oSCR.fit <-
 function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,

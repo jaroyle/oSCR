@@ -111,7 +111,8 @@ points(sf$traps[[1]],pch=3, lwd=2,col="red")
 out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF,plotit=FALSE , trimS=8)
 
 # Note: density intercept is log(per pixel) so total N = exp(intercept)*[# statespace points]
-Nhat<- exp(out1$outStats[3,2])*nrow(ssDF[[1]])
+Nhat<- exp(out1$outStats[3,"mle"])*nrow(ssDF[[1]])
+
 
 # Obtain the predictions of density and activity center posteriors
 pred<- predict.oSCR(out1 ,sf, ssDF)

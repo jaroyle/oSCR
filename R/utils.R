@@ -128,7 +128,7 @@ do.trim <- function(scrFrame, ssDF, trimS){
         trimC[[s]][[i]] <- rep(T, nrow(ssDF[[s]]))
         
         for (k in 1:Nocc[s]) {#each occasion
-          trimR[[s]][[i]][[k]] <- pp
+          trimR[[s]][[i]][[k]] <- pp * Os[,k] #added this
         }
       }
       #if trim: local evaluation

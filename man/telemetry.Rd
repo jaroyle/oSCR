@@ -150,7 +150,7 @@ for(i in 1:Ntel){
   lammat[i,]<-lam
 }
 # Average fix location (matches activity centers)
-(sbar <- (nfix%*%as.matrix(gr))/as.vector(nfix%*%rep(1,nrow(gr))))
+(sbar <- (nfix \%*\% as.matrix(gr))/as.vector(nfix \%*\% rep(1,nrow(gr))))
 stel
 
 # expected encounter rates (lambda) for collared guys

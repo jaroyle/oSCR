@@ -3,9 +3,9 @@ data2oscr <-
            sex.col = NULL, tdf = NULL, K = NULL, ntraps = NULL, remove.zeros = TRUE,
            trapcov.names = NULL, remove.extracaps = TRUE, sex.nacode = NULL,
            tdf.sep = "/", rsfDF = NULL, telemetry = NULL){
-    
+
     #tdf must be [NAME X Y] [optional: trap operation] [sep] [named trap covariates]
-    
+
     ## Some safety checks
     if(is.null(sess.col) | is.null(id.col) | is.null(occ.col) | is.null(trap.col)){
       cat("required information missing: sess, id, occ or trap",fill=TRUE)
@@ -33,7 +33,7 @@ data2oscr <-
     ##
     ## End of safety checks
     ##
- # Suggested by Dan for better ordering of ID   
+ # Suggested by Dan for better ordering of ID
     if(is.numeric(edf[,id.col])){
       Xid <- as.integer(factor(as.character(edf[,id.col]),
                      levels=sort(unique(as.numeric(as.character(edf[,id.col]))))))
@@ -46,15 +46,70 @@ data2oscr <-
 #    }
 names(Xid)<- edf[,id.col]
 new.names<- unique(names(Xid[order(Xid)]))
- 
+
     nind<- max(Xid)
-    
+
     # convert to integer
     edf[,id.col]<- Xid
-    
+
+
+          Xid<-Xid[order(edf[,id.col])] # Added Jan 26 2021
+
     # sort by new id.col (this is IMPORTANT to ensure individual attributes sorted properly)
     edf <- edf[order(edf[,id.col]),]
-    
+
+
+
+# This wsa moved here Jan 26
+    if (!is.null(sex.col)) {
+        Xsex <- edf[, sex.col]
+        if (!is.numeric(Xsex)) {
+            Xsex <- as.numeric(as.factor(as.character(Xsex))) -
+                1
+        }
+#        xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
+#        usex.all <- xx[!duplicated(xx), ]
+# HEre note: If sex is ambiguous, sometimes coded as M and sometimes as F for the same individual then you get usex.all is the WRONG DIMENSION
+# Xid and Xsex seem to be the same length but xx is wrong somehow....
+}
+
+
+# Added Jan 26
+# Here have to check for individuals sex being the same across sessions
+for(i in 1:nind){
+    look<- edf[Xid==i,]
+    nposs<- nrow(look)
+
+    n0<- sum(Xsex[Xid==i]==0 & !is.na(Xsex[Xid==i]))
+    n1<- sum(Xsex[Xid==i]==1 & !is.na(Xsex[Xid==i]))
+    nna<- sum(is.na(Xsex[Xid==i]))
+
+    if(max(c(n0,n1,nna)) != nposs){
+        cat("Ambiguous sex information for ", Xid[i], sep=" ")
+        print(look)
+        browser()
+        return(NULL)
+        }
+
+    }
+
+    # This was moved here Jan 26
+if(!is.null(sex.col)){
+        xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
+        usex.all <- xx[!duplicated(xx), ]
+        # Added this bit Jan 26
+        if(nrow(usex.all)!=nrow(edf)){
+             cat("Major error.  ",fill=TRUE)
+             return(NULL)
+              }
+    }
+
+
+
+
+
+
+
     Xsess <- edf[, sess.col]
     # Note this assumes all sessions contained in EDF....possibly not?
     if (!is.numeric(Xsess)) {
@@ -63,7 +118,7 @@ new.names<- unique(names(Xid[order(Xid)]))
     # account for traps with no captures and thus not appearing in EDF
     # this has to be done "by session"
     new.edf<- list()
-    
+
     nsess<- max(Xsess)
     if(nsess>1 & length(K) ==1){
       cat("Must have length(K) = nsessions",fill=TRUE)
@@ -77,8 +132,8 @@ new.names<- unique(names(Xid[order(Xid)]))
       cat("length(tdf) != apparent number of sessions", fill=TRUE)
       return(NULL)
     }
-    
-    
+
+
     ### process the TDF information here
     all.tcnames <- NULL
     traplocs <- list(NULL)
@@ -86,7 +141,7 @@ new.names<- unique(names(Xid[order(Xid)]))
     trapcovs <- list(NULL)
     trapnames<- list(NULL)
     occnames<-list(NULL)
-    
+
     for (s in 1:nsess){
       allnames <- tdf[[s]][, 1]
       trapnames[[s]]<- allnames
@@ -125,43 +180,30 @@ new.names<- unique(names(Xid[order(Xid)]))
     if(all(sapply(trapcovs,is.null))){
       trapcovs <- NULL
     }
-    
-    
-    
-    #####
-    ## Process the EDF information here
-    ##
-    if (!is.null(sex.col)) {
-      Xsex <- edf[,sex.col]
-      if (!is.numeric(Xsex)) {
-        Xsex <- as.numeric(as.factor(as.character(Xsex))) -     1
-      }
-      xx<- cbind(Xid, Xsex)
-      usex.all <- xx[!duplicated(xx),]
-    }
-    
-    
+
+
+
     caphist<- list()
     nn<-list()
     usex<- list()
     for(s in 1:nsess){
-      
-      
+
+
       if (any(is.na(match(edf[Xsess==s,occ.col],  occnames[[s]])))) {
         cat("some occassion names in EDF not in TDF", fill = TRUE)
         return(NULL)
       }
-      
+
       new.edf[[s]]<- data.frame(edf[Xsess==s,])
-      
+
       trapid<-  match(as.character(new.edf[[s]][,trap.col]), as.character(trapnames[[s]]) )
       ### levels(new.edf[[s]][,trap.col])<- unique(trapnames[[s]])
       #### levels(new.edf[[s]][,occ.col])<- unique(occnames[[s]])
       occid<- match(as.character(new.edf[[s]][,occ.col]), as.character(occnames[[s]]))
       ntraps[s]<- length(unique(tdf[[s]][,1]))
-      
+
       y3d<- array(0, c(nind, ntraps[s], K[s]) )
-      
+
       xx<- cbind( "individual" = new.edf[[s]][,id.col],
                   "occasion" = occid,
                   "trap" = trapid )
@@ -178,7 +220,7 @@ new.names<- unique(names(Xid[order(Xid)]))
 
       caphist[[s]] <- y3d
       nn[[s]] <- apply(y3d, c(1), sum)
-      
+
       if(remove.zeros==TRUE){
         if (!is.null(sex.col)) {
           Xsex <- new.edf[[s]][, sex.col]
@@ -191,14 +233,14 @@ new.names<- unique(names(Xid[order(Xid)]))
       }else{
         if(!is.null(sex.col)) usex[[s]]<- usex.all
       }
-      
-      
+
+
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     for (s in 1:nsess) {
       if (remove.zeros)
         caphist[[s]] <- caphist[[s]][nn[[s]] > 0, , ,drop=F]
@@ -212,9 +254,9 @@ new.names<- unique(names(Xid[order(Xid)]))
         cat("Some individuals in session", s, " captured > 1 time in a trap/occasion",
             fill = TRUE)
     }
-    
-    
-    
+
+
+
     if (!is.null(sex.col)) {
       sex.oscr <- list()
       for (s in 1:nsess) {
@@ -228,28 +270,28 @@ new.names<- unique(names(Xid[order(Xid)]))
     }else{
       sex.oscr = NULL
     }
-    
+
     # make the trapCovs
     if(!is.null(trapcov.names)){
       trapCovs <- list()
       trapCov.list <- list()
       levels.list <- list()
-      
+
       for(cov in trapcov.names){#covariate
         #create named list and track whether covariates are levels
         trapCov.list[[cov]] <- list()
         lev.tracker <- NULL
-        
+
         for(i in 1:length(tdf)){#session
           tmp.tdf <- tdf[[i]]
-          
+
           if(length(which(colnames(tmp.tdf) %in% cov) == 1)){
             new.colname <- paste0(cov,".",1)
-            colnames(tmp.tdf)[which(colnames(tmp.tdf) %in% cov)] <- new.colname 
+            colnames(tmp.tdf)[which(colnames(tmp.tdf) %in% cov)] <- new.colname
           }
           tmp.ind <- which(colnames(tmp.tdf) %in% paste0(cov,".",1:K[i]))
           tmp.covs <- tmp.tdf[,tmp.ind,drop=FALSE]
-          
+
           #keep track of factor levels
           if(is.character(unlist(tmp.covs)))
             lev.tracker <- sort(unique(c(lev.tracker,unique(unlist(tmp.covs)))))
@@ -258,12 +300,12 @@ new.names<- unique(names(Xid[order(Xid)]))
           if(is.numeric(unlist(tmp.covs)))
             lev.tracker <- NA
           levels.list[[cov]] <- lev.tracker
-          
+
           #some checks:
           # make sure columns are named correctly:
           if(any(duplicated(colnames(tmp.covs))))
             stop("Duplicate column names not allowed \n add .k to index occasions")
-          
+
           #make sure there are enough columns (single columns treated as time invariant)
           if(!(ncol(tmp.covs) %in% c(1,K))){
             stop("Each covariate must have either 1 or K columns")
@@ -279,9 +321,9 @@ new.names<- unique(names(Xid[order(Xid)]))
           trapCov.list[[cov]][[i]] <- tmp.covs
         }
       }
-      
+
       nms <- names(trapCov.list)
-      
+
       for(s in 1:length(tdf)){
         trapCovs[[s]] <- list()
         for(k in 1:K[s]){
@@ -315,7 +357,7 @@ new.names<- unique(names(Xid[order(Xid)]))
                               trapOperation = trapopp,
                               rsfDF = rsfDF,
                               telemetry = telemetry)
-    
+
     list(edf = new.edf, y3d = caphist, sex = sex.oscr, traplocs = traplocs,
          trapopp = trapopp, trapcovs = trapcovs, scrFrame = scrFrame)
   }

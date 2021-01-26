@@ -87,7 +87,7 @@ for(i in 1:nind){
     if(max(c(n0,n1,nna)) != nposs){
         cat("Ambiguous sex information for ", Xid[i], sep=" ")
         print(look)
-        browser()
+
         return(NULL)
         }
 
@@ -97,11 +97,8 @@ for(i in 1:nind){
 if(!is.null(sex.col)){
         xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
         usex.all <- xx[!duplicated(xx), ]
-        # Added this bit Jan 26
-        if(nrow(usex.all)!=nrow(edf)){
-             cat("Major error.  ",fill=TRUE)
-             return(NULL)
-              }
+
+
     }
 
 

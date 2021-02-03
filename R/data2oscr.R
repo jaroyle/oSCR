@@ -74,9 +74,12 @@ new.names<- unique(names(Xid[order(Xid)]))
 }
 
 
-# Added Jan 26
+# Added Jan 26, and edited by CS on 3 Feb
 # Here have to check for individuals sex being the same across sessions
-for(i in 1:nind){
+
+    
+  if(!is.null(sex.col)){ #added this 3 feb
+  for(i in 1:nind){
     look<- edf[Xid==i,]
     nposs<- nrow(look)
 
@@ -91,15 +94,15 @@ for(i in 1:nind){
         return(NULL)
         }
 
-    }
+  }
+  }#added this 3 feb
+    
 
-    # This was moved here Jan 26
-if(!is.null(sex.col)){
-        xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
-        usex.all <- xx[!duplicated(xx), ]
-
-
-    }
+  # This was moved here Jan 26
+  if(!is.null(sex.col)){
+    xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
+    usex.all <- xx[!duplicated(xx), ]
+  }
 
 
 

@@ -64,8 +64,7 @@ new.names<- unique(names(Xid[order(Xid)]))
     if (!is.null(sex.col)) {
         Xsex <- edf[, sex.col]
         if (!is.numeric(Xsex)) {
-            Xsex <- as.numeric(as.factor(as.character(Xsex))) -
-                1
+            Xsex <- as.numeric(as.factor(as.character(Xsex))) - 1
         }
 #        xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
 #        usex.all <- xx[!duplicated(xx), ]
@@ -78,24 +77,24 @@ new.names<- unique(names(Xid[order(Xid)]))
 # Here have to check for individuals sex being the same across sessions
 
     
-  if(!is.null(sex.col)){ #added this 3 feb
-  for(i in 1:nind){
-    look<- edf[Xid==i,]
-    nposs<- nrow(look)
-
-    n0<- sum(Xsex[Xid==i]==0 & !is.na(Xsex[Xid==i]))
-    n1<- sum(Xsex[Xid==i]==1 & !is.na(Xsex[Xid==i]))
-    nna<- sum(is.na(Xsex[Xid==i]))
-
-    if(max(c(n0,n1,nna)) != nposs){
-        cat("Ambiguous sex information for ", Xid[i], sep=" ")
-        print(look)
-
-        return(NULL)
-        }
-
-  }
-  }#added this 3 feb
+  # if(!is.null(sex.col)){ #added this 3 feb
+  # for(i in 1:nind){
+  #   look<- edf[Xid==i,]
+  #   nposs<- nrow(look)
+  # 
+  #   n0<- sum(Xsex[Xid==i]==0 & !is.na(Xsex[Xid==i]))
+  #   n1<- sum(Xsex[Xid==i]==1 & !is.na(Xsex[Xid==i]))
+  #   nna<- sum(is.na(Xsex[Xid==i]))
+  # 
+  #   if(max(c(n0,n1,nna)) != nposs){
+  #       cat("Ambiguous sex information for ", Xid[i], sep=" ")
+  #       print(look)
+  # 
+  #       return(NULL)
+  #       }
+  # 
+  # }
+  # }#added this 3 feb
     
 
   # This was moved here Jan 26

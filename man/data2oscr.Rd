@@ -144,6 +144,19 @@ out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), scrFrame=sf, ssDF=ssDF,plotit=FALSE
 ####pred<- predict.oSCR(out1)
 
 
+# Approach 2
+data <- data2oscr( edf = beardata$edf,
+tdf = list(beardata$tdf),
+sess.col = which(colnames(beardata$edf) %in% "Session"),
+id.col = which(colnames(beardata$edf) %in% "ID"),
+occ.col = which(colnames(beardata$edf) %in% "Occasion"),
+trap.col = which(colnames(beardata$edf) %in% "trapID"),
+sex.col = which(colnames(beardata$edf) %in% "Sex"),
+sex.nacode = "NA",
+K = 8,
+ntraps = nrow(beardata$tdf))
+
+# Ocelot data
 
 data(ocelot)
  # need to have occasions labeled same as in TDF
@@ -151,7 +164,8 @@ colnames(tdf1) <- c("Detector","X","Y", 1:44)
 colnames(tdf2) <- c("Detector","X","Y", 1:96)
 
 # This fails because one TDF is given and the data imply DIFFERENT # occasions
-data<-data2oscr(rbind(edf1,edf2),sess.col=1, id.col=2, occ.col=3, trap.col=4, sex.col=5,   ntraps=c(23,23),
+data<-data2oscr(rbind(edf1,edf2),sess.col=1, id.col=2, occ.col=3, trap.col=4, sex.col=5,   
+             ntraps=c(23,23),
              tdf=list(tdf1),
              remove.zeros=TRUE, remove.extracaps=TRUE,sex.nacode=c("U") )
 
@@ -200,8 +214,8 @@ ocelot.sf  <-  make.scrFrame(caphist=data$y3d, indCovs=NULL,
 ocelot.ss <- make.ssDF(ocelot.sf, buffer=2000, res = 600)
 plot(ocelot.ss[[1]], pch=20)
 points(ocelot.sf$traps[[1]],pch=3,col="red",lwd=2)
-spiderplot(data$y3d[[2]],data$traplocs[[1]] )
-spiderplot(data$y3d[[2]],data$traplocs[[1]],add=TRUE)
+spiderplot(y = data$y3d[[2]],traplocs = data$traplocs[[1]] )
+spiderplot(y = data$y3d[[2]],traplocs = data$traplocs[[1]],add=TRUE)
 
 ##  fit a model
 out1 <- oSCR.fit(model=list(D~1,p0~1,sig~1), ocelot.sf, ssDF=ocelot.ss,plotit=FALSE , trimS=2000)

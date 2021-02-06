@@ -63,9 +63,9 @@ new.names<- unique(names(Xid[order(Xid)]))
 # This wsa moved here Jan 26
     if (!is.null(sex.col)) {
         Xsex <- edf[, sex.col]
-        if (!is.numeric(Xsex)) {
-            Xsex <- as.numeric(as.factor(as.character(Xsex))) - 1
-        }
+
+        Xsex <- as.numeric(as.factor(as.character(Xsex))) - 1
+
 #        xx <- cbind(Xid, Xsex)    # MOVED THESE 2 LINES
 #        usex.all <- xx[!duplicated(xx), ]
 # HEre note: If sex is ambiguous, sometimes coded as M and sometimes as F for the same individual then you get usex.all is the WRONG DIMENSION
@@ -76,26 +76,37 @@ new.names<- unique(names(Xid[order(Xid)]))
 # Added Jan 26, and edited by CS on 3 Feb
 # Here have to check for individuals sex being the same across sessions
 
-    
-  # if(!is.null(sex.col)){ #added this 3 feb
-  # for(i in 1:nind){
-  #   look<- edf[Xid==i,]
-  #   nposs<- nrow(look)
-  # 
-  #   n0<- sum(Xsex[Xid==i]==0 & !is.na(Xsex[Xid==i]))
-  #   n1<- sum(Xsex[Xid==i]==1 & !is.na(Xsex[Xid==i]))
-  #   nna<- sum(is.na(Xsex[Xid==i]))
-  # 
-  #   if(max(c(n0,n1,nna)) != nposs){
-  #       cat("Ambiguous sex information for ", Xid[i], sep=" ")
-  #       print(look)
-  # 
-  #       return(NULL)
-  #       }
-  # 
-  # }
-  # }#added this 3 feb
-    
+
+  if(!is.null(sex.col)){ #added this 3 feb
+  for(i in 1:nind){
+    look<- edf[Xid==i,]
+    # Feb 4 2021
+    if(is.matrix(edf) ){
+    look<- matrix(look, ncol=ncol(edf), byrow=FALSE)
+    }
+    nposs<- nrow(look)
+#    cat("nrows in look", nposs,fill=TRUE)
+#    print(look)
+
+### Feb 4 2021
+    usexvals<-  unique(Xsex[!is.na(Xsex)])
+
+    n0<- sum(Xsex[Xid==i]==usexvals[1] & !is.na(Xsex[Xid==i]))
+    n1<- sum(Xsex[Xid==i]==usexvals[2] & !is.na(Xsex[Xid==i]))
+    nna<- sum(is.na(Xsex[Xid==i]))
+    if(is.na(n0)) n0<- 0
+    if(is.na(n1)) n1<- 0  # have to do this because NA can be introduced if is.matrix(edf)==TRUE
+
+
+    if(max(c(n0,n1,nna)) != nposs){
+        cat("Ambiguous sex information for ", Xid[i], sep=" ")
+
+        return(NULL)
+        }
+
+  }
+  }#added this 3 feb
+
 
   # This was moved here Jan 26
   if(!is.null(sex.col)){
@@ -223,9 +234,9 @@ new.names<- unique(names(Xid[order(Xid)]))
       if(remove.zeros==TRUE){
         if (!is.null(sex.col)) {
           Xsex <- new.edf[[s]][, sex.col]
-          if (!is.numeric(Xsex)) {
+
             Xsex <- as.numeric(as.factor(as.character(Xsex))) - 1
-          }
+
           xx<- as.data.frame(cbind(xx, "sex" = Xsex))
           usex[[s]] <- xx[!duplicated(xx[, c("individual",  "sex")]), c("individual", "sex")]
         }
@@ -260,10 +271,7 @@ new.names<- unique(names(Xid[order(Xid)]))
       sex.oscr <- list()
       for (s in 1:nsess) {
         sex.tmp <- usex[[s]][, 2]
-        if (is.factor(sex.tmp))
-          sex.tmp <- as.numeric(sex.tmp) - 1
-        if (!is.factor(sex.tmp))
-          sex.tmp <- as.numeric(as.factor(sex.tmp)) - 1
+        sex.tmp <- as.numeric(as.factor(sex.tmp)) - 1
         sex.oscr[[s]] <- data.frame(sex = sex.tmp)
       }
     }else{

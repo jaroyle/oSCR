@@ -41,7 +41,7 @@ scrdesignGA <- function(statespace = NULL,
                 sigma = sigma,
                 crit=crit)
   optimaltraps <- rbind(alltraps[des$bestsol,],fixedtraps)
-  optimaltraps$fixed <- c(rep("no",k),
+  optimaltraps$fixed <- c(rep("no",length(des$bestsol)),
                           rep("yes",ifelse(is.null(fixedtraps),0,nrow(fixedtraps))))
   scrdesign <- list(des=des, statespace=statespace, alltraps=alltraps, optimaltraps=optimaltraps, 
                     sigma=sigma, beta0=beta0)

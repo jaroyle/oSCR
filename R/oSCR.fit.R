@@ -771,7 +771,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
             }
             if (telem){
               # only Euclidean distance for telemetry fixes ALSO ADD COST ID distmet="ecol"
-              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
+              #Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
+              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], ssDF[[s]][, c("X", "Y")])
             }
             lik.marg <- rep(NA, nrow(Ys))
             if (!is.null(trimS)) {
@@ -936,7 +937,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
               
               if(RSF){
                 rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
-                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
+                #rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
+                # to accommodate differing resolutions between rsfDF and ssDF
+                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(ssDF[[s]])))
               } else {
                 rsf.lam0 <- 0
               }
@@ -1014,7 +1017,7 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
         }
     }
     msLL.sex <- function(pv, pn, scrFrame, D, Y, nG, nK, hiK, dm.den, dm.trap) {
-        alpha0 <- array(0, c(ns, hiK, 2, 2))
+      alpha0 <- array(0, c(ns, hiK, 2, 2))
         tmpP <- pv[pn %in% names.p0[grep(fixed=TRUE,"p0.(Intercept)", names.p0)]]
         if (pDot & !pTime) {
             alpha0[, , , 1] <- tmpP
@@ -1238,7 +1241,8 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
             }
             if (telem){
               # only Euclidean distance for telemetry fixes
-              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
+              #Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], rsfDF[[s]][, c("X", "Y")])
+              Drsf[[s]] <- e2dist(rsfDF[[s]][, c("X", "Y")], ssDF[[s]][, c("X", "Y")])
             }
             lik.marg <- lik.marg1 <- lik.marg2 <- rep(NA, nrow(Ys))
             if (!is.null(trimS)) {
@@ -1532,7 +1536,9 @@ function (model = list(D ~ 1, p0 ~ 1, sig ~ 1, asu ~1), scrFrame, ssDF,
 
               if(RSF){
                 rsf.lam0 <- dm.rsf[[s]] %*% c(t.beta[s,])
-                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
+                #rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(rsfDF[[s]])))
+                # to accommodate differing resolutions between rsfDF and ssDF
+                rsf.lam0 <- array(rsf.lam0,dim=c(nrow(rsfDF[[s]]),nrow(ssDF[[s]])))
               } else {
                 rsf.lam0 <- 0
               }

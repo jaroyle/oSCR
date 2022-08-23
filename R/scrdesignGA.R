@@ -1,7 +1,7 @@
 # ststespace: state space points
 # all.traps:  set of trap locations
 # fix:        a set of points that are fixed (i.e., always in the design)
-# clust.mids: centroid of a cluster (for selction purposes?)
+# clust.mids: centroid of a cluster (for selection purposes?)
 # ntraps:     number of location we WANT
 # ndesigns:   number of different 'optimal' designs to return
 # nn:         number of neighbours for the swapping algorithm
@@ -40,7 +40,7 @@ scrdesignGA <- function(statespace = NULL,
                 beta0 = beta0,
                 sigma = sigma,
                 crit=crit)
-  optimaltraps <- rbind(alltraps[des$bestsol,],fixedtraps)
+  optimaltraps <- as.data.frame(rbind(alltraps[des$bestsol,],fixedtraps))
   optimaltraps$fixed <- c(rep("no",length(des$bestsol)),
                           rep("yes",ifelse(is.null(fixedtraps),0,nrow(fixedtraps))))
   scrdesign <- list(des=des, statespace=statespace, alltraps=alltraps, optimaltraps=optimaltraps, 

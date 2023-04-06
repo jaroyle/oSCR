@@ -4,6 +4,9 @@ data2oscr <-
            trapcov.names = NULL, remove.extracaps = TRUE, sex.nacode = NULL,
            tdf.sep = "/", rsfDF = NULL, telemetry = NULL){
 
+    # ensure edf is of class data.frame (e.g., not a tibble)
+    edf <- as.data.frame(edf)
+
     #tdf must be [NAME X Y] [optional: trap operation] [sep] [named trap covariates]
 
     ## Some safety checks

@@ -1,0 +1,19 @@
+{
+  "name": "photo-editor",
+  "version": "1.0.0",
+  "description": "Local web application for cropping and rotating photos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["photo", "editor", "crop", "rotate", "image"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "sharp": "^0.34.5"
+  }
+}

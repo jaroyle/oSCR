@@ -9,10 +9,10 @@ function(scrFrame,buffer,res,xy=NULL){
  if(is.null(xy)) xy <- c(1,2)
                    #res is the resolution for your state space
                  
-  if(res==NULL) stop("You didnt provide a resolution value!")
-                   #buffer is the required buffer 
-                   
-if(res==NULL)stop("You didnt provide a buffer value!")
+  if(is.null(res)) stop("You didnt provide a resolution value!")
+                   #buffer is the required buffer
+
+if(is.null(buffer))stop("You didnt provide a buffer value!")
                  
    S <- list()
                  

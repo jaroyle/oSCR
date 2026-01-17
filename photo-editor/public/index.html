@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Photo Editor</h1>
+      <div class="directory-info">
+        <label for="photoDir">Photo Directory:</label>
+        <input type="text" id="photoDir" placeholder="/path/to/photos">
+        <button id="setDirBtn">Set Directory</button>
+        <button id="loadBtn">Load Photos</button>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <div class="sidebar">
+        <div class="controls">
+          <h3>Controls</h3>
+
+          <div class="control-group">
+            <h4>Navigation</h4>
+            <button id="prevBtn" class="btn">← Previous</button>
+            <button id="nextBtn" class="btn">Next →</button>
+            <div class="image-counter">
+              <span id="currentImage">0</span> / <span id="totalImages">0</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h4>Rotate</h4>
+            <button id="rotateLeftBtn" class="btn">↶ Rotate Left</button>
+            <button id="rotateRightBtn" class="btn">Rotate Right ↷</button>
+          </div>
+
+          <div class="control-group">
+            <h4>Crop</h4>
+            <button id="cropBtn" class="btn btn-primary">Enable Crop</button>
+            <button id="resetCropBtn" class="btn">Reset Crop</button>
+          </div>
+
+          <div class="control-group">
+            <h4>Actions</h4>
+            <button id="saveBtn" class="btn btn-success">💾 Save Changes</button>
+            <button id="resetBtn" class="btn btn-warning">↺ Reset Image</button>
+          </div>
+        </div>
+
+        <div class="image-list">
+          <h3>Images</h3>
+          <div id="imageListContainer"></div>
+        </div>
+      </div>
+
+      <div class="editor-area">
+        <div class="image-container">
+          <img id="imageDisplay" src="" alt="Photo">
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

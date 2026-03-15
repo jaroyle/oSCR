@@ -47,6 +47,17 @@ combineFrames(sfList)
     sessions. \code{NULL} if \code{mmdm} is absent from all input frames. Used
     by \code{oSCR.fit} as a starting value for \code{sigma}.}
 
+  \item{mdm}{Maximum distance moved across all individuals and sessions.
+    Taken as the maximum of \code{mdm} across all input frames. \code{NULL}
+    if absent from all input frames.}
+
+  \item{sigCovs}{A data frame with one row per session (or two rows per
+    session if sex-structured), containing a \code{session} factor column
+    and any additional covariates on \code{sigma}. Session indices are
+    renumbered to reflect global session positions in the combined frame.
+    If absent from all input frames a minimal default is provided, consistent
+    with \code{\link{make.scrFrame}}.}
+
   \item{type}{Inherited from the first element of \code{sfList}.}
 }
 \details{
@@ -66,6 +77,19 @@ combineFrames(sfList)
   pooled across all sessions; if a more accurate pooled \code{mmdm} is
   required for the combined frame it should be recomputed directly from the
   combined capture histories and trap locations.
+
+  The \code{mdm} slot (maximum distance moved) is taken as the maximum value
+  across all input frames.
+
+  The \code{sigCovs} slot is combined by \code{rbind}-ing the per-frame data
+  frames, with the \code{session} factor column renumbered to reflect global
+  session indices in the combined frame. For example, if the first input frame
+  has 3 sessions and the second has 2, the second frame's session indices are
+  offset by 3 so the combined \code{sigCovs} has sessions numbered 1 through 5.
+  If \code{sigCovs} is absent from some frames, those sessions are padded with
+  a minimal default row. If absent from all frames, a default \code{sigCovs}
+  is constructed, ensuring \code{subFrame} can always reverse the operation
+  correctly.
 
   Telemetry objects are combined by appending the per-session elements of
   \code{fixfreq}, \code{indCovs}, and \code{cap.tel} across all input frames.

@@ -51,7 +51,7 @@
 #' # sf.back <- combineFrames(list(sf1, sf2))
 
 combineFrames <- function(sfList) {
-
+  
   # --- Input checks ---
   if (!is.list(sfList) || length(sfList) < 1) {
     stop("'sfList' must be a non-empty list of scrFrame objects.")
@@ -59,16 +59,16 @@ combineFrames <- function(sfList) {
   if (!all(sapply(sfList, inherits, "scrFrame"))) {
     stop("All elements of 'sfList' must be of class 'scrFrame'.")
   }
-
+  
   # Components that are per-session lists (excluding scalars nocc, type)
   session.components <- c("caphist", "traps", "indCovs", "trapCovs",
                           "trapOperation", "telemetry")
-
+  
   # Check which components are present (non-NULL) in at least one frame
   present <- sapply(session.components, function(comp) {
     any(sapply(sfList, function(sf) !is.null(sf[[comp]])))
   })
-
+  
   # Warn if a component is present in some frames but not others
   partial <- sapply(session.components, function(comp) {
     vals <- sapply(sfList, function(sf) !is.null(sf[[comp]]))
@@ -81,7 +81,7 @@ combineFrames <- function(sfList) {
       paste(session.components[partial], collapse = ", ")
     )
   }
-
+  
   # --- Helper: flatten one component across all frames into a single list ---
   # Each scrFrame stores per-session data as a list; we concatenate them.
   flatten_component <- function(comp) {
@@ -98,7 +98,7 @@ combineFrames <- function(sfList) {
     }
     out
   }
-
+  
   # --- Helper: combine telemetry (itself a named list of per-session lists) ---
   combine_telemetry <- function() {
     if (!present["telemetry"]) return(NULL)
@@ -129,7 +129,7 @@ combineFrames <- function(sfList) {
     if (!has.cap.tel) tel.out$cap.tel <- NULL
     tel.out
   }
-
+  
   # --- Assemble the combined scrFrame ---
   sf.combined <- list()
   sf.combined$caphist       <- flatten_component("caphist")
@@ -138,14 +138,14 @@ combineFrames <- function(sfList) {
   sf.combined$trapCovs      <- flatten_component("trapCovs")
   sf.combined$trapOperation <- flatten_component("trapOperation")
   sf.combined$telemetry     <- combine_telemetry()
-
+  
   # nocc: maximum occasions across all sessions
   sf.combined$nocc <- max(sapply(sf.combined$caphist, function(x) dim(x)[3]))
-
+  
   # occasions: per-session occasion counts, required by do.trim (called when trimS is set)
   sf.combined$occasions <- unlist(lapply(sf.combined$caphist, function(x) dim(x)[3]))
-
-  # mmdm: per-session mean maximum distance moved — concatenate across all frames.
+  
+  # mmdm: pooled mean maximum distance moved — concatenate across all frames.
   # If present in some frames but not others, warn and pad missing sessions with NA.
   has.mmdm <- sapply(sfList, function(sf) !is.null(sf$mmdm))
   if (any(has.mmdm)) {
@@ -156,10 +156,47 @@ combineFrames <- function(sfList) {
       if (is.null(sf$mmdm)) rep(NA_real_, length(sf$caphist)) else sf$mmdm
     }))
   }
-
+  
+  # mdm: maximum distance moved — take the max across all input frames.
+  has.mdm <- sapply(sfList, function(sf) !is.null(sf$mdm))
+  if (any(has.mdm)) {
+    sf.combined$mdm <- max(unlist(lapply(sfList, function(sf) sf$mdm)), na.rm = TRUE)
+  }
+  
+  # sigCovs: a data frame with one row per session (or two if sex-structured),
+  # containing a 'session' factor column. We rbind across all frames and then
+  # renumber the session factor to reflect the new global session indices.
+  has.sigCovs <- sapply(sfList, function(sf) !is.null(sf$sigCovs))
+  n.combined <- length(sf.combined$caphist)
+  if (any(has.sigCovs)) {
+    # Build a session offset so each frame's session numbers are shifted correctly
+    session.offset <- c(0, cumsum(sapply(sfList, function(sf) length(sf$caphist))))
+    sigCovs.list <- lapply(seq_along(sfList), function(i) {
+      sf <- sfList[[i]]
+      if (is.null(sf$sigCovs)) {
+        # Pad with a minimal sigCovs for these sessions
+        n_sess <- length(sf$caphist)
+        data.frame(session = factor(session.offset[i] + seq_len(n_sess),
+                                    levels = seq_len(n.combined)))
+      } else {
+        sc <- sf$sigCovs
+        # Renumber session factor to global indices
+        old.levels <- as.integer(as.character(sc$session))
+        new.levels  <- old.levels + session.offset[i]
+        sc$session  <- factor(new.levels, levels = seq_len(n.combined))
+        sc
+      }
+    })
+    sf.combined$sigCovs <- do.call(rbind, sigCovs.list)
+    rownames(sf.combined$sigCovs) <- NULL
+  } else {
+    # Always provide a default sigCovs as make.scrFrame does
+    sf.combined$sigCovs <- data.frame(session = factor(seq_len(n.combined)))
+  }
+  
   # type: inherit from first frame (should be "scr" for all)
   sf.combined$type <- sfList[[1]]$type
-
+  
   class(sf.combined) <- "scrFrame"
   return(sf.combined)
 }
